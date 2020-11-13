@@ -1,0 +1,398 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Favicon icon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/images/favicon.png' %}">
+    <script src="https://kit.fontawesome.com/e1cfa067bf.js" crossorigin="anonymous"></script>
+    <title>Memberships</title>
+
+    <!-- Custom CSS -->
+    <link href="{% static 'dist/css/style.min.css' %}" rel="stylesheet">
+
+    {% block header %}
+
+    {% endblock %}
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+</head>
+
+<body>
+    <!-- ============================================================== -->
+    <!-- Preloader - style you can find in spinners.css -->
+    <!-- ============================================================== -->
+    <div class="preloader">
+        <div class="lds-ripple">
+            <div class="lds-pos"></div>
+            <div class="lds-pos"></div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- Main wrapper - style you can find in pages.scss -->
+    <!-- ============================================================== -->
+    <div id="main-wrapper">
+        <!-- ============================================================== -->
+        <!-- Topbar header - style you can find in pages.scss -->
+        <!-- ============================================================== -->
+        <header class="topbar">
+            <nav class="navbar top-navbar navbar-expand-md navbar-dark">
+                <div class="navbar-header">
+                    <!-- This is for the sidebar toggle which is visible on mobile only -->
+                    <a class="nav-toggler waves-effect waves-light d-block d-md-none" href="javascript:void(0)"><i class="ti-menu ti-close"></i></a>
+                    <!-- ============================================================== -->
+                    <!-- Logo -->
+                    <!-- ============================================================== -->
+                    <a class="navbar-brand" href="/">
+                        <!-- Logo icon -->
+                        <b class="logo-icon">
+                            <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
+                            <!-- Dark Logo icon -->
+                            <i class="fad fa-clouds dark-logo"></i>
+                            <!-- Light Logo icon -->
+                            <i class="fad fa-clouds fa-2x text-white light-logo"></i>
+                        </b>
+                        <!--End Logo icon -->
+                    </a>
+                    <!-- ============================================================== -->
+                    <!-- End Logo -->
+                    <!-- ============================================================== -->
+                    <!-- ============================================================== -->
+                    <!-- Toggle which is visible on mobile only -->
+                    <!-- ============================================================== -->
+                    <a class="topbartoggler d-block d-md-none waves-effect waves-light" href="javascript:void(0)" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i class="ti-more"></i></a>
+                </div>
+                <!-- ============================================================== -->
+                <!-- End Logo -->
+                <!-- ============================================================== -->
+                <div class="navbar-collapse collapse" id="navbarSupportedContent">
+                    <!-- ============================================================== -->
+                    <!-- toggle and nav items -->
+                    <!-- ============================================================== -->
+                    <ul class="navbar-nav float-left mr-auto">
+                        <li class="nav-item d-none d-md-block"><a class="nav-link sidebartoggler waves-effect waves-light" href="javascript:void(0)" data-sidebartype="mini-sidebar"><i class="icon-arrow-left-circle"></i></a></li>
+                        <!-- ============================================================== -->
+                        <!-- Comment -->
+                        <!-- ============================================================== -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> <i class="mdi mdi-message"></i>
+                                 <div class="notify"> <span class="heartbit"></span> <span class="point"></span> </div>
+                            </a>
+                            <div class="dropdown-menu mailbox animated bounceInDown">
+                                <ul class="list-style-none">
+                                    <li>
+                                        <div class="font-weight-medium border-bottom rounded-top py-3 px-4">
+                                            Notifications
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="message-center notifications position-relative" style="height:250px;">
+                                            <!-- Message -->
+                                            <a href="javascript:void(0)" class="message-item d-flex align-items-center border-bottom px-3 py-2">
+                                                <span class="btn btn-danger rounded-circle btn-circle"><i class="fa fa-link"></i></span>
+                                                <div class="w-75 d-inline-block v-middle pl-2">
+                                                    <h5 class="message-title mb-0 mt-1">Luanch Admin</h5> <span class="font-12 text-nowrap d-block text-muted text-truncate">Just see the my new admin!</span> <span class="font-12 text-nowrap d-block text-muted">9:30 AM</span> </div>
+                                            </a>
+                                            <!-- Message -->
+                                            <a href="javascript:void(0)" class="message-item d-flex align-items-center border-bottom px-3 py-2">
+                                                <span class="btn btn-success rounded-circle btn-circle"><i class="ti-calendar"></i></span>
+                                                <div class="w-75 d-inline-block v-middle pl-2">
+                                                    <h5 class="message-title mb-0 mt-1">Event today</h5> <span class="font-12 text-nowrap d-block text-muted text-truncate">Just a reminder that you have event</span> <span class="font-12 text-nowrap d-block text-muted">9:10 AM</span> </div>
+                                            </a>
+                                            <!-- Message -->
+                                            <a href="javascript:void(0)" class="message-item d-flex align-items-center border-bottom px-3 py-2">
+                                                <span class="btn btn-info rounded-circle btn-circle"><i class="ti-settings"></i></span>
+                                                <div class="w-75 d-inline-block v-middle pl-2">
+                                                    <h5 class="message-title mb-0 mt-1">Settings</h5> <span class="font-12 text-nowrap d-block text-muted text-truncate">You can customize this template as you want</span> <span class="font-12 text-nowrap d-block text-muted">9:08 AM</span> </div>
+                                            </a>
+                                            <!-- Message -->
+                                            <a href="javascript:void(0)" class="message-item d-flex align-items-center border-bottom px-3 py-2">
+                                                <span class="btn btn-primary rounded-circle btn-circle"><i class="ti-user"></i></span>
+                                                <div class="w-75 d-inline-block v-middle pl-2">
+                                                    <h5 class="message-title mb-0 mt-1">Pavan kumar</h5> <span class="font-12 text-nowrap d-block text-muted text-truncate">Just see the my admin!</span> <span class="font-12 text-nowrap d-block text-muted">9:02 AM</span> </div>
+                                            </a>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <a class="nav-link border-top text-center text-dark pt-3" href="javascript:void(0);"> <strong>Check all notifications</strong> <i class="fa fa-angle-right"></i> </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <!-- ============================================================== -->
+                        <!-- End Comment -->
+                        <!-- ============================================================== -->
+                        <!-- ============================================================== -->
+                        <!-- mega menu -->
+                        <!-- ============================================================== -->
+                        <li class="nav-item dropdown mega-dropdown"><a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                             <span class=""><i class="mdi mdi-view-grid"></i></span>
+                            </a>
+                            <div class="dropdown-menu animated bounceInDown">
+                                <div class="mega-dropdown-menu row">
+                                    <div class="col-lg-3 col-xlg-2 mb-4">
+                                        <h4 class="mb-3">CAROUSEL</h4>
+                                        <!-- CAROUSEL -->
+                                        <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+                                            <div class="carousel-inner" role="listbox">
+                                                <div class="carousel-item active">
+                                                    <div class="container p-0"> <img class="d-block img-fluid" src="../assets/images/big/img1.jpg" alt="First slide"></div>
+                                                </div>
+                                                <div class="carousel-item">
+                                                    <div class="container p-0"><img class="d-block img-fluid" src="../assets/images/big/img2.jpg" alt="Second slide"></div>
+                                                </div>
+                                                <div class="carousel-item">
+                                                    <div class="container p-0"><img class="d-block img-fluid" src="../assets/images/big/img3.jpg" alt="Third slide"></div>
+                                                </div>
+                                            </div>
+                                            <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev"> <span class="carousel-control-prev-icon" aria-hidden="true"></span> <span class="sr-only">Previous</span> </a>
+                                            <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next"> <span class="carousel-control-next-icon" aria-hidden="true"></span> <span class="sr-only">Next</span> </a>
+                                        </div>
+                                        <!-- End CAROUSEL -->
+                                    </div>
+                                    <div class="col-lg-3 mb-4">
+                                        <h4 class="mb-3">ACCORDION</h4>
+                                        <!-- Accordian -->
+                                        <div id="accordion">
+                                            <div class="card mb-1">
+                                                <div class="card-header" id="headingOne">
+                                                    <h5 class="mb-0">
+                                                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                                                  Collapsible Group Item #1
+                                                </button>
+                                              </h5>
+                                                </div>
+                                                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card mb-1">
+                                                <div class="card-header" id="headingTwo">
+                                                    <h5 class="mb-0">
+                                                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                                  Collapsible Group Item #2
+                                                </button>
+                                              </h5>
+                                                </div>
+                                                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="card mb-1">
+                                                <div class="card-header" id="headingThree">
+                                                    <h5 class="mb-0">
+                                                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                                  Collapsible Group Item #3
+                                                </button>
+                                              </h5>
+                                                </div>
+                                                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                                                    <div class="card-body">
+                                                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3  mb-4">
+                                        <h4 class="mb-3">CONTACT US</h4>
+                                        <!-- Contact -->
+                                        <form>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" id="exampleInputname1" placeholder="Enter Name"> </div>
+                                            <div class="form-group">
+                                                <input type="email" class="form-control" placeholder="Enter email"> </div>
+                                            <div class="form-group">
+                                                <textarea class="form-control" id="exampleTextarea" rows="3" placeholder="Message"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-info">Submit</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-lg-3 col-xlg-4 mb-4">
+                                        <h4 class="mb-3">List style</h4>
+                                        <!-- List style -->
+                                        <ul class="list-style-none">
+                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> You can give link</a></li>
+                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> Give link</a></li>
+                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> Another Give link</a></li>
+                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> Forth link</a></li>
+                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> Another fifth link</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        <!-- ============================================================== -->
+                        <!-- End mega menu -->
+                        <!-- ============================================================== -->
+                    </ul>
+                    <!-- ============================================================== -->
+                    <!-- Right side toggle and nav items -->
+                    <!-- ============================================================== -->
+                    <ul class="navbar-nav float-right">
+                        <!-- ============================================================== -->
+                        <!-- Search -->
+                        <!-- ============================================================== -->
+                        <li class="nav-item search-box d-none d-md-block">
+                            <form class="app-search mt-3 mr-2">
+                                <input type="text" class="form-control rounded-pill border-0" placeholder="Search for member">
+                                <a class="srh-btn"><i class="ti-search"></i></a> 
+                            </form>
+                        </li>
+                        <!-- ============================================================== -->
+                        <!-- User profile and search -->
+                        <!-- ============================================================== -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fad fa-user rounded-circle"></i></a>
+                            <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
+                                <div class="d-flex no-block align-items-center p-3 mb-2 border-bottom">
+                                    <div class="u-img"><i class="fad fa-user-circle fa-4x"></i></div>
+                                    <div class="ml-2">
+                                        <h4 class="mb-0">{{ request.user.get_full_name }}</h4>
+                                        <p class=" mb-0">{{ request.user.email }}</p>
+                                        <a href="profile.html" class="btn btn-rounded btn-danger btn-sm">View Profile</a>
+                                    </div>
+                                </div>
+                                <a class="dropdown-item" href="javascript:void(0)"><i class="ti-settings mr-1 ml-1"></i> Account Settings</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{% url 'logout' %}"><i class="fa fa-power-off mr-1 ml-1"></i> Logout</a>
+                            </div>
+                        </li>
+                        <!-- ============================================================== -->
+                        <!-- User profile and search -->
+                        <!-- ============================================================== -->
+
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <!-- ============================================================== -->
+        <!-- End Topbar header -->
+        <!-- ============================================================== -->
+        <!-- ============================================================== -->
+        <!-- Left Sidebar - style you can find in sidebar.scss  -->
+        <!-- ============================================================== -->
+        <aside class="left-sidebar">
+            <!-- Sidebar scroll-->
+            <div class="scroll-sidebar">
+                <!-- Sidebar navigation-->
+                <nav class="sidebar-nav">
+                    <ul id="sidebarnav">
+                        <!-- User Profile-->
+                        <li>
+                            <!-- User profile -->
+                            <div class="user-profile text-center position-relative pt-4 mt-1">
+                                <!-- User profile image -->
+                                <div class="m-auto"> <i class="fad fa-user-circle fa-2x"></i> </div>
+                                <!-- User profile text-->
+                                <div class="profile-text py-1"> <a href="#" class="link u-dropdown" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">{{ request.user.get_full_name }}</a>
+
+                                </div>
+                            </div>
+                            <!-- End User profile text-->
+                        </li>
+                        <!-- User Profile-->
+                        <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Memberships</span></li>
+                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/" aria-expanded="false"><i class="fad fa-home-alt"></i> <span class="hide-menu">Dashboard</span></a></li>
+                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="fad fa-users"></i> <span class="hide-menu">Members</span></a></li>
+                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="fad fa-cogs"></i> <span class="hide-menu">Settings</span></a></li>
+
+                        <li class="nav-devider"></li>
+                        <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">My Account</span></li>
+                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="fad fa-user-cog"></i> <span class="hide-menu">My Membership</span></a></li>
+
+                        <li class="nav-devider"></li>
+                        <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Contact</span></li>
+                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="fad fa-envelope-open-text"></i> <span class="hide-menu">Contact </span></a></li>
+
+                    </ul>
+                </nav>
+                <!-- End Sidebar navigation -->
+            </div>
+            <!-- End Sidebar scroll-->
+            <!-- Bottom points-->
+            <div class="sidebar-footer">
+                <!-- item-->
+                <a href="" class="link" data-toggle="tooltip" title="Settings"><i class="ti-settings"></i></a>
+                <!-- item-->
+                <a href="" class="link" data-toggle="tooltip" title="Email"><i class="mdi mdi-gmail"></i></a>
+                <!-- item-->
+                <a href="{% url 'logout' %}" class="link" data-toggle="tooltip" title="Logout"><i class="mdi mdi-power"></i></a>
+            </div>
+            <!-- End Bottom points-->
+        </aside>
+        <!-- ============================================================== -->
+        <!-- End Left Sidebar - style you can find in sidebar.scss  -->
+        <!-- ============================================================== -->
+
+
+
+        <!-- ============================================================== -->
+        <!-- Page wrapper  -->
+        <!-- ============================================================== -->
+        <div class="page-wrapper">
+            {% block content %}
+
+            {% endblock %}
+            <!-- ============================================================== -->
+            <!-- footer -->
+            <!-- ============================================================== -->
+            <footer class="footer">
+                   ©2020 Memberships by MA Systems Limited
+            </footer>
+            <!-- ============================================================== -->
+            <!-- End footer -->
+            <!-- ============================================================== -->
+        </div>
+        <!-- ============================================================== -->
+        <!-- End Page wrapper  -->
+        <!-- ============================================================== -->
+    </div>
+    <!-- ============================================================== -->
+    <!-- End Wrapper -->
+    <!-- ============================================================== -->
+
+    <div class="chat-windows"></div>
+    <!-- ============================================================== -->
+    <!-- All Jquery -->
+    <!-- ============================================================== -->
+    <script src="{% static 'assets/libs/jquery/dist/jquery.min.js' %}"></script>
+    <!-- Bootstrap tether Core JavaScript -->
+    <script src="{% static 'assets/libs/popper.js/dist/umd/popper.min.js' %}"></script>
+    <script src="{% static 'assets/libs/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+    <!-- apps -->
+    <script src="{% static 'dist/js/app.min.js' %}"></script>
+    <script src="{% static 'dist/js/app.init.mini-sidebar.js' %}"></script>
+    <script src="{% static 'dist/js/app-style-switcher.js' %}"></script>
+    <!-- slimscrollbar scrollbar JavaScript -->
+    <script src="{% static 'assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js' %}"></script>
+    <script src="{% static 'assets/libs/jquery-sparkline/jquery.sparkline.min.js' %}"></script>
+    <!--Wave Effects -->
+    <script src="{% static 'dist/js/waves.js' %}"></script>
+    <!--Custom JavaScript -->
+    <script src="{% static 'dist/js/feather.min.js' %}"></script>
+    <script src="{% static 'dist/js/custom.min.js' %}"></script>
+
+
+    {% block footer %}
+
+    {% endblock %}
+</body>
+
+</html>

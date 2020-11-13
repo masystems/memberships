@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block header %}
+
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">Dashboard</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
+            <button class="btn float-right btn-success"><i class="mdi mdi-plus-circle"></i> Create</button>
+            <div class="dropdown float-right mr-2 hidden-sm-down">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> January 2020 </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="dropdown-item" href="#">February 2020</a> <a class="dropdown-item" href="#">March 2020</a> <a class="dropdown-item" href="#">April 2020</a> </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <!-- Column -->
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-md-flex align-items-center no-block">
+                        <h4 class="card-title">My Memberships</h4>
+                        <div class="ml-auto">
+<!--                            <select class="custom-select">-->
+<!--                                <option selected>Today</option>-->
+<!--                                <option value="1">Weekly</option>-->
+<!--                            </select>-->
+                        </div>
+                    </div>
+
+                    {% for account in memberships.all %}
+                        <div class="card
+                            {% if account.enabled %}
+                                bg-info
+                            {% else %}
+                                bg-danger
+                            {% endif %}">
+                            <div class="card-body text-white">
+                                <div class="d-flex flex-row">
+                                    <div class="display-6 align-self-center"><i class="fad fa-clipboard-check"></i></div>
+                                    <div class="p-2 align-self-center">
+                                        <h4 class="mb-0 text-white">{{ account.organisation_name }}</h4>
+                                        <span>
+                                            {% if account.owner == request.user %}
+                                                Owner
+                                            {% else %}
+                                                {% for admin in account.admins.all %}
+                                                    {% if admin == request.user %}
+                                                        Admin
+                                                    {% endif %}
+                                                {% endfor %}
+                                                {% for member in account.members.all %}
+                                                    {% if member == request.user %}
+                                                        Member
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="ml-auto align-self-center">
+                                        <button class="font-weight-medium mb-0 btn btn-light">View</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+        <div class="col-lg-6">
+            <!-- Row -->
+            <div class="row">
+                <!-- Column -->
+                <div class="col-sm-6">
+                    <div class="card card-body">
+                        <!-- Row -->
+                        <div class="row pt-2 pb-2">
+                            <!-- Column -->
+                            <div class="col pr-0">
+                                <h2 class="font-weight-light">oegs.cloud-lines.com</h2>
+                                <h6 class="text-muted">Linked Account</h6></div>
+                            <!-- Column -->
+                            <div class="col text-right align-self-center">
+                                <i class="fad fa-link fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-sm-6">
+                    <div class="card card-body">
+                        <!-- Row -->
+                        <div class="row pt-2 pb-2">
+                            <!-- Column -->
+                            <div class="col pr-0">
+                                <h1 class="font-weight-light">256</h1>
+                                <h6 class="text-muted">All Memebers</h6></div>
+                            <!-- Column -->
+                            <div class="col text-right align-self-center">
+                                <i class="fad fa-users text-info fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-sm-6">
+                    <div class="card card-body">
+                        <!-- Row -->
+                        <div class="row pt-2 pb-2">
+                            <!-- Column -->
+                            <div class="col pr-0">
+                                <h1 class="font-weight-light">250</h1>
+                                <h6 class="text-muted">Active Members</h6></div>
+                            <!-- Column -->
+                            <div class="col text-right align-self-center">
+                                <i class="fad fa-users text-success fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Column -->
+                <div class="col-sm-6">
+                    <div class="card card-body">
+                        <!-- Row -->
+                        <div class="row pt-2 pb-2">
+                            <!-- Column -->
+                            <div class="col pr-0">
+                                <h1 class="font-weight-light">6</h1>
+                                <h6 class="text-muted">Inactive Members</h6></div>
+                            <!-- Column -->
+                            <div class="col text-right align-self-center">
+                                <i class="fad fa-users-slash text-danger fa-3x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Row -->
+
+    <!-- Row -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-md-flex align-items-center no-block">
+                        <h4 class="card-title">Members</h4>
+                        <div class="ml-auto">
+<!--                            <select class="custom-select">-->
+<!--                                <option selected>January</option>-->
+<!--                                <option value="1">February</option>-->
+<!--                                <option value="2">March</option>-->
+<!--                                <option value="3">April</option>-->
+<!--                            </select>-->
+                        </div>
+                    </div>
+                    <div class="table-responsive mt-2">
+                        <table class="table stylish-table mb-0 no-wrap v-middle">
+                            <thead>
+                                <tr>
+                                    <th class="font-weight-normal text-muted border-0 border-bottom" colspan="2">Assigned</th>
+                                    <th class="font-weight-normal text-muted border-0 border-bottom">Name</th>
+                                    <th class="font-weight-normal text-muted border-0 border-bottom">Priority</th>
+                                    <th class="font-weight-normal text-muted border-0 border-bottom">Budget</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="width:50px;"><span class="round rounded-circle text-white d-inline-block text-center bg-info">S</span></td>
+                                    <td>
+                                        <h6 class="font-weight-medium mb-0 nowrap">Sunil Joshi</h6><small class="text-muted no-wrap">Web Designer</small></td>
+                                    <td>Elite Admin</td>
+                                    <td><span class="badge badge-light-success text-success">Low</span></td>
+                                    <td>$3.9K</td>
+                                </tr>
+                                <tr class="active">
+                                    <td><span class="round text-white d-inline-block text-center"><img src="../assets/images/users/2.jpg" alt="user" class="rounded-circle" width="50" /></span></td>
+                                    <td>
+                                        <h6 class="font-weight-medium mb-0 nowrap">Andrew</h6><small class="text-muted no-wrap">Project Manager</small></td>
+                                    <td>Real Homes</td>
+                                    <td><span class="badge badge-light-info text-info">Medium</span></td>
+                                    <td>$23.9K</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="round rounded-circle text-white d-inline-block text-center bg-success">B</span></td>
+                                    <td>
+                                        <h6 class="font-weight-medium mb-0 nowrap">Bhavesh patel</h6><small class="text-muted no-wrap">Developer</small></td>
+                                    <td>MedicalPro Theme</td>
+                                    <td><span class="badge badge-light-danger text-danger">High</span></td>
+                                    <td>$12.9K</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="round rounded-circle text-white d-inline-block text-center bg-primary">N</span></td>
+                                    <td>
+                                        <h6 class="font-weight-medium mb-0 nowrap">Nirav Joshi</h6><small class="text-muted no-wrap">Frontend Eng</small></td>
+                                    <td>Elite Admin</td>
+                                    <td><span class="badge badge-light-success text-success">Low</span></td>
+                                    <td>$10.9K</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="round rounded-circle text-white d-inline-block text-center bg-warning">M</span></td>
+                                    <td>
+                                        <h6 class="font-weight-medium mb-0 nowrap">Micheal Doe</h6><small class="text-muted no-wrap">Content Writer</small></td>
+                                    <td>Helping Hands</td>
+                                    <td><span class="badge badge-light-danger text-danger">High</span></td>
+                                    <td>$12.9K</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="round rounded-circle text-white d-inline-block text-center bg-danger">N</span></td>
+                                    <td>
+                                        <h6 class="font-weight-medium mb-0 nowrap">Johnathan</h6><small class="text-muted no-wrap">Graphic</small></td>
+                                    <td>Digital Agency</td>
+                                    <td><span class="badge badge-light-danger text-danger">High</span></td>
+                                    <td>$2.6K</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-body">
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Row -->
+
+</div>
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}
+
+{% block footer %}
+
+{% endblock %}
