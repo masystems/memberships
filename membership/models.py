@@ -3,17 +3,18 @@ from django.contrib.auth.models import User
 
 
 class MembershipPackage(models.Model):
-    organisation_name = models.CharField(max_length=50, unique=True)
+    organisation_name = models.CharField(max_length=50)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='owner', verbose_name="Owner")
     admins = models.ManyToManyField(User, blank=True, related_name='admins', verbose_name="Admins")
     members = models.ManyToManyField(User, blank=True, related_name='members', verbose_name="Members")
-    stripe_id = models.CharField(max_length=255, blank=True)
+    stripe_acct_id = models.CharField(max_length=255, blank=True)
+    stripe_acct_owner_id = models.CharField(max_length=255, blank=True)
     BOLTONS = (
         ('none', 'None'),
         ('equine', 'Equine'),
     )
     bolton = models.CharField(max_length=12, choices=BOLTONS, null=True, default='none',
-                                   help_text="Boltons add additional fields to your member form.")
+                              help_text="Boltons add additional fields to your member form.")
     cloud_lines_account = models.CharField(max_length=100, blank=True,
                                            help_text="Link your membership account to your cloud-lines account")
     enabled = models.BooleanField(default=False)

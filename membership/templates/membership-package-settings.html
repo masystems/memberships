@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block header %}
+
+{% endblock %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">Membership Package Settings</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item" aria-current="page">Members</li>
+                        <li class="breadcrumb-item active" aria-current="page">Settings</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
+            <button class="btn float-right btn-success"><i class="mdi mdi-plus-circle"></i> Create</button>
+            <div class="dropdown float-right mr-2 hidden-sm-down">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> January 2020 </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="dropdown-item" href="#">February 2020</a> <a class="dropdown-item" href="#">March 2020</a> <a class="dropdown-item" href="#">April 2020</a> </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Your membership package settings</h4>
+                    <h6 class="card-subtitle">Fill out the form below to create a new membership package.</h6>
+                </div>
+                <hr>
+
+                <form class="form-horizontal" method="POST" action="{% url 'membership_package_settings' %}" id="membershipForm">
+                    {% csrf_token %}
+                    <div class="card-body">
+                        <h4 class="card-title">Membership Package Detail</h4>
+                        <div class="row">
+                            {% for field in form %}
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label for="{{ field.id }}" class="col-sm-3 text-right control-label col-form-label">{{ field.label }}{% if field.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field field class+="" %}
+                                            <small>{{ field.help_text }}</small>
+                                            {% if field.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in field.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <hr>
+                        <div class="card-body">
+                            <div class="form-group mb-0 text-right">
+                                <button id="save-membership" class="btn btn-info waves-effect waves-light">Save and go to Stripe</button>
+                                <button type="submit" class="btn btn-dark waves-effect waves-light">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- End Row -->
+
+</div>
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}
+
+{% block footer %}
+    <script src="{% static 'assets/libs/moment/moment.js' %}"></script>
+    <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Date Picker
+        jQuery('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true
+        });
+    </script>
+{% endblock %}

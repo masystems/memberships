@@ -3,9 +3,9 @@ from .models import MembershipPackage, Member, Equine
 
 
 class MembershipPackagesAdmin(admin.ModelAdmin):
-    list_display = ('organisation_name', 'owner', 'cloud_lines_account', 'stripe_id', 'created')
-    list_filter = ('organisation_name', 'owner', 'cloud_lines_account', 'stripe_id', 'created')
-    search_fields = ['organisation_name', 'owner', 'cloud_lines_account', 'stripe_id', 'active', 'created']
+    list_display = ('organisation_name', 'owner', 'cloud_lines_account', 'stripe_acct_id', 'created')
+    list_filter = ('organisation_name', 'owner', 'cloud_lines_account', 'stripe_acct_id', 'created')
+    search_fields = ['organisation_name', 'owner', 'cloud_lines_account', 'stripe_acct_id', 'active', 'created']
     ordering = ['organisation_name']
     empty_value_display = '-empty-'
 

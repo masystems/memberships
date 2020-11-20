@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirec
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.conf import settings
 from django.db.models import Q
 from .models import MembershipPackage, Member, Equine
@@ -17,40 +18,128 @@ class MembershipBase(TemplateView):
         context['memberships'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
                                                                   Q(admins=self.request.user) |
                                                                   Q(members=self.request.user))
+
         return context
 
 
 class Membership(LoginRequiredMixin, MembershipBase):
-    template_name = 'dashboard.html'
+    template_name = 'membership-package.html'
     login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
         return context
 
 
-class CreateMembershipPackageView(LoginRequiredMixin, FormView):
-    template_name = 'create-membership-package.html'
+class MembershipPackageView(LoginRequiredMixin, MembershipBase):
+    template_name = 'membership-package.html'
     login_url = '/login/'
-    form_class = MembershipPackageForm
-    success_url = '/'
 
     def get_context_data(self, **kwargs):
-        context = super(CreateMembershipPackageView, self).get_context_data(**kwargs)
-        if self.request.user.is_superuser:
-            context['public_api_key'] = settings.STRIPE_PUBLIC_TEST_KEY
-        else:
-            context['public_api_key'] = settings.STRIPE_PUBLIC_KEY
+        context = super().get_context_data(**kwargs)
+
+        context['membership_package'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                                         Q(admins=self.request.user))
+        context['package'] = context['membership_package'][0]
+        context['members'] = Member.objects.filter(membership_package=context['package'])
         return context
 
+
+class MembershipPackageSettings(LoginRequiredMixin, FormView):
+    template_name = 'membership-package-settings.html'
+    login_url = '/login/'
+    form_class = MembershipPackageForm
+    success_url = '/membership/add-member'
+
+    def get_form(self, form_class=MembershipPackageForm):
+        try:
+            contact = MembershipPackage.objects.get(owner=self.request.user)
+            return form_class(instance=contact, **self.get_form_kwargs())
+        except MembershipPackage.DoesNotExist:
+            return form_class(**self.get_form_kwargs())
+
     def form_valid(self, form):
-        # This method is called when valid form data has been POSTed.
-        # It should return an HttpResponse.
-        result = validate_card(self.request)
-        print(result)
-        return HttpResponse(dumps(result))
-        form.save()
-        return super().form_valid(form)
+        # try:
+        #     form = MembershipPackageForm(form or None, instance=MembershipPackage.objects.get(owner=self.request.user))
+        # except:
+        #     form = MembershipPackageForm(form or None)
+
+        # save form
+        form.instance.owner = self.request.user
+        membership = form.save()
+        # get strip secret key
+        if self.request.user.is_superuser:
+            stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
+        else:
+            stripe.api_key = settings.STRIPE_SECRET_KEY
+
+        if not membership.stripe_acct_id:
+            # create initial account
+            account = stripe.Account.create(
+                type="express",
+                email=f"{self.request.user.email}",
+                capabilities={
+                    "card_payments": {"requested": True},
+                    "transfers": {"requested": True},
+                },
+                business_type="company",
+                company={
+                    'name': membership.organisation_name,
+                    "directors_provided": True,
+                    "executives_provided": True,
+                },
+                country="GB",
+                default_currency="GBP",
+            )
+
+            # add stripe account id
+            membership.stripe_acct_id = account.id
+            membership.save()
+        else:
+            # edit account
+            pass
+
+        if not membership.stripe_acct_owner_id:
+            # create owner
+            owner = stripe.Account.create_person(
+                membership.stripe_acct_id,
+                first_name=self.request.user.first_name,
+                last_name=self.request.user.last_name,
+                relationship={
+                    "owner": True,
+                },
+            )
+            # add stripe owner account id
+            membership.stripe_acct_owner_id = owner.id
+            membership.save()
+        else:
+            stripe.Account.modify_person(
+                membership.stripe_acct_id,
+                membership.stripe_acct_owner_id,
+                first_name=self.request.user.first_name,
+                last_name=self.request.user.last_name,
+                relationship={
+                    "owner": True,
+                },
+            )
+
+        # update main account
+        stripe.Account.modify(
+            membership.stripe_acct_id,
+            company={
+                "owners_provided": True,
+            },
+        )
+
+        account_links = stripe.AccountLink.create(
+            account=membership.stripe_acct_id,
+            refresh_url='http://localhost:8000/membership/membership-package-settings',
+            return_url='http://localhost:8000/membership/membership-package',
+            type='account_onboarding',
+        )
+
+        return redirect(account_links.url)
 
 
 def generate_username(first_name, last_name):
@@ -64,15 +153,18 @@ class AddMember(LoginRequiredMixin, FormView):
     success_url = '/membership/add-member'
 
     def get_context_data(self, **kwargs):
+        print("THIS")
         context = super(AddMember, self).get_context_data(**kwargs)
         self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                        Q(admins=self.request.user)).distinct()
+                                                        Q(admins=self.request.user))
         if self.package[0].bolton != "none":
             context['package'] = self.package[0]
             context['bolton_form'] = getattr(self, 'bolton_form', self.get_bolton_form())
         return context
 
     def get_bolton_form(self):
+        self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                        Q(admins=self.request.user))
         if self.package[0].bolton == "equine":
             if self.request.method == 'POST':
                 return EquineForm(self.request.POST)
@@ -81,7 +173,7 @@ class AddMember(LoginRequiredMixin, FormView):
 
     def form_valid(self, form):
         self.bolton_form = self.get_bolton_form()
-        if self.bolton_form.is_valid():
+        if self.bolton_form and self.bolton_form.is_valid():
             # All good logic goes here, which in the simplest case is
             # returning super.form_valid
             form.save()
@@ -89,7 +181,6 @@ class AddMember(LoginRequiredMixin, FormView):
             return super(AddMember, self).form_valid(form)
         else:
             # Otherwise treat as if the first form was invalid
-            print("bolton form is invalid!")
             return super(AddMember, self).form_invalid(form)
         #
         # return super(AddMember, self).form_valid(form)
@@ -110,29 +201,17 @@ def validate_card(request):
     else:
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
-    # create or get customer id
-    if not member.stripe_id:
-        # create stripe user
-        customer = stripe.Customer.create(
-            name=request.user.get_full_name(),
-            email=request.user.email
-        )
-        customer_id = customer['id']
-        member.stripe_id = customer_id
-        member.save()
-    else:
-        stripe.Customer.modify(
-            member.stripe_id,
-            name=request.user.get_full_name(),
-            email=request.user.email
-        )
-
+    membership_package = MembershipPackage.objects.get(owner=request.user)
     # add payment token to user
     try:
-        payment_method = stripe.Customer.modify(
-            member.stripe_id,
-            source=request.POST.get('token[id]')
+        payment_method = stripe.Account.modify(
+          membership_package.stripe_acct_id,
+          source=request.POST.get('token[id]'),
         )
+        result = {'result': 'success',
+              'feedback': payment_method}
+        return HttpResponse(dumps(result))
+
     except stripe.error.CardError as e:
         # Since it's a decline, stripe.error.CardError will be caught
         feedback = send_payment_error(e)

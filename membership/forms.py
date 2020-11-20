@@ -10,7 +10,9 @@ class MembershipPackageForm(forms.ModelForm):
         exclude = ('owner',
                    'admins',
                    'members',
-                   'stripe_id',
+                   'stripe_acct_id',
+                   'stripe_acct_owner_id',
+                   'cloud_lines_account',
                    'enabled')
         help_texts = {
             # 'service': _('If your query is not regarding a service, leave this blank.'),

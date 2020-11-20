@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block header %}
+
+{% endblock %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">Membership Package</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item" aria-current="page">Members</li>
+                        <li class="breadcrumb-item active" aria-current="page">Package</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
+            <button class="btn float-right btn-success"><i class="mdi mdi-plus-circle"></i> Create</button>
+            <div class="dropdown float-right mr-2 hidden-sm-down">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> January 2020 </button>
+                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="dropdown-item" href="#">February 2020</a> <a class="dropdown-item" href="#">March 2020</a> <a class="dropdown-item" href="#">April 2020</a> </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <!-- Column -->
+        <div class="col-lg-8 col-xl-9 col-md-9">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex no-block align-items-center mb-4">
+                        <h4 class="card-title">{{ package.organisation_name }} Members</h4>
+                        <div class="ml-auto">
+                            <div class="btn-group">
+                                <a href="{% url 'add_member' %}">
+                                    <button type="button" class="btn btn-dark">
+                                        Add New Member
+                                    </button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="file_export" class="table table-bordered nowrap display">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Role</th>
+                                    <th>Joining date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in members.all %}
+                                    <tr>
+                                        <td>
+                                            <a href="app-contact-detail.html"><img
+                                                    src="../assets/images/users/1.jpg" alt="user"
+                                                    class="rounded-circle" width="30" /> Genelia Deshmukh</a>
+                                        </td>
+                                        <td>genelia@gmail.com</td>
+                                        <td>+123 456 789</td>
+                                        <td><span class="badge py-1 badge-danger">Designer</span> </td>
+                                        <td>23</td>
+                                        <td>12-10-2014</td>
+                                        <td>$1200</td>
+                                        <td>
+                                            <button type="button"
+                                                class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn"
+                                                data-toggle="tooltip" data-original-title="Delete"><i
+                                                    class="ti-close" aria-hidden="true"></i></button>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+        <!-- Column -->
+        <div class="col-lg-4 col-xl-3 col-md-3">
+            <div class="card">
+                <div class="border-bottom p-3">
+                    <button type="button" class="btn btn-info" data-toggle="modal" data-target="#Sharemodel"
+                        style="width: 100%">
+                        <i class="ti-share mr-2"></i> Share With
+                    </button>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="ti-search"></i></span>
+                            </div>
+                            <input type="text" class="form-control" placeholder="Search Contacts Here..."
+                                aria-label="Amount (to the nearest dollar)">
+                            <div class="input-group-append">
+                                <button class="btn btn-info">Ok</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="list-group mt-4">
+                        <a href="javascript:void(0)" class="list-group-item active"><i
+                                class="ti-layers mr-2"></i> All Contacts</a>
+                        <a href="javascript:void(0)" class="list-group-item"><i class="ti-star mr-2"></i>
+                            Favourite Contacts</a>
+                        <a href="javascript:void(0)" class="list-group-item"><i
+                                class="ti-bookmark mr-2"></i> Recently Created</a>
+                    </div>
+                    <h4 class="card-title mt-4">Groups</h4>
+                    <div class="list-group">
+                        <a href="javascript:void(0)" class="list-group-item"><i
+                                class="ti-flag-alt-2 mr-2"></i> Success Warriers
+                            <span class="badge badge-info float-right">20</span>
+                        </a>
+                        <a href="javascript:void(0)" class="list-group-item"><i class="ti-notepad mr-2"></i>
+                            Project
+                            <span class="badge badge-success float-right">12</span>
+                        </a>
+                        <a href="javascript:void(0)" class="list-group-item"><i class="ti-target mr-2"></i>
+                            Envato Author
+                            <span class="badge badge-dark float-right">22</span>
+                        </a>
+                        <a href="javascript:void(0)" class="list-group-item"><i
+                                class="ti-comments mr-2"></i> IT Friends
+                            <span class="badge badge-danger float-right">101</span>
+                        </a>
+                    </div>
+                    <h4 class="card-title mt-4">More</h4>
+                    <div class="list-group">
+                        <a href="javascript:void(0)" class="list-group-item">
+                            <span class="badge badge-info mr-2"><i class="ti-import"></i></span> Import
+                            Contacts
+                        </a>
+                        <a href="javascript:void(0)" class="list-group-item">
+                            <span class="badge badge-warning text-white mr-2"><i
+                                    class="ti-export"></i></span> Export Contacts
+                        </a>
+                        <a href="javascript:void(0)" class="list-group-item">
+                            <span class="badge badge-success mr-2"><i class="ti-share-alt"></i></span>
+                            Restore Contacts
+                        </a>
+                        <a href="javascript:void(0)" class="list-group-item">
+                            <span class="badge badge-primary mr-2"><i class="ti-layers-alt"></i></span>
+                            Duplicate Contacts
+                        </a>
+                        <a href="javascript:void(0)" class="list-group-item">
+                            <span class="badge badge-danger mr-2"><i class="ti-trash"></i></span> Delete All
+                            Contacts
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+    </div>
+    <!-- End Row -->
+
+</div>
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}
+
+{% block footer %}
+    <script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
+    <!-- start - This is for export functionality only -->
+    <script src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.flash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.print.min.js"></script>
+    <script src="{% static 'dist/js/pages/datatable/datatable-advanced.init.js' %}"></script>
+{% endblock %}
