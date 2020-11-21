@@ -28,7 +28,7 @@ class Member(models.Model):
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, blank=True, null=True, related_name='membership_package', verbose_name="Membership Package")
     user_account = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='user_account', verbose_name="User Account")
     title = models.CharField(max_length=255, blank=True)
-    email = models.EmailField(max_length=255)
+    email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     address_line_1 = models.CharField(max_length=255, blank=True)

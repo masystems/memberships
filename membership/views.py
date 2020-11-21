@@ -1,10 +1,12 @@
-from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect
+from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect, get_object_or_404
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormView
+from django.views.generic.edit import FormView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
+from memberships.functions import generate_username
 from .models import MembershipPackage, Member, Equine
 from .forms import MembershipPackageForm, MemberForm, EquineForm
 from random import randint
@@ -147,13 +149,12 @@ def generate_username(first_name, last_name):
 
 
 class AddMember(LoginRequiredMixin, FormView):
-    template_name = 'add_member.html'
+    template_name = 'member_form.html'
     login_url = '/login/'
     form_class = MemberForm
-    success_url = '/membership/add-member'
+    success_url = '/membership/'
 
     def get_context_data(self, **kwargs):
-        print("THIS")
         context = super(AddMember, self).get_context_data(**kwargs)
         self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
                                                         Q(admins=self.request.user))
@@ -170,28 +171,109 @@ class AddMember(LoginRequiredMixin, FormView):
                 return EquineForm(self.request.POST)
             else:
                 return EquineForm()
+        else:
+            return None
 
     def form_valid(self, form):
         self.bolton_form = self.get_bolton_form()
         if self.bolton_form and self.bolton_form.is_valid():
             # All good logic goes here, which in the simplest case is
             # returning super.form_valid
-            form.save()
+            self.member = form.save()
             self.bolton_form.save()
+            self.create_and_link_user()
+            return super(AddMember, self).form_valid(form)
+        elif not self.bolton_form:
+            self.member = form.save()
+            self.create_and_link_user()
             return super(AddMember, self).form_valid(form)
         else:
             # Otherwise treat as if the first form was invalid
             return super(AddMember, self).form_invalid(form)
-        #
-        # return super(AddMember, self).form_valid(form)
-        # AddMember, self
 
-    # Do this only if you need to validate second form when first form is
-    # invalid
     def form_invalid(self, form):
         self.second_form = self.get_bolton_form()
         self.second_form.is_valid()
         return super(AddMember, self).form_invalid(form)
+
+    def create_and_link_user(self):
+        """
+        Create and link user
+        :return:
+        """
+        user, created = User.objects.get_or_create(username=generate_username(self.member.first_name,
+                                                                              self.member.last_name),
+                                                   email=self.member.email,
+                                                   first_name=self.member.first_name,
+                                                   last_name=self.member.last_name)
+        self.member.user_account = user
+        self.member.membership_package = self.package[0]
+        self.member.save()
+
+
+class UpdateMember(LoginRequiredMixin, UpdateView):
+    template_name = 'member_form.html'
+    login_url = '/login/'
+    form_class = MemberForm
+    model = Member
+    success_url = '/membership/'
+
+    def get_context_data(self, **kwargs):
+        context = super(UpdateMember, self).get_context_data(**kwargs)
+
+        self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                        Q(admins=self.request.user))
+        if self.package[0].bolton != "none":
+            context['package'] = self.package[0]
+            context['bolton_form'] = getattr(self, 'bolton_form', self.get_bolton_form())
+        return context
+
+    def get_bolton_form(self):
+        self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                        Q(admins=self.request.user))
+        if self.package[0].bolton == "equine":
+            if self.request.method == 'POST':
+                return EquineForm(self.request.POST)
+            else:
+                return EquineForm()
+        else:
+            return None
+
+    def form_valid(self, form):
+        self.bolton_form = self.get_bolton_form()
+        if self.bolton_form and self.bolton_form.is_valid():
+            # All good logic goes here, which in the simplest case is
+            # returning super.form_valid
+            self.member = form.save()
+            self.bolton_form.save()
+            self.create_and_link_user()
+            return super(UpdateMember, self).form_valid(form)
+        elif not self.bolton_form:
+            self.member = form.save()
+            self.create_and_link_user()
+            return super(UpdateMember, self).form_valid(form)
+        else:
+            # Otherwise treat as if the first form was invalid
+            return super(UpdateMember, self).form_invalid(form)
+
+    def form_invalid(self, form):
+        self.second_form = self.get_bolton_form()
+        self.second_form.is_valid()
+        return super(UpdateMember, self).form_invalid(form)
+
+    def create_and_link_user(self):
+        """
+        Create and link user
+        :return:
+        """
+        user, created = User.objects.get_or_create(username=generate_username(self.member.first_name,
+                                                                              self.member.last_name),
+                                                   email=self.member.email,
+                                                   first_name=self.member.first_name,
+                                                   last_name=self.member.last_name)
+        self.member.user_account = user
+        self.member.membership_package = self.package[0]
+        self.member.save()
 
 
 def validate_card(request):

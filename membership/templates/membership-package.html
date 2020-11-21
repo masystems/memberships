@@ -75,21 +75,15 @@
                                 {% for member in members.all %}
                                     <tr>
                                         <td>
-                                            <a href="app-contact-detail.html"><img
-                                                    src="../assets/images/users/1.jpg" alt="user"
-                                                    class="rounded-circle" width="30" /> Genelia Deshmukh</a>
+                                            {{ member.user_account.get_full_name }}
                                         </td>
-                                        <td>genelia@gmail.com</td>
-                                        <td>+123 456 789</td>
-                                        <td><span class="badge py-1 badge-danger">Designer</span> </td>
-                                        <td>23</td>
-                                        <td>12-10-2014</td>
-                                        <td>$1200</td>
+                                        <td>{{ member.user_account.email }}</td>
+                                        <td>{{ member.contact_number }}</td>
+                                        <td><span class="badge py-1 badge-info">Member</span> </td>
+                                        <td>{{ member.user_account.date_joined }}</td>
                                         <td>
-                                            <button type="button"
-                                                class="btn btn-sm btn-icon btn-pure btn-outline delete-row-btn"
-                                                data-toggle="tooltip" data-original-title="Delete"><i
-                                                    class="ti-close" aria-hidden="true"></i></button>
+                                            <a href="{% url 'edit_member' member.id %}"><i class="fad fa-user-edit"></i></a>
+                                            <a href="{% url 'edit_member' member.id %}"><i class="fad fa-user-slash text-danger"></i></a>
                                         </td>
                                     </tr>
                                 {% endfor %}
