@@ -8,7 +8,6 @@ class MembershipPackage(models.Model):
     admins = models.ManyToManyField(User, blank=True, related_name='admins', verbose_name="Admins")
     members = models.ManyToManyField(User, blank=True, related_name='members', verbose_name="Members")
     stripe_acct_id = models.CharField(max_length=255, blank=True)
-    stripe_acct_owner_id = models.CharField(max_length=255, blank=True)
     BOLTONS = (
         ('none', 'None'),
         ('equine', 'Equine'),
@@ -131,4 +130,4 @@ class Equine(models.Model):
     gdpr_phone = models.BooleanField(default=False)
 
     def __str__(self):
-        return self.member
+        return str(self.member) if self.member else ''

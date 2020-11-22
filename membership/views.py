@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
-from memberships.functions import generate_username
+from memberships.functions import generate_username, get_stripe_secret_key
 from .models import MembershipPackage, Member, Equine
 from .forms import MembershipPackageForm, MemberForm, EquineForm
 from random import randint
@@ -34,17 +34,43 @@ class Membership(LoginRequiredMixin, MembershipBase):
         return context
 
 
+class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
+    template_name = 'select-membership-package.html'
+    login_url = '/login/'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                                          Q(admins=self.request.user))
+
+        return context
+
+    def get(self, *args, **kwargs):
+        membership_packages = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                               Q(admins=self.request.user))
+        if len(membership_packages) < 1:
+            return HttpResponseRedirect(f'membership-package-settings')
+        if len(membership_packages) == 1:
+            return HttpResponseRedirect(f'org/{membership_packages[0].organisation_name}')
+        if len(membership_packages) > 1:
+            return super().get(*args, **kwargs)
+
+
 class MembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'membership-package.html'
     login_url = '/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        context['membership_package'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                         Q(admins=self.request.user))
-        context['package'] = context['membership_package'][0]
+        context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                                    Q(admins=self.request.user))
+        context['package'] = context['membership_packages'][0]
         context['members'] = Member.objects.filter(membership_package=context['package'])
+
+        # get strip secret key
+        stripe.api_key = get_stripe_secret_key(self.request)
+        context['stripe_package'] = stripe.Account.retrieve(context['package'].stripe_acct_id)
         return context
 
 
@@ -71,10 +97,7 @@ class MembershipPackageSettings(LoginRequiredMixin, FormView):
         form.instance.owner = self.request.user
         membership = form.save()
         # get strip secret key
-        if self.request.user.is_superuser:
-            stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
-        else:
-            stripe.api_key = settings.STRIPE_SECRET_KEY
+        stripe.api_key = get_stripe_secret_key(self.request)
 
         if not membership.stripe_acct_id:
             # create initial account
@@ -102,50 +125,14 @@ class MembershipPackageSettings(LoginRequiredMixin, FormView):
             # edit account
             pass
 
-        if not membership.stripe_acct_owner_id:
-            # create owner
-            owner = stripe.Account.create_person(
-                membership.stripe_acct_id,
-                first_name=self.request.user.first_name,
-                last_name=self.request.user.last_name,
-                relationship={
-                    "owner": True,
-                },
-            )
-            # add stripe owner account id
-            membership.stripe_acct_owner_id = owner.id
-            membership.save()
-        else:
-            stripe.Account.modify_person(
-                membership.stripe_acct_id,
-                membership.stripe_acct_owner_id,
-                first_name=self.request.user.first_name,
-                last_name=self.request.user.last_name,
-                relationship={
-                    "owner": True,
-                },
-            )
-
-        # update main account
-        stripe.Account.modify(
-            membership.stripe_acct_id,
-            company={
-                "owners_provided": True,
-            },
-        )
-
         account_links = stripe.AccountLink.create(
             account=membership.stripe_acct_id,
-            refresh_url='http://localhost:8000/membership/membership-package-settings',
-            return_url='http://localhost:8000/membership/membership-package',
+            refresh_url=f'http://{settings.SITE_NAME}/membership/membership-package-settings',
+            return_url=f'http://{settings.SITE_NAME}/membership',
             type='account_onboarding',
         )
 
         return redirect(account_links.url)
-
-
-def generate_username(first_name, last_name):
-    return f"{first_name.lower().replace(' ', '')}.{last_name.lower().replace(' ', '')}{randint(1000, 9999)}"
 
 
 class AddMember(LoginRequiredMixin, FormView):
@@ -278,10 +265,7 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
 
 def validate_card(request):
     # get strip secret key
-    if request.user.is_superuser:
-        stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
-    else:
-        stripe.api_key = settings.STRIPE_SECRET_KEY
+    stripe.api_key = get_stripe_secret_key(request)
 
     membership_package = MembershipPackage.objects.get(owner=request.user)
     # add payment token to user
