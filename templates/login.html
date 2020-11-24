@@ -13,7 +13,7 @@
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/images/favicon.png' %}">
     <title>Memberships Login</title>
-	<link rel="canonical" href="https://www.wrappixel.com/templates/monsteradmin/" />
+	<link rel="canonical" href="https://www.memberships.cloud-lines.com" />
     <!-- Custom CSS -->
     <link href="{% static 'dist/css/style.min.css' %}" rel="stylesheet">
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -74,11 +74,11 @@
                                     <button class="btn btn-info btn-lg btn-block text-uppercase waves-effect waves-light" type="submit">Log In</button>
                                 </div>
 
-<!--                                <div class="form-group mb-0">-->
-<!--                                    <div class="text-center">-->
-<!--                                        <p>Don't have an account? <a href="authentication-register1.html" class="text-info font-weight-normal ml-1">Sign Up</a></p>-->
-<!--                                    </div>-->
-<!--                                </div>-->
+                                <div class="form-group mb-0">
+                                    <div class="text-center">
+                                        <p>Don't have an account? <a href="{% url 'register' %}" class="text-info font-weight-normal ml-1">Sign Up</a></p>
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>
