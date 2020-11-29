@@ -14,23 +14,19 @@
 <div class="page-breadcrumb">
     <div class="row">
         <div class="col-md-5 align-self-center">
-            <h4 class="page-title">Add Member</h4>
+            <h4 class="page-title">Member Form</h4>
             <div class="d-flex align-items-center">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/">Home</a></li>
                         <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
-                        <li class="breadcrumb-item active" aria-current="page">Add Member</li>
+                        <li class="breadcrumb-item active" aria-current="page">Member Form</li>
                     </ol>
                 </nav>
             </div>
         </div>
         <div class="col-md-7 align-self-center d-none d-md-block">
-            <button class="btn float-right btn-success"><i class="mdi mdi-plus-circle"></i> Create</button>
-            <div class="dropdown float-right mr-2 hidden-sm-down">
-                <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> January 2020 </button>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton"> <a class="dropdown-item" href="#">February 2020</a> <a class="dropdown-item" href="#">March 2020</a> <a class="dropdown-item" href="#">April 2020</a> </div>
-            </div>
+
         </div>
     </div>
 </div>
@@ -46,15 +42,15 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Add New Member</h4>
+                    <h4 class="card-title">Member Form</h4>
                     <h6 class="card-subtitle">Fill out the form below to add a new member to your organisation.</h6>
                 </div>
                 <hr>
 
-                <form class="form-horizontal" action="{% url 'add_member' %}" method="POST">
+                <form id="memberForm" class="form-horizontal" action="{% url 'add_member' %}" method="POST">
                     {% csrf_token %}
                     <div class="card-body">
-                        <h4 class="card-title">Member Detail</h4>
+                        <h4 class="card-title">Details</h4>
                         <div class="row">
                             {% for field in form %}
                                 <div class="col-sm-12 col-lg-6">
@@ -98,7 +94,7 @@
                         <hr>
                         <div class="card-body">
                             <div class="form-group mb-0 text-right">
-                                <button type="submit" class="btn btn-info waves-effect waves-light">Save</button>
+                                <button id="save-member" class="btn btn-info waves-effect waves-light">Save Member</button>
                                 <button type="submit" class="btn btn-dark waves-effect waves-light">Cancel</button>
                             </div>
                         </div>

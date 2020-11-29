@@ -8,12 +8,23 @@ class MembershipPackage(models.Model):
     admins = models.ManyToManyField(User, blank=True, related_name='admins', verbose_name="Admins")
     members = models.ManyToManyField(User, blank=True, related_name='members', verbose_name="Members")
     stripe_acct_id = models.CharField(max_length=255, blank=True)
+    stripe_owner_id = models.CharField(max_length=255, blank=True)
+    stripe_product_id = models.CharField(max_length=255, blank=True)
+
     BOLTONS = (
         ('none', 'None'),
         ('equine', 'Equine'),
     )
     bolton = models.CharField(max_length=12, choices=BOLTONS, null=True, default='none',
                               help_text="Boltons add additional fields to your member form.")
+
+    membership_price_per_month = models.DecimalField(blank=False, max_digits=5, decimal_places=2,
+                                                     help_text="Price in £ per month")
+    membership_price_per_month_id = models.CharField(max_length=255, blank=True)
+    membership_price_per_year = models.DecimalField(blank=False, max_digits=5, decimal_places=2,
+                                                    help_text="Price in £ per year")
+    membership_price_per_year_id = models.CharField(max_length=255, blank=True)
+
     cloud_lines_account = models.CharField(max_length=100, blank=True,
                                            help_text="Link your membership account to your cloud-lines account")
     enabled = models.BooleanField(default=False)
@@ -26,6 +37,8 @@ class MembershipPackage(models.Model):
 class Member(models.Model):
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, blank=True, null=True, related_name='membership_package', verbose_name="Membership Package")
     user_account = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='user_account', verbose_name="User Account")
+    stripe_id = models.CharField(max_length=255, blank=True)
+    stripe_subscription_id = models.CharField(max_length=255, blank=True)
     title = models.CharField(max_length=255, blank=True)
     email = models.EmailField(max_length=255, unique=True)
     first_name = models.CharField(max_length=255)
@@ -87,21 +100,28 @@ class Member(models.Model):
 
 
     PAYMENT_TYPE = (
+        ('card_payment', 'Card Payment'),
         ('cash', 'Cash'),
-        ('cheque ', 'Cheque '),
+        ('cheque', 'Cheque '),
         ('standing_order', 'Standing Order'),
         ('caf_standing_order', 'CAF standing Order'),
         ('petty_cash', 'Petty Cash'),
-        ('card_payment', 'Card Payment'),
         ('bacs', 'BACS'),
         ('caf_voucher', 'Caf Voucher'),
         ('postal_cheque ', 'Postal Cheque'),
         ('paypal', 'Paypal')
     )
-    payment_type = models.CharField(max_length=19, choices=PAYMENT_TYPE, null=True, default='card_payment',
+    payment_type = models.CharField(max_length=19, choices=PAYMENT_TYPE, null=True, default='Card Payment',
                                       help_text="Payment type used by member")
 
-    standing_order_amount = models.FloatField()
+    BILLING_PERIOD = (
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly '),
+    )
+    billing_period = models.CharField(max_length=19, choices=BILLING_PERIOD, null=True, default='monthly',
+                                    help_text="Payment frequency")
+
+    #membership_price = models.DecimalField(blank=False, max_digits=5, decimal_places=2, help_text="Price in £ for requency given")
 
     comments = models.TextField(blank=True)
 

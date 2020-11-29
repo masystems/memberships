@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block header %}
+
+{% endblock %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">Member Payment</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Member Payment</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
+
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Member Payment</h4>
+                    <h6 class="card-subtitle">Fill out the payment form below manage payments to...</h6>
+                </div>
+                <hr>
+                <div class="col-lg-6 offset-lg-3">
+                    <form id="payment-form">
+                        <label>Card Holders Name:</label>
+                        <input id="cardholder-name" type="text" class="form-control" value="{{ user.get_full_name }}">
+                        <!-- placeholder for Elements -->
+                        <div id="card-element"></div>
+                        <!-- Used to display Element errors. -->
+                        <div id="card-errors" role="alert"></div>
+                    </form>
+                    <div class="text-center" id="cardTypes">
+                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:50px">
+                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:50px">
+                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:50px">
+                    </div>
+                </div>
+                <div id="loading" class="d-none">
+                    <div class="spinner-border text-primary align-self-center float-right"></div>
+                </div>
+                <hr>
+                <div class="card-body">
+                    <div class="form-group mb-0 text-right">
+                        <button id="save-membership" class="btn btn-info waves-effect waves-light">Start Membership Package</button>
+                        <button type="submit" class="btn btn-dark waves-effect waves-light">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Row -->
+
+</div>
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}
+
+{% block footer %}
+    <script src="{% static 'assets/libs/moment/moment.js' %}"></script>
+    <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        // Date Picker
+        jQuery('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true
+        });
+    </script>
+    <script>
+        $("#save-membership").click(function(e){
+            generateCardToken();
+        });
+
+
+        // STRIPE STUFF
+        var stripe = Stripe('{{ public_api_key }}');
+        var elements = stripe.elements();
+
+        // Custom styling can be passed to options when creating an Element.
+        var style = {
+          base: {
+            color: '#32325d',
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': {
+              color: '#aab7c4'
+            }
+          },
+          invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+          }
+        };
+
+        // Create an instance of the card Element.
+        var card = elements.create('card', {style: style});
+
+        // Add an instance of the card Element into the `card-element` <div>.
+        card.mount('#card-element');
+
+
+        card.addEventListener('change', function(event) {
+          var displayError = document.getElementById('card-errors');
+          if (event.error) {
+            displayError.textContent = event.error.message;
+          } else {
+            displayError.textContent = '';
+          }
+        });
+
+        // Create a token or display an error when the form is submitted.
+        var form = document.getElementById('payment-form');
+        var cardButton = document.getElementById('card-button');
+        function generateCardToken() {
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    // Inform the customer that there was an error.
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    stripeTokenHandler(result.token);
+                }
+            });
+        }
+
+        function stripeTokenHandler(token) {
+
+            // Submit the token
+            $.ajax({
+                url: '{% url 'member_payment' package.organisation_name member.id %}',
+                type: 'post',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: {
+                    'token': token,
+                    },
+                beforeSend: function() {
+                    $('#spinner').removeClass("d-none");
+                    $('#spinnerText').removeClass("d-none");
+                    $('#paymentSuccess').addClass('d-none');
+                    $('#paymentFail').addClass('d-none');
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    $('#spinner').addClass('d-none');
+                    $('#spinnerText').addClass('d-none');
+                    if (result.result == 'fail') {
+                        // hide loader
+                        $('#loading').addClass('d-none');
+                        $('#card-errors').html(result.feedback);
+                        console.log(data);
+                    } else {
+                        // hide loader
+                        loadSuccessPage(result);
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                    console.log('jqXHR:');
+                    console.log(jqXHR);
+                    console.log('textStatus:');
+                    console.log(textStatus);
+                    console.log('errorThrown:');
+                    console.log(errorThrown);
+                }
+            });
+        }
+
+        function loadSuccessPage(result) {
+            $('#loading').addClass('d-none');
+            $('#durationAndPayment').addClass('d-none');
+            $('a[href="#finish"]').removeAttr('href');
+            $('a[href="#previous"]').removeAttr('href');
+
+            //update layout
+
+            $('#result').removeClass('d-none');
+            $('#receipt').attr("href", result.receipt);
+            $('#goToOrgLink').attr("href", '/membership/org/'+$('#id_organisation_name').val());
+        }
+    </script>
+{% endblock %}

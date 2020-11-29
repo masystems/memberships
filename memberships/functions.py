@@ -26,3 +26,10 @@ def get_stripe_secret_key(request):
         return settings.STRIPE_SECRET_TEST_KEY
     else:
         return settings.STRIPE_SECRET_KEY
+
+
+def get_stripe_public_key(request):
+    if request.user.is_superuser:
+        return settings.STRIPE_PUBLIC_TEST_KEY
+    else:
+        return settings.STRIPE_PUBLIC_KEY

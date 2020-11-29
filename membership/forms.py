@@ -11,7 +11,10 @@ class MembershipPackageForm(forms.ModelForm):
                    'admins',
                    'members',
                    'stripe_acct_id',
-                   'stripe_acct_owner_id',
+                   'stripe_owner_id',
+                   'stripe_product_id',
+                   'membership_price_per_month_id',
+                   'membership_price_per_year_id',
                    'cloud_lines_account',
                    'enabled')
         help_texts = {
@@ -20,7 +23,8 @@ class MembershipPackageForm(forms.ModelForm):
         widgets = {
             'organisation_name': forms.TextInput(attrs={'class': 'form-control'}),
             'bolton': forms.Select(attrs={'class': 'form-control'}),
-            'cloud_lines_account': forms.TextInput(attrs={'class': 'form-control'}),
+            'membership_price_per_month': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '£'}),
+            'membership_price_per_year': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '£'}),
         }
 
 
@@ -29,7 +33,9 @@ class MemberForm(forms.ModelForm):
         model = Member
         fields = '__all__'
         exclude = ('membership_package',
-                   'user_account')
+                   'user_account',
+                   'stripe_id',
+                   'stripe_subscription_id')
         help_texts = {
             # 'service': _('If your query is not regarding a service, leave this blank.'),
         }
@@ -52,7 +58,7 @@ class MemberForm(forms.ModelForm):
             'renewal_status': forms.Select(attrs={'class': 'form-control'}),
 
             'payment_type': forms.Select(attrs={'class': 'form-control'}),
-            'standing_order_amount': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '£'}),
+            'billing_period': forms.Select(attrs={'class': 'form-control'}),
             'comments': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
         }
 
