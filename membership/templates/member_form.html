@@ -47,7 +47,7 @@
                 </div>
                 <hr>
 
-                <form id="memberForm" class="form-horizontal" action="{% url 'add_member' %}" method="POST">
+                <form id="memberForm" class="form-horizontal" action="{% url 'member_form' membership_package.organisation_name %}" method="POST">
                     {% csrf_token %}
                     <div class="card-body">
                         <h4 class="card-title">Details</h4>

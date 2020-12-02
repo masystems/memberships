@@ -57,7 +57,7 @@
                         <h4 class="card-title">{{ package.organisation_name }} Members</h4>
                         <div class="ml-auto">
                             <div class="btn-group">
-                                <a href="{% url 'add_member' %}">
+                                <a href="{% url 'member_form' package.organisation_name %}">
                                     <button type="button" class="btn btn-success">
                                         Add New Member
                                     </button>
@@ -89,8 +89,8 @@
                                         <td>{{ member.user_account.date_joined }}</td>
                                         <td>
                                             <a href="{% url 'member_payment' package.organisation_name member.id %}"><i class="fad fa-credit-card-front text-success mr-1"></i></a>
-                                            <a href="{% url 'edit_member' member.id %}"><i class="fad fa-user-edit mr-1"></i></a>
-                                            <a href="{% url 'edit_member' member.id %}"><i class="fad fa-user-slash text-danger"></i></a>
+                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><i class="fad fa-user-edit mr-1"></i></a>
+                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><i class="fad fa-user-slash text-danger"></i></a>
                                         </td>
                                     </tr>
                                 {% endfor %}

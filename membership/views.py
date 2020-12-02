@@ -236,57 +236,30 @@ def get_account_link(membership):
     return account_link
 
 
-class AddMember(LoginRequiredMixin, FormView):
+class MemberRegForm(LoginRequiredMixin, FormView):
     template_name = 'member_form.html'
     login_url = '/login/'
     form_class = MemberForm
     success_url = '/membership/'
 
     def get_context_data(self, **kwargs):
-        context = super(AddMember, self).get_context_data(**kwargs)
+        self.context = super().get_context_data(**kwargs)
+        self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
 
-        context['public_api_key'] = get_stripe_public_key(self.request)
-        self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                        Q(admins=self.request.user))
-        if self.package[0].bolton != "none":
-            context['package'] = self.package[0]
-            context['bolton_form'] = getattr(self, 'bolton_form', self.get_bolton_form())
-        return context
+        return self.context
 
-    def get_bolton_form(self):
-        self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                        Q(admins=self.request.user))
-        if self.package[0].bolton == "equine":
-            if self.request.method == 'POST':
-                return EquineForm(self.request.POST)
-            else:
-                return EquineForm()
+    def form_valid(self, form, **kwargs):
+        self.context = self.get_context_data(**kwargs)
+        self.member = form.save()
+        self.create_andor_link_user()
+        if self.context['membership_package'].bolton != 'none':
+            return redirect(f"/membership/member-bolton-form/{self.context['membership_package'].organisation_name}/{self.member.id}")
+        elif self.member.payment_type == 'card_payment':
+            return redirect(f"/membership/member-payment/{self.context['membership_package'].organisation_name}/{self.member.id}")
         else:
-            return None
+            return super().form_valid(form)
 
-    def form_valid(self, form):
-        self.bolton_form = self.get_bolton_form()
-        if self.bolton_form and self.bolton_form.is_valid():
-            # All good logic goes here, which in the simplest case is
-            # returning super.form_valid
-            self.member = form.save()
-            self.bolton_form.save()
-            self.create_and_link_user()
-            return super(AddMember, self).form_valid(form)
-        elif not self.bolton_form:
-            self.member = form.save()
-            self.create_and_link_user()
-            return super(AddMember, self).form_valid(form)
-        else:
-            # Otherwise treat as if the first form was invalid
-            return super(AddMember, self).form_invalid(form)
-
-    def form_invalid(self, form):
-        self.second_form = self.get_bolton_form()
-        self.second_form.is_valid()
-        return super(AddMember, self).form_invalid(form)
-
-    def create_and_link_user(self):
+    def create_andor_link_user(self):
         """
         Create and link user
         :return:
@@ -297,14 +270,32 @@ class AddMember(LoginRequiredMixin, FormView):
                                                    first_name=self.member.first_name,
                                                    last_name=self.member.last_name)
         self.member.user_account = user
-        self.member.membership_package = self.package[0]
+        self.member.membership_package = self.context['membership_package']
 
+        stripe.api_key = get_stripe_secret_key(self.request)
         stripe_customer = stripe.Customer.create(
             name=user.get_full_name,
             email=user.email
         )
         self.member.stripe_id = stripe_customer.id
+
         self.member.save()
+
+
+class MemberBoltonForm(LoginRequiredMixin, FormView):
+    template_name = 'member_bolton_form.html'
+    login_url = '/login/'
+    form_class = MemberForm
+    success_url = '/membership/'
+
+    def get_context_data(self, **kwargs):
+        self.context = super().get_context_data(**kwargs)
+        self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
+
+        return self.context
+
+    def form_valid(self, form, **kwargs):
+        return super().form_valid(form)
 
 
 class UpdateMember(LoginRequiredMixin, UpdateView):
@@ -315,49 +306,25 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
     success_url = '/membership/'
 
     def get_context_data(self, **kwargs):
-        context = super(UpdateMember, self).get_context_data(**kwargs)
+        self.context = super().get_context_data(**kwargs)
+        self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
 
-        self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                        Q(admins=self.request.user))
-        if self.package[0].bolton != "none":
-            context['package'] = self.package[0]
-            context['bolton_form'] = getattr(self, 'bolton_form', self.get_bolton_form())
-        return context
+        return self.context
 
-    def get_bolton_form(self):
-        self.package = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                        Q(admins=self.request.user))
-        if self.package[0].bolton == "equine":
-            if self.request.method == 'POST':
-                return EquineForm(self.request.POST)
-            else:
-                return EquineForm()
+    def form_valid(self, form, **kwargs):
+        self.context = self.get_context_data(**kwargs)
+        self.member = form.save()
+        self.create_andor_link_user()
+        if self.context['membership_package'].bolton != 'none':
+            return redirect(
+                f"/membership/member-bolton-form/{self.context['membership_package'].organisation_name}/{self.member.id}")
+        elif self.member.payment_type == 'card_payment':
+            return redirect(
+                f"/membership/member-payment/{self.context['membership_package'].organisation_name}/{self.member.id}")
         else:
-            return None
+            return super().form_valid(form)
 
-    def form_valid(self, form):
-        self.bolton_form = self.get_bolton_form()
-        if self.bolton_form and self.bolton_form.is_valid():
-            # All good logic goes here, which in the simplest case is
-            # returning super.form_valid
-            self.member = form.save()
-            self.bolton_form.save()
-            self.create_and_link_user()
-            return super(UpdateMember, self).form_valid(form)
-        elif not self.bolton_form:
-            self.member = form.save()
-            self.create_and_link_user()
-            return super(UpdateMember, self).form_valid(form)
-        else:
-            # Otherwise treat as if the first form was invalid
-            return super(UpdateMember, self).form_invalid(form)
-
-    def form_invalid(self, form):
-        self.second_form = self.get_bolton_form()
-        self.second_form.is_valid()
-        return super(UpdateMember, self).form_invalid(form)
-
-    def create_and_link_user(self):
+    def create_andor_link_user(self):
         """
         Create and link user
         :return:
@@ -368,7 +335,15 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
                                                    first_name=self.member.first_name,
                                                    last_name=self.member.last_name)
         self.member.user_account = user
-        self.member.membership_package = self.package[0]
+        self.member.membership_package = self.context['membership_package']
+
+        stripe.api_key = get_stripe_secret_key(self.request)
+        stripe_customer = stripe.Customer.modify(
+            name=user.get_full_name,
+            email=user.email
+        )
+        self.member.stripe_id = stripe_customer.id
+
         self.member.save()
 
 

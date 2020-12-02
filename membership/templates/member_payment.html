@@ -42,8 +42,8 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Member Payment</h4>
-                    <h6 class="card-subtitle">Fill out the payment form below manage payments to...</h6>
+                    <h4 class="card-title">{{ package.organisation_name }} Member Payment Information</h4>
+                    <h6 class="card-subtitle">Fill out the payment form below manage payments to {{ package.organisation_name }}</h6>
                 </div>
                 <hr>
                 <div class="col-lg-6 offset-lg-3">
@@ -67,7 +67,7 @@
                 <hr>
                 <div class="card-body">
                     <div class="form-group mb-0 text-right">
-                        <button id="save-membership" class="btn btn-info waves-effect waves-light">Start Membership Package</button>
+                        <button id="save-membership" class="btn btn-info waves-effect waves-light">Start Membership</button>
                         <button type="submit" class="btn btn-dark waves-effect waves-light">Cancel</button>
                     </div>
                 </div>
