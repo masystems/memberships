@@ -55,7 +55,6 @@ class MemberForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-control'}),
             'membership_number': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
-            'renewal_status': forms.Select(attrs={'class': 'form-control'}),
 
             'payment_type': forms.Select(attrs={'class': 'form-control'}),
             'billing_period': forms.Select(attrs={'class': 'form-control'}),

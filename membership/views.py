@@ -9,7 +9,6 @@ from django.db.models import Q
 from memberships.functions import generate_username, get_stripe_secret_key, get_stripe_public_key
 from .models import MembershipPackage, Member, Equine
 from .forms import MembershipPackageForm, MemberForm, EquineForm
-from random import randint
 from json import dumps
 import stripe
 
@@ -70,7 +69,8 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
-        context['stripe_package'] = stripe.Account.retrieve(context['package'].stripe_acct_id)
+        context['stripe_package'] = stripe.Account.retrieve(context['package'].stripe_acct_id,
+                                                            stripe_account=context['package'].stripe_acct_id)
         if context['package'].stripe_acct_id:
             try:
                 context['edit_account'] = stripe.Account.create_login_link(context['package'].stripe_acct_id)
@@ -142,7 +142,8 @@ def create_package_on_stripe(request):
 
     if not membership_package.stripe_product_id:
         # create product
-        product = stripe.Product.create(name=membership_package.organisation_name)
+        product = stripe.Product.create(name=membership_package.organisation_name,
+                                        stripe_account=membership_package.stripe_acct_id)
         membership_package.stripe_product_id = product.id
 
     if not membership_package.membership_price_per_month_id:
@@ -152,6 +153,7 @@ def create_package_on_stripe(request):
             currency="gbp",
             recurring={"interval": "month"},
             product=product.id,
+            stripe_account=membership_package.stripe_acct_id
         )
         membership_package.membership_price_per_month_id = price_per_month.id
     if not membership_package.membership_price_per_year_id:
@@ -160,6 +162,7 @@ def create_package_on_stripe(request):
             currency="gbp",
             recurring={"interval": "year"},
             product=product.id,
+            stripe_account=membership_package.stripe_acct_id
         )
         membership_package.membership_price_per_year_id = price_per_year.id
 
@@ -199,7 +202,7 @@ def organisation_payment(request):
             )
 
         # validate the card
-        result = validate_card(request)
+        result = validate_card(request, 'package')
         if result['result'] == 'fail':
             return HttpResponse(dumps(result))
 
@@ -229,7 +232,7 @@ def organisation_payment(request):
 def get_account_link(membership):
     account_link = stripe.AccountLink.create(
         account=membership.stripe_acct_id,
-        refresh_url=f'http://{settings.SITE_NAME}/membership/membership-package-settings',
+        refresh_url=f'http://{settings.SITE_NAME}/membership',
         return_url=f'http://{settings.SITE_NAME}/membership',
         type='account_onboarding',
     )
@@ -237,7 +240,7 @@ def get_account_link(membership):
 
 
 class MemberRegForm(LoginRequiredMixin, FormView):
-    template_name = 'member_form.html'
+    template_name = 'member_form_new.html'
     login_url = '/login/'
     form_class = MemberForm
     success_url = '/membership/'
@@ -274,32 +277,65 @@ class MemberRegForm(LoginRequiredMixin, FormView):
 
         stripe.api_key = get_stripe_secret_key(self.request)
         stripe_customer = stripe.Customer.create(
-            name=user.get_full_name,
-            email=user.email
+            name=user.get_full_name(),
+            email=user.email,
+            stripe_account=self.context['membership_package'].stripe_acct_id
         )
         self.member.stripe_id = stripe_customer.id
 
         self.member.save()
 
 
-class MemberBoltonForm(LoginRequiredMixin, FormView):
-    template_name = 'member_bolton_form.html'
-    login_url = '/login/'
-    form_class = MemberForm
-    success_url = '/membership/'
+@login_required(login_url='/login/')
+def member_bolton_form(request, title, pk):
 
-    def get_context_data(self, **kwargs):
-        self.context = super().get_context_data(**kwargs)
-        self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    member = Member.objects.get(id=pk)
 
-        return self.context
+    if request.method == "POST":
+        # get the correct bolton
+        if membership_package.bolton == 'equine':
+            if Equine.objects.filter(membership_package=membership_package, member=member).exists():
+                form = EquineForm(request.POST, instance=Equine.objects.get(membership_package=membership_package, member=member))
+            else:
+                form = EquineForm(request.POST)
+        else:
+            form = None
+        # check the form is valid
+        if form.is_valid():
+            bolton_form = form.save()
+            # attach form to package and member
+            bolton_form.membership_package = membership_package
+            bolton_form.member = member
+            bolton_form.save()
 
-    def form_valid(self, form, **kwargs):
-        return super().form_valid(form)
+            # redirect to payment form IF card payment selected
+            if member.payment_type == 'card_payment':
+                return redirect(
+                    f"/membership/member-payment/{membership_package.organisation_name}/{member.id}")
+            else:
+                return redirect('membership')
+        else:
+            return render(request, 'member_bolton_form.html', {'bolton_form': form,
+                                                               'membership_package': membership_package,
+                                                               'member': member})
+
+    else:
+        if membership_package.bolton == 'equine':
+            # check for existing object
+            if Equine.objects.filter(membership_package=membership_package, member=member).exists():
+                form = EquineForm(instance=Equine.objects.get(membership_package=membership_package, member=member))
+            else:
+                form = EquineForm()
+            return render(request, 'member_bolton_form.html', {'bolton_form': form,
+                                                               'membership_package': membership_package,
+                                                               'member': member})
+        else:
+            return redirect('membership')
 
 
 class UpdateMember(LoginRequiredMixin, UpdateView):
-    template_name = 'member_form.html'
+    template_name = 'member_form_update.html'
     login_url = '/login/'
     form_class = MemberForm
     model = Member
@@ -308,13 +344,13 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-
+        self.context['member'] = Member.objects.get(id=self.kwargs['pk'])
         return self.context
 
     def form_valid(self, form, **kwargs):
         self.context = self.get_context_data(**kwargs)
         self.member = form.save()
-        self.create_andor_link_user()
+        self.update_andor_link_user()
         if self.context['membership_package'].bolton != 'none':
             return redirect(
                 f"/membership/member-bolton-form/{self.context['membership_package'].organisation_name}/{self.member.id}")
@@ -324,9 +360,9 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         else:
             return super().form_valid(form)
 
-    def create_andor_link_user(self):
+    def update_andor_link_user(self):
         """
-        Create and link user
+        Update and link user
         :return:
         """
         user, created = User.objects.get_or_create(username=generate_username(self.member.first_name,
@@ -339,7 +375,8 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
 
         stripe.api_key = get_stripe_secret_key(self.request)
         stripe_customer = stripe.Customer.modify(
-            name=user.get_full_name,
+            self.member.stripe_id,
+            name=user.get_full_name(),
             email=user.email
         )
         self.member.stripe_id = stripe_customer.id
@@ -356,14 +393,18 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         context['public_api_key'] = get_stripe_public_key(self.request)
         context['package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         context['member'] = Member.objects.get(id=self.kwargs['pk'])
-
+        if context['member'].stripe_subscription_id:
+            stripe.api_key = get_stripe_secret_key(self.request)
+            context['subscription'] = stripe.Subscription.retrieve(context['member'].stripe_subscription_id,
+                                                                   stripe_account=context['package'].stripe_acct_id)
+            print(context['subscription'])
         return context
 
     def post(self, request, *args, **kwargs):
         package = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         member = Member.objects.get(id=self.kwargs['pk'])
 
-        result = validate_card(request)
+        result = validate_card(request, 'member', member.pk)
         if result['result'] == 'fail':
             return HttpResponse(dumps(result))
 
@@ -372,33 +413,52 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         else:
             price_id = package.membership_price_per_year_id
 
-        subscription = stripe.Subscription.create(
-            customer=member.stripe_id,
-            items=[
-                {
-                    "plan": price_id,
-                },
-            ],
-        )
-        member.stripe_subscription_id = subscription.id
-        member.save()
+        if not member.stripe_subscription_id:
+            # new subscription
+            subscription = stripe.Subscription.create(
+                customer=member.stripe_id,
+                items=[
+                    {
+                        "plan": price_id,
+                    },
+                ],
+                stripe_account=package.stripe_acct_id,
+            )
+            member.stripe_subscription_id = subscription.id
+            member.save()
+            if subscription['status'] != 'active':
+                result = {'result': 'fail',
+                          'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription['status']}</span>"}
+                return HttpResponse(dumps(result))
 
-        if subscription['status'] != 'active':
-            result = {'result': 'fail',
-                      'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription['status']}</span>"}
-            return HttpResponse(dumps(result))
+        invoice = stripe.Invoice.list(customer=member.stripe_id, subscription=member.stripe_subscription_id,
+                                      limit=1, stripe_account=package.stripe_acct_id,)
+        receipt = stripe.Charge.list(customer=member.stripe_id, stripe_account=package.stripe_acct_id,)
+        result = {'result': 'success',
+                  'invoice': invoice.data[0].invoice_pdf,
+                  'receipt': receipt.data[0].receipt_url
+                  }
+        return HttpResponse(dumps(result))
 
 
-def validate_card(request):
+def validate_card(request, type, pk=0):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
 
-    membership_package = MembershipPackage.objects.get(owner=request.user)
+    if type == 'package':
+        membership_package = MembershipPackage.objects.get(owner=request.user)
+        stripe_id = membership_package.stripe_owner_id
+        account_id = membership_package.stripe_acct_id
+    else:
+        member = Member.objects.get(id=pk)
+        stripe_id = member.stripe_id
+        account_id = member.membership_package.stripe_acct_id
     # add payment token to user
     try:
         payment_method = stripe.Customer.modify(
-          membership_package.stripe_owner_id,
+          stripe_id,
           source=request.POST.get('token[id]'),
+            stripe_account=account_id
         )
         return {'result': 'success',
               'feedback': payment_method}

@@ -84,21 +84,6 @@ class Member(models.Model):
     category = models.CharField(max_length=19, choices=CATEGORY, null=True, default='member',
                               help_text="Category of member")
 
-    RENEWAL_STATUS = (
-        ('wrong_address', 'Wrong Address'),
-        ('underpaying ', 'Underpaying '),
-        ('current_member', 'Current Member'),
-        ('first_reminder', 'First Reminder'),
-        ('second_reminder', 'Second Reminder'),
-        ('lapsed_no_response', 'Lapsed no response'),
-        ('resigned', 'Resigned'),
-        ('dead', 'Dead'),
-        ('non_member ', 'Non member')
-    )
-    renewal_status = models.CharField(max_length=19, choices=RENEWAL_STATUS, null=True, default='current_member',
-                                help_text="Renewal status of member")
-
-
     PAYMENT_TYPE = (
         ('card_payment', 'Card Payment'),
         ('cash', 'Cash'),
@@ -130,7 +115,7 @@ class Member(models.Model):
 
 
 class Equine(models.Model):
-    membership_package = models.ManyToManyField(MembershipPackage, related_name='emembership_package', verbose_name="Equine Membership Package")
+    membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, blank=True, null=True, related_name='emembership_package', verbose_name="Equine Membership Package")
     member = models.ForeignKey(Member, on_delete=models.CASCADE, blank=True, null=True, related_name='emember', verbose_name="Equine Member")
     date_resigned = models.DateField(auto_now=True)
     gift_aid = models.BooleanField(default=False)

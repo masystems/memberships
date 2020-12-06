@@ -43,7 +43,10 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">{{ package.organisation_name }} Member Payment Information</h4>
-                    <h6 class="card-subtitle">Fill out the payment form below manage payments to {{ package.organisation_name }}</h6>
+                    {% if subscription %}
+                        <h5>Existing Subscription Details</h5>
+                        {{ subscription }}
+                    {% endif %}
                 </div>
                 <hr>
                 <div class="col-lg-6 offset-lg-3">
@@ -69,6 +72,22 @@
                     <div class="form-group mb-0 text-right">
                         <button id="save-membership" class="btn btn-info waves-effect waves-light">Start Membership</button>
                         <button type="submit" class="btn btn-dark waves-effect waves-light">Cancel</button>
+                    </div>
+                </div>
+                <div class="col-lg-6 offset-lg-3 d-flex justify-content-center">
+                    <div id="spinner" class="d-none">
+                        <div class="spinner-border" role="status">
+                            <span class="sr-only">Loading...</span>
+                        </div>
+                    </div>
+                    <div id="result" class="d-none text-center">
+                        <h2>Success!</h2>
+                        <h6>Membership is now active!</h6>
+<!--                        <p>Now you can access your membership administration page, first thing to do is enter your <span class="text-info">organisation details.</span></p>-->
+
+                        <a href="#" target="_blank" id="receipt"><button type="button" id="receiptBtn" class="btn btn-dark">View Receipt</button></a>
+
+                        <a href="#" id="goToMemberPageLink"><button type="button" class="btn btn-warning">Member Page</button></a>
                     </div>
                 </div>
             </div>
@@ -204,7 +223,7 @@
 
             $('#result').removeClass('d-none');
             $('#receipt').attr("href", result.receipt);
-            $('#goToOrgLink').attr("href", '/membership/org/'+$('#id_organisation_name').val());
+            $('#goToMemberPageLink').attr("href", '/membership/member/{{ package.organisation_name }}/{{ member.pk }}');
         }
     </script>
 {% endblock %}
