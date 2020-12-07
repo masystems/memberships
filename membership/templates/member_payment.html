@@ -43,10 +43,35 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">{{ package.organisation_name }} Member Payment Information</h4>
-                    {% if subscription %}
-                        <h5>Existing Subscription Details</h5>
-                        {{ subscription }}
-                    {% endif %}
+                    <div class="row mt-4">
+                        <div class="col-6">
+                            {% if subscription %}
+                                <h5>Existing Subscription Details</h5>
+                                <ul class="list-style-none">
+                                    <li><i class="fad fa-chevron-right"></i> Status: {% if subscription.items.data.0.plan.active == True %}<span class="text-success">Active</span>
+                                        {% else %}
+                                        <span class="text-danger">Inactive</span>{% endif %}
+                                    </li>
+                                    <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if subscription.items.data.0.plan.interval == 'month' %}Monthly
+                                        {% elif subscription.items.data.0.plan.interval == 'year' %}
+                                        Yearly{% endif %}
+                                    </li>
+                                </ul>
+                            {% endif %}
+                        </div>
+                        <div class="col-6">
+                            {% if customer %}
+                                <h5>Existing Card Details</h5>
+                                <ul class="list-style-none">
+                                    <li><i class="fad fa-chevron-right"></i> Brand: {{ customer.sources.data.0.brand }}</li>
+                                    <li><i class="fad fa-chevron-right"></i> Last 4: {{ customer.sources.data.0.last4 }}</li>
+                                    <li><i class="fad fa-chevron-right"></i> Month/Year: {{ customer.sources.data.0.exp_month }}/{{ customer.sources.data.0.exp_year }}</li>
+                                    <li><i class="fad fa-chevron-right"></i> Area Code: {{ customer.sources.data.0.address_zip }}</li>
+                                </ul>
+                            {% endif %}
+                        </div>
+                    </div>
+
                 </div>
                 <hr>
                 <div class="col-lg-6 offset-lg-3">

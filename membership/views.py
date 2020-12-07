@@ -397,7 +397,9 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             stripe.api_key = get_stripe_secret_key(self.request)
             context['subscription'] = stripe.Subscription.retrieve(context['member'].stripe_subscription_id,
                                                                    stripe_account=context['package'].stripe_acct_id)
-            print(context['subscription'])
+            context['customer'] = stripe.Customer.retrieve(context['member'].stripe_id,
+                                                           stripe_account=context['package'].stripe_acct_id)
+            print(context['customer'])
         return context
 
     def post(self, request, *args, **kwargs):
