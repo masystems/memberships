@@ -399,7 +399,6 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                                                                    stripe_account=context['package'].stripe_acct_id)
             context['customer'] = stripe.Customer.retrieve(context['member'].stripe_id,
                                                            stripe_account=context['package'].stripe_acct_id)
-            print(context['customer'])
         return context
 
     def post(self, request, *args, **kwargs):
@@ -441,6 +440,26 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                   'receipt': receipt.data[0].receipt_url
                   }
         return HttpResponse(dumps(result))
+
+
+class MemberProfileView(MembershipBase):
+    template_name = 'member_profile.html'
+    login_url = '/login/'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['member'] = Member.objects.get(id=self.kwargs['pk'])
+        context['package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
+        if context['member'].stripe_subscription_id:
+            stripe.api_key = get_stripe_secret_key(self.request)
+            context['subscription'] = stripe.Subscription.retrieve(context['member'].stripe_subscription_id,
+                                                                   stripe_account=context['package'].stripe_acct_id)
+            context['customer'] = stripe.Customer.retrieve(context['member'].stripe_id,
+                                                           stripe_account=context['package'].stripe_acct_id)
+            context['payments'] = stripe.Charge.list(customer=context['member'].stripe_id,
+                                                           stripe_account=context['package'].stripe_acct_id)
+            print(context['payments'])
+        return context
 
 
 def validate_card(request, type, pk=0):
