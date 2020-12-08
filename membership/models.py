@@ -58,14 +58,14 @@ class Member(models.Model):
     record_type = models.CharField(max_length=12, choices=RECORD_TYPE, null=True, default='member',
                                help_text="Type of member")
 
-    STATUS = (
-        ('archive', 'Archive'),
-        ('dead', 'Dead'),
-        ('live', 'Live'),
-        ('resigned', 'Resigned')
-    )
-    status = models.CharField(max_length=10, choices=STATUS, null=True, default='live',
-                                   help_text="Current status")
+    # STATUS = (
+    #     ('archive', 'Archive'),
+    #     ('dead', 'Dead'),
+    #     ('live', 'Live'),
+    #     ('resigned', 'Resigned')
+    # )
+    # status = models.CharField(max_length=10, choices=STATUS, null=True, default='live',
+    #                                help_text="Current status")
 
     membership_number = models.CharField(max_length=100, unique=True)
 
@@ -96,7 +96,7 @@ class Member(models.Model):
         ('postal_cheque ', 'Postal Cheque'),
         ('paypal', 'Paypal')
     )
-    payment_type = models.CharField(max_length=19, choices=PAYMENT_TYPE, null=True, default='Card Payment',
+    payment_type = models.CharField(max_length=19, choices=PAYMENT_TYPE, null=True, default='card_payment',
                                       help_text="Payment type used by member")
 
     BILLING_PERIOD = (
@@ -109,6 +109,7 @@ class Member(models.Model):
     #membership_price = models.DecimalField(blank=False, max_digits=5, decimal_places=2, help_text="Price in £ for requency given")
 
     comments = models.TextField(blank=True)
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.membership_number

@@ -458,7 +458,6 @@ class MemberProfileView(MembershipBase):
                                                            stripe_account=context['package'].stripe_acct_id)
             context['payments'] = stripe.Charge.list(customer=context['member'].stripe_id,
                                                            stripe_account=context['package'].stripe_acct_id)
-            print(context['payments'])
         return context
 
 

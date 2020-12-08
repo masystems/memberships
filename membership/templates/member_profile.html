@@ -80,62 +80,89 @@
                 <!-- Tabs -->
                 <ul class="nav nav-pills custom-pills" id="pills-tab" role="tablist">
                     <li class="nav-item">
-                        <a class="nav-link active" id="pills-profile-tab" data-toggle="pill" href="#last-month" role="tab" aria-controls="pills-profile" aria-selected="true">Profile</a>
+                        <a class="nav-link active" id="pills-membership-tab" data-toggle="pill" href="#last-month" role="tab" aria-controls="pills-membership" aria-selected="true">Membership</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="pills-setting-tab" data-toggle="pill" href="#previous-month" role="tab" aria-controls="pills-setting" aria-selected="false">Setting</a>
+                        <a class="nav-link" id="pills-setting-tab" data-toggle="pill" href="#previous-month" role="tab" aria-controls="pills-setting" aria-selected="false">Settings</a>
                     </li>
                 </ul>
                 <!-- Tabs -->
                 <div class="tab-content" id="pills-tabContent">
-                    <div class="tab-pane fade show active" id="last-month" role="tabpanel" aria-labelledby="pills-profile-tab">
+                    <div class="tab-pane fade show active" id="last-month" role="tabpanel" aria-labelledby="pills-membership-tab">
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-3 col-xs-6 b-r"> <strong>Edit Account</strong>
+                                <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Status</strong>
                                     <br>
-                                    <p class="text-muted">Johnathan Deo</p>
+                                    <p class="text-muted">
+                                        {% if subscription %}
+                                            {% if subscription.plan.active == True %}
+                                                <span class="text-success">Active</span>
+                                            {% else %}
+                                                <span class="text-danger">Inactive</span>
+                                            {% endif %}
+                                        {% else %}
+                                            Active <small>(Self managed)</small>
+                                        {% endif %}
+                                    </p>
                                 </div>
-                                <div class="col-md-3 col-xs-6 b-r"> <strong>Cancel Subscription</strong>
+                                <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Start</strong>
                                     <br>
-                                    <p class="text-muted">(123) 456 7890</p>
+                                    <p class="text-muted">
+                                        {% if subscription %}
+                                            {{ subscription.start_date|parsetimestamp }}</p>
+                                        {% else %}
+                                            {{ member.created }}
+                                        {% endif %}
                                 </div>
-                                <div class="col-md-3 col-xs-6 b-r"> <strong>Email</strong>
+                                <div class="col-md-3 col-xs-6 b-r"> <strong>Payment Interval</strong>
                                     <br>
-                                    <p class="text-muted">johnathan@admin.com</p>
+                                    <p class="text-muted">
+                                        {% if subscription %}
+                                            {% if subscription.plan.interval == 'month' %}
+                                                Monthly
+                                            {% elif subscription.plan.interval == 'year' %}
+                                                Yearly
+                                            {% endif %}
+                                        {% else %}
+                                            {{ member.billing_period|title }}
+                                        {% endif %}
+                                    </p>
                                 </div>
-                                <div class="col-md-3 col-xs-6"> <strong>Location</strong>
+                                <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
                                     <br>
-                                    <p class="text-muted">London</p>
+                                    <p class="text-muted">{{ member.payment_type|choicefieldformat }}</p>
                                 </div>
                             </div>
                             <hr>
-                            <h4 class="font-weight-medium mt-4">Payments</h4>
-                            <hr>
-                            <div class="table-responsive">
-                                <table id="scroll_ver_hor" class="table table-striped table-bordered display no-wrap"
-                                    style="width:100%">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">ID</th>
-                                            <th scope="col">Amount</th>
-                                            <th scope="col">Created</th>
-                                            <th scope="col">Paid</th>
-                                            <th scope="col">Receipt</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for payment in payments %}
+                            {% if subscription %}
+                                <h4 class="font-weight-medium mt-4">Payments</h4>
+                                <hr>
+                                <div class="table-responsive">
+                                    <table id="scroll_ver_hor" class="table table-striped table-bordered display no-wrap"
+                                        style="width:100%">
+                                        <thead>
                                             <tr>
-                                                <td scope="row"><p data-toggle="tooltip" data-placement="top" title="{{ charge.id }}">{{ payment.id|slice:"-6:" }}</p></td>
-                                                <td>{{ payment.amount|price }} {{ payment.currency|upper}}</td>
-                                                <td>{{ payment.created|parsetimestamp }}</td>
-                                                <td><span class="label {% if payment.paid %}label-light-success{% else %}label-light-danger{% endif %}"> {% if payment.paid %}Yes{% else %}No{% endif %} </span></td>
-                                                <td>{% if payment.paid %}<a href="{{ payment.receipt_url }}"><button class="btn btn-outline-success">Download</button></a>{% endif %}</td>
+                                                <th scope="col">ID</th>
+                                                <th scope="col">Amount</th>
+                                                <th scope="col">Created</th>
+                                                <th scope="col">Paid</th>
+                                                <th scope="col">Receipt</th>
                                             </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        </thead>
+                                        <tbody>
+                                            {% for payment in payments %}
+                                                <tr>
+                                                    <td scope="row"><p data-toggle="tooltip" data-placement="top" title="{{ charge.id }}">{{ payment.id|slice:"-6:" }}</p></td>
+                                                    <td>{{ payment.amount|price }} {{ payment.currency|upper}}</td>
+                                                    <td>{{ payment.created|parsetimestamp }}</td>
+                                                    <td><span class="label {% if payment.paid %}label-light-success{% else %}label-light-danger{% endif %}"> {% if payment.paid %}Yes{% else %}No{% endif %} </span></td>
+                                                    <td>{% if payment.paid %}<a href="{{ payment.receipt_url }}"><button class="btn btn-outline-success">Download</button></a>{% endif %}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="tab-pane fade" id="previous-month" role="tabpanel" aria-labelledby="pills-setting-tab">

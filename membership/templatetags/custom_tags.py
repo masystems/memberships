@@ -12,3 +12,8 @@ def timestamp(value):
 @register.filter
 def price(value):
     return value / 100
+
+
+@register.filter
+def choicefieldformat(value):
+    return value.replace('_', ' ').title()
