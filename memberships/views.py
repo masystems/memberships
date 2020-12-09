@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from django.views.generic.base import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
-from membership.models import MembershipPackage
+from membership.models import MembershipPackage, Member
 from memberships.functions import generate_username
 from .forms import RegisterForm
 
@@ -84,9 +84,9 @@ def logout_user(request):
 class DashboardBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['memberships'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                   Q(admins=self.request.user) |
-                                                                   Q(members=self.request.user))
+        context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                                          Q(admins=self.request.user))
+        context['memberships'] = Member.objects.filter(user_account=self.request.user)
         return context
 
 

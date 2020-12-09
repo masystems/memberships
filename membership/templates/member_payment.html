@@ -248,7 +248,7 @@
 
             $('#result').removeClass('d-none');
             $('#receipt').attr("href", result.receipt);
-            $('#goToMemberPageLink').attr("href", '/membership/member/{{ package.organisation_name }}/{{ member.pk }}');
+            $('#goToMemberPageLink').attr("href", '/membership/member-profile/{{ package.organisation_name }}/{{ member.pk }}');
         }
     </script>
 {% endblock %}
