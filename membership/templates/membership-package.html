@@ -81,7 +81,7 @@
                                 {% for member in members.all %}
                                     <tr>
                                         <td>
-                                            <a href="{% url 'member_profile' package.organisation_name member.id %}">{{ member.user_account.get_full_name }}</a>
+                                            <a href="{% url 'member_profile' package.organisation_name member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
                                         </td>
                                         <td>{{ member.user_account.email }}</td>
                                         <td>{{ member.contact_number }}</td>
