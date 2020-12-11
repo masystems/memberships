@@ -377,7 +377,8 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         stripe_customer = stripe.Customer.modify(
             self.member.stripe_id,
             name=user.get_full_name(),
-            email=user.email
+            email=user.email,
+            stripe_account=self.context['membership_package'].stripe_acct_id
         )
         self.member.stripe_id = stripe_customer.id
 
