@@ -101,7 +101,14 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
         if multiple of anything, return
         :return:
         """
+        if not self.request.user.is_authenticated:
+            # Block requests that attempt to provide their own foo value
+            return HttpResponseRedirect('/login')
+
         self.context = super().get_context_data(**kwargs)
+        self.context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                                               Q(admins=self.request.user))
+        self.context['memberships'] = Member.objects.filter(user_account=self.request.user)
         if len(self.context['membership_packages']) == 1 and len(self.context['memberships']) == 0:
             return HttpResponseRedirect(
                 reverse('membership_package', args=(self.context['membership_packages'][0].organisation_name,)))
