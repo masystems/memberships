@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect, get_object_or_404
+from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect, get_object_or_404, reverse
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -68,10 +68,15 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         :param kwargs:
         :return:
         """
-        if 'foo' in kwargs:
-            # Block requests that attempt to provide their own foo value
-            return HttpResponse(status_code=400)
-        kwargs.update({'foo': 'bar'})  # inject the foo value
+
+        if not MembershipPackage.objects.filter(Q(owner=self.request.user,
+                                                  organisation_name=kwargs['title']) |
+                                                Q(admins=self.request.user),
+                                                  organisation_name=kwargs['title']).exists():
+            # disallow access to page
+            return HttpResponseRedirect('/dashboard')
+
+        #kwargs.update({'foo': 'bar'})  # inject the foo value
         # now process dispatch as it otherwise normally would
         return super().dispatch(request, *args, **kwargs)
 
