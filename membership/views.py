@@ -60,6 +60,21 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'membership-package.html'
     login_url = '/login/'
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Only allow the owner and admins to view this page
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        if 'foo' in kwargs:
+            # Block requests that attempt to provide their own foo value
+            return HttpResponse(status_code=400)
+        kwargs.update({'foo': 'bar'})  # inject the foo value
+        # now process dispatch as it otherwise normally would
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
@@ -267,15 +282,17 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         Create and link user
         :return:
         """
-        user, created = User.objects.get_or_create(username=generate_username(self.member.first_name,
-                                                                              self.member.last_name),
-                                                   email=self.member.email,
-                                                   first_name=self.member.first_name,
-                                                   last_name=self.member.last_name)
+        user, created = User.objects.get_or_create(email=self.member.email)
+        user.username = generate_username(self.member.first_name, self.member.last_name)
+        user.first_name = self.member.first_name
+        user.last_name = self.member.last_name
+        user.save()
+
         self.member.user_account = user
         self.member.membership_package = self.context['membership_package']
 
         stripe.api_key = get_stripe_secret_key(self.request)
+
         stripe_customer = stripe.Customer.create(
             name=user.get_full_name(),
             email=user.email,
@@ -365,11 +382,12 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         Update and link user
         :return:
         """
-        user, created = User.objects.get_or_create(username=generate_username(self.member.first_name,
-                                                                              self.member.last_name),
-                                                   email=self.member.email,
-                                                   first_name=self.member.first_name,
-                                                   last_name=self.member.last_name)
+        user, created = User.objects.get_or_create(email=self.member.email)
+        user.username = generate_username(self.member.first_name, self.member.last_name)
+        user.first_name = self.member.first_name
+        user.last_name = self.member.last_name
+        user.save()
+
         self.member.user_account = user
         self.member.membership_package = self.context['membership_package']
 

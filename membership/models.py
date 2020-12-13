@@ -40,7 +40,7 @@ class Member(models.Model):
     stripe_id = models.CharField(max_length=255, blank=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
     title = models.CharField(max_length=255, blank=True)
-    email = models.EmailField(max_length=255, unique=True)
+    email = models.EmailField(max_length=255)
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     address_line_1 = models.CharField(max_length=255, blank=True)
@@ -48,7 +48,7 @@ class Member(models.Model):
     town = models.CharField(max_length=255, blank=True)
     county = models.CharField(max_length=255, blank=True)
     postcode = models.CharField(max_length=255, blank=True)
-    contact_number = models.IntegerField(blank=True, null=True)
+    contact_number = models.CharField(max_length=255, blank=True)
 
     RECORD_TYPE = (
         ('member', 'Member'),

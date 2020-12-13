@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, HttpResponseRedirect, reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import auth
@@ -94,6 +94,29 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
     template_name = 'dashboard.html'
     login_url = '/login/'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
+    def dispatch(self, request, *args, **kwargs):
+        self.context = super().get_context_data(**kwargs)
+        # redirect or not to redirect, that is the question
+        rontrtitq = self.check_redirect()
+        return rontrtitq
+
+    # def get_context_data(self, **kwargs):
+    #     self.context = super().get_context_data(**kwargs)
+    #     # check account statuses and redirect as appropriate
+    #     #return self.context
+
+    def check_redirect(self):
+        """
+        if only 1 org account, redirect to org page
+        if only 1 membership account, redirect to member profile
+        if multiple of anything, return
+        :return:
+        """
+        if len(self.context['membership_packages']) == 1 and len(self.context['memberships']) == 0:
+            return HttpResponseRedirect(reverse('membership_package', args=(self.context['membership_packages'][0].organisation_name,)))
+        elif len(self.context['memberships']) == 1 and len(self.context['membership_packages']) == 0:
+            return HttpResponseRedirect(reverse('member_profile',
+                                                args=(self.context['memberships'].membership_package.organisation_name,
+                                                      self.context['memberships'].id)))
+        else:
+            return super(Dashboard, self).dispatch(self.request)

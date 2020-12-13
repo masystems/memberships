@@ -49,7 +49,7 @@ class MemberForm(forms.ModelForm):
             'town': forms.TextInput(attrs={'class': 'form-control'}),
             'county': forms.TextInput(attrs={'class': 'form-control'}),
             'postcode': forms.TextInput(attrs={'class': 'form-control'}),
-            'contact_number': forms.NumberInput(attrs={'class': 'form-control'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
 
             'record_type': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
