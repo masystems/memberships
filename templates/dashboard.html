@@ -244,7 +244,7 @@
         });
         $('#joinOrg').click(function() {
             if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
-                var url = "/" + $('#organisations').val() + "/new-member";
+                var url = "/membership/member-form/" + $('#organisations').val();
                 window.location.href = url;
             }
         });

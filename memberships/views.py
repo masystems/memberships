@@ -116,8 +116,8 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
                 reverse('membership_package', args=(self.context['membership_packages'][0].organisation_name,)))
         elif len(self.context['memberships']) == 1 and len(self.context['membership_packages']) == 0:
             return HttpResponseRedirect(reverse('member_profile',
-                                                args=(self.context['memberships'].membership_package.organisation_name,
-                                                      self.context['memberships'].id)))
+                                                args=(self.context['memberships'][0].membership_package.organisation_name,
+                                                      self.context['memberships'][0].id)))
         else:
             return super().dispatch(request, *args, **kwargs)
 

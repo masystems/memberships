@@ -11,6 +11,7 @@ from .models import MembershipPackage, Member, Equine
 from .forms import MembershipPackageForm, MemberForm, EquineForm
 from json import dumps
 import stripe
+from re import search
 
 
 class MembershipBase(TemplateView):
@@ -49,7 +50,7 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
         membership_packages = MembershipPackage.objects.filter(Q(owner=self.request.user) |
                                                                Q(admins=self.request.user))
         if len(membership_packages) < 1:
-            return HttpResponseRedirect(f'membership-package-settings')
+            return HttpResponseRedirect('membership-package-settings')
         if len(membership_packages) == 1:
             return HttpResponseRedirect(f'org/{membership_packages[0].organisation_name}')
         if len(membership_packages) > 1:
@@ -74,7 +75,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
                                                 Q(admins=self.request.user),
                                                   organisation_name=kwargs['title']).exists():
             # disallow access to page
-            return HttpResponseRedirect('/dashboard')
+            return HttpResponseRedirect('/')
 
         #kwargs.update({'foo': 'bar'})  # inject the foo value
         # now process dispatch as it otherwise normally would
@@ -265,25 +266,39 @@ class MemberRegForm(LoginRequiredMixin, FormView):
     form_class = MemberForm
     success_url = '/membership/'
 
-    def dispatch(self, request, *args, **kwargs):
+    def get_initial(self):
         """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
+        Returns the initial data to use for forms on this view.
         """
+        initial = super().get_initial()
 
+        # get membership title
+        url = self.request.get_full_path()
+        org = url.split('/')[3]
         if not MembershipPackage.objects.filter(Q(owner=self.request.user,
-                                                  organisation_name=kwargs['title']) |
+                                                  organisation_name=org) |
                                                 Q(admins=self.request.user),
-                                                  organisation_name=kwargs['title']).exists():
-            # disallow access to page
-            return HttpResponseRedirect('/dashboard')
+                                                  organisation_name=org).exists():
 
-        #kwargs.update({'foo': 'bar'})  # inject the foo value
-        # now process dispatch as it otherwise normally would
-        return super().dispatch(request, *args, **kwargs)
+            initial['email'] = self.request.user.email
+            initial['first_name'] = self.request.user.first_name
+            initial['last_name'] = self.request.user.last_name
+            initial['membership_number'] = self.get_membership_number(org)
+
+        return initial
+
+    @staticmethod
+    def get_membership_number(org):
+        # get next available member number
+        try:
+            membership_package = MembershipPackage.objects.get(organisation_name=org)
+            latest_added = Member.objects.filter(membership_package=membership_package).latest('membership_number')
+            latest_member_number = latest_added.membership_number
+            reg_ints_re = search("[0-9]+", latest_member_number)
+            return latest_member_number.replace(str(reg_ints_re.group(0)),
+                                               str(int(reg_ints_re.group(0)) + 1).zfill(len(reg_ints_re.group(0))))
+        except Member.DoesNotExist:
+            return 'REG12345'
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -405,7 +420,7 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
                                                 Q(admins=self.request.user),
                                                   organisation_name=kwargs['title']).exists():
             # disallow access to page
-            return HttpResponseRedirect('/dashboard')
+            return HttpResponseRedirect('/')
 
         #kwargs.update({'foo': 'bar'})  # inject the foo value
         # now process dispatch as it otherwise normally would
@@ -475,7 +490,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                                                   organisation_name=kwargs['title'] |
                                                 Q()).exists():
             # disallow access to page
-            return HttpResponseRedirect('/dashboard')
+            return HttpResponseRedirect('/')
 
         #kwargs.update({'foo': 'bar'})  # inject the foo value
         # now process dispatch as it otherwise normally would
