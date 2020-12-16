@@ -23,8 +23,14 @@
                 </nav>
             </div>
         </div>
-        <div class="col-md-7 align-self-center d-none d-md-block">
-            <button class="btn float-right btn-success"><i class="mdi mdi-plus-circle"></i> Join Organisation</button>
+        <div class="col-md-7">
+            <div class="input-group justify-content-end d-flex">
+                <div class="input-group-prepend"><span class="input-group-text"><i class="fad fa-users"></i></span></div>
+                <div id="orgs">
+                    <input class="typeahead form-control" type="text" id="organisations" name="organisations" placeholder="">
+                </div>
+                <button class="btn btn-sm btn-dark" id="joinOrg">Join Organisation</button>
+            </div>
         </div>
     </div>
 </div>
@@ -194,5 +200,53 @@
 {% endblock %}
 
 {% block footer %}
+    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
+    <script>
+    var substringMatcher = function(strs) {
+        return function findMatches(q, cb) {
+            var matches, substringRegex;
 
+            // an array that will be populated with substring matches
+            matches = [];
+
+            // regex used to determine if a string contains the substring `q`
+            substrRegex = new RegExp(q, 'i');
+
+            // iterate through the pool of strings and for any string that
+            // contains the substring `q`, add it to the `matches` array
+            $.each(strs, function(i, str) {
+              if (substrRegex.test(str)) {
+                matches.push(str);
+              }
+            });
+
+            cb(matches);
+              };
+        };
+
+        var orgs = [{% for org in all_packages.all %}
+                            '{{ org.organisation_name }}',
+                            {% endfor %}];
+        $('#orgs .typeahead').typeahead({
+          hint: true,
+          highlight: true,
+          minLength: 1
+        },
+        {
+          name: 'organisations',
+          source: substringMatcher(orgs)
+        });
+        $('.typeahead').bind('typeahead:active', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "Type organisation name");
+        });
+        $('.typeahead').bind('typeahead:close', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "");
+        });
+        $('#joinOrg').click(function() {
+            if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
+                var url = "/" + $('#organisations').val() + "/new-member";
+                window.location.href = url;
+            }
+        });
+    </script>
 {% endblock %}

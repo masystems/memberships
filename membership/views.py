@@ -105,7 +105,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         return context
 
 
-class MembershipPackageSettings(LoginRequiredMixin, TemplateView):
+class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
     template_name = 'membership-package-settings.html'
     login_url = '/login/'
 
@@ -265,6 +265,26 @@ class MemberRegForm(LoginRequiredMixin, FormView):
     form_class = MemberForm
     success_url = '/membership/'
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Only allow the owner and admins to view this page
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        if not MembershipPackage.objects.filter(Q(owner=self.request.user,
+                                                  organisation_name=kwargs['title']) |
+                                                Q(admins=self.request.user),
+                                                  organisation_name=kwargs['title']).exists():
+            # disallow access to page
+            return HttpResponseRedirect('/dashboard')
+
+        #kwargs.update({'foo': 'bar'})  # inject the foo value
+        # now process dispatch as it otherwise normally would
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
@@ -313,6 +333,14 @@ def member_bolton_form(request, title, pk):
 
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
+
+    # access permissions
+    if not MembershipPackage.objects.filter(Q(owner=request.user,
+                                              organisation_name=title) |
+                                            Q(admins=request.user),
+                                              organisation_name=title).exists():
+        # disallow access to page
+        return redirect('dashboard')
 
     if request.method == "POST":
         # get the correct bolton
@@ -363,6 +391,26 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
     model = Member
     success_url = '/membership/'
 
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Only allow the owner and admins to view this page
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        if not MembershipPackage.objects.filter(Q(owner=self.request.user,
+                                                  organisation_name=kwargs['title']) |
+                                                Q(admins=self.request.user),
+                                                  organisation_name=kwargs['title']).exists():
+            # disallow access to page
+            return HttpResponseRedirect('/dashboard')
+
+        #kwargs.update({'foo': 'bar'})  # inject the foo value
+        # now process dispatch as it otherwise normally would
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
@@ -411,6 +459,27 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
 class MemberPaymentView(LoginRequiredMixin, MembershipBase):
     template_name = 'member_payment.html'
     login_url = '/login/'
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Only allow the owner and admins to view this page
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        if not MembershipPackage.objects.filter(Q(owner=self.request.user,
+                                                  organisation_name=kwargs['title']) |
+                                                Q(admins=self.request.user),
+                                                  organisation_name=kwargs['title'] |
+                                                Q()).exists():
+            # disallow access to page
+            return HttpResponseRedirect('/dashboard')
+
+        #kwargs.update({'foo': 'bar'})  # inject the foo value
+        # now process dispatch as it otherwise normally would
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

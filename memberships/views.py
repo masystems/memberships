@@ -87,6 +87,8 @@ class DashboardBase(TemplateView):
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
                                                                           Q(admins=self.request.user))
         context['memberships'] = Member.objects.filter(user_account=self.request.user)
+
+        context['all_packages'] = MembershipPackage.objects.filter(enabled=True)
         return context
 
 
