@@ -104,7 +104,6 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
         :return:
         """
         if not self.request.user.is_authenticated:
-            # Block requests that attempt to provide their own foo value
             return HttpResponseRedirect('/login')
 
         self.context = super().get_context_data(**kwargs)

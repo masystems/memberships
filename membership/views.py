@@ -43,12 +43,12 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
                                                                           Q(admins=self.request.user))
-
         return context
 
     def get(self, *args, **kwargs):
         membership_packages = MembershipPackage.objects.filter(Q(owner=self.request.user) |
                                                                Q(admins=self.request.user))
+
         if len(membership_packages) < 1:
             return HttpResponseRedirect('membership-package-settings')
         if len(membership_packages) == 1:
@@ -484,19 +484,22 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         :param kwargs:
         :return:
         """
-
-        if not MembershipPackage.objects.filter(Q(owner=self.request.user,
-                                                  organisation_name=kwargs['title']) |
-                                                Q(admins=self.request.user,
-                                                  organisation_name=kwargs['title']) |
-                                                Q(members=self.request.user),
-                                                  organisation_name=kwargs['title']).exists():
+        # allow access if requesting user is an owner or admin or if page belongs to the member
+        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                  organisation_name=kwargs['title']).exists() \
+                or Member.objects.filter(id=self.kwargs['pk'],
+                                         membership_package=MembershipPackage.objects.get(
+                                             organisation_name=kwargs['title']),
+                                         user_account=self.request.user).exists():
+            # kwargs.update({'foo': 'bar'})  # inject the foo value
+            # now process dispatch as it otherwise normally would
+            return super().dispatch(request, *args, **kwargs)
+        else:
             # disallow access to page
             return HttpResponseRedirect('/')
 
-        #kwargs.update({'foo': 'bar'})  # inject the foo value
-        # now process dispatch as it otherwise normally would
-        return super().dispatch(request, *args, **kwargs)
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -555,6 +558,27 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
 class MemberProfileView(MembershipBase):
     template_name = 'member_profile.html'
     login_url = '/login/'
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Only allow the owner and admins to view this page
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        # allow access if requesting user is and owner or admin OR if page is members own profile
+        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user), organisation_name=kwargs['title']).exists()\
+            or Member.objects.filter(id=self.kwargs['pk'],
+                                     membership_package=MembershipPackage.objects.get(organisation_name=kwargs['title']),
+                                     user_account=self.request.user).exists():
+            # kwargs.update({'foo': 'bar'})  # inject the foo value
+            # now process dispatch as it otherwise normally would
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            # disallow access to page
+            return HttpResponseRedirect('/')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
