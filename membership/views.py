@@ -352,8 +352,9 @@ def member_bolton_form(request, title, pk):
     # access permissions
     if not MembershipPackage.objects.filter(Q(owner=request.user,
                                               organisation_name=title) |
-                                            Q(admins=request.user),
-                                              organisation_name=title).exists():
+                                            Q(admins=request.user,
+                                              organisation_name=title) |
+                                            Q(members=request.user, organisation_name=title)).exists():
         # disallow access to page
         return redirect('dashboard')
 
@@ -486,9 +487,10 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
 
         if not MembershipPackage.objects.filter(Q(owner=self.request.user,
                                                   organisation_name=kwargs['title']) |
-                                                Q(admins=self.request.user),
-                                                  organisation_name=kwargs['title'] |
-                                                Q()).exists():
+                                                Q(admins=self.request.user,
+                                                  organisation_name=kwargs['title']) |
+                                                Q(members=self.request.user),
+                                                  organisation_name=kwargs['title']).exists():
             # disallow access to page
             return HttpResponseRedirect('/')
 
