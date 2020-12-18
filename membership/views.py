@@ -6,12 +6,18 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
-from memberships.functions import generate_username, get_stripe_secret_key, get_stripe_public_key
+from memberships.functions import *
 from .models import MembershipPackage, Member, Equine
 from .forms import MembershipPackageForm, MemberForm, EquineForm
 from json import dumps
 import stripe
 from re import search
+
+
+def get_packages(request):
+    return {'membership_packages': MembershipPackage.objects.filter(Q(owner=request.user) |
+                                                                    Q(admins=request.user), enabled=True),
+            'memberships': Member.objects.filter(user_account=request.user)}
 
 
 class MembershipBase(TemplateView):
@@ -128,7 +134,17 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
         if form.is_valid():
             # save form
             form.instance.owner = self.request.user
-            form.save()
+            membership_package = form.save()
+
+            # send confirmation email
+            body = f"""This is a confirmation email for your new Membership Organisation package.
+            
+            Membership Organisation: {membership_package.organisation_name}
+            
+            Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.
+             
+            """
+            send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name, body, reply_to=request.user.email)
             return HttpResponse(dumps({'status': "success"}), content_type='application/json')
         else:
             message = {'status': "fail",
