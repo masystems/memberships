@@ -15,9 +15,12 @@ from re import search
 
 
 def get_packages(request):
-    return {'membership_packages': MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                                    Q(admins=request.user), enabled=True),
-            'memberships': Member.objects.filter(user_account=request.user)}
+    if request.user.is_authenticated:
+        return {'membership_packages': MembershipPackage.objects.filter(Q(owner=request.user) |
+                                                                        Q(admins=request.user), enabled=True),
+                'memberships': Member.objects.filter(user_account=request.user)}
+    else:
+        return {'authenticated': False}
 
 
 class MembershipBase(TemplateView):
@@ -76,21 +79,21 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         :return:
         """
 
-        if not MembershipPackage.objects.filter(Q(owner=self.request.user,
-                                                  organisation_name=kwargs['title']) |
-                                                Q(admins=self.request.user),
-                                                  organisation_name=kwargs['title']).exists():
-            # disallow access to page
-            return HttpResponseRedirect('/')
+        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                            Q(admins=self.request.user),
+                                            organisation_name=kwargs['title'],
+                                            enabled=True).exists():
+            # kwargs.update({'foo': 'bar'})  # inject the foo value
+            # now process dispatch as it otherwise normally would
+            return super().dispatch(request, *args, **kwargs)
 
-        #kwargs.update({'foo': 'bar'})  # inject the foo value
-        # now process dispatch as it otherwise normally would
-        return super().dispatch(request, *args, **kwargs)
+        # disallow access to page
+        return HttpResponseRedirect('/')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                    Q(admins=self.request.user))
+                                                                          Q(admins=self.request.user))
         context['package'] = context['membership_packages'][0]
         context['members'] = Member.objects.filter(membership_package=context['package'])
 
