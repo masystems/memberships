@@ -12,13 +12,15 @@ from .forms import MembershipPackageForm, MemberForm, EquineForm
 from json import dumps
 import stripe
 from re import search
+from urllib.parse import unquote
 
 
 def get_packages(request):
     if request.user.is_authenticated:
         return {'membership_packages': MembershipPackage.objects.filter(Q(owner=request.user) |
                                                                         Q(admins=request.user), enabled=True),
-                'memberships': Member.objects.filter(user_account=request.user)}
+                'memberships': Member.objects.filter(user_account=request.user),
+                'all_packages': MembershipPackage.objects.filter(enabled=True)}
     else:
         return {'authenticated': False}
 
@@ -26,10 +28,6 @@ def get_packages(request):
 class MembershipBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['memberships'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                  Q(admins=self.request.user) |
-                                                                  Q(members=self.request.user))
-
         return context
 
 
@@ -292,13 +290,12 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         initial = super().get_initial()
 
         # get membership title
-        url = self.request.get_full_path()
-        org = url.split('/')[3]
-        if not MembershipPackage.objects.filter(Q(owner=self.request.user,
-                                                  organisation_name=org) |
+        decoded_url = unquote(self.request.get_full_path())
+        org = decoded_url.split('/')[3]
+
+        if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
                                                 Q(admins=self.request.user),
                                                   organisation_name=org).exists():
-
             initial['email'] = self.request.user.email
             initial['first_name'] = self.request.user.first_name
             initial['last_name'] = self.request.user.last_name

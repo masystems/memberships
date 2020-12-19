@@ -249,12 +249,15 @@
                         <!-- ============================================================== -->
                         <!-- Search -->
                         <!-- ============================================================== -->
-<!--                        <li class="nav-item search-box d-none d-md-block">-->
-<!--                            <form class="app-search mt-3 mr-2">-->
-<!--                                <input type="text" class="form-control rounded-pill border-0" placeholder="Search for member">-->
-<!--                                <a class="srh-btn"><i class="ti-search"></i></a> -->
-<!--                            </form>-->
-<!--                        </li>-->
+                        <li class=" d-none d-md-block">
+                            <div class="input-group justify-content-end d-flex mt-3 mr-2">
+<!--                                <div class="input-group-prepend"><span class="input-group-text"><i class="fad fa-users"></i></span></div>-->
+                                <div id="orgs">
+                                    <input class="typeahead form-control" type="text" id="organisations" name="organisations" placeholder="Type organisation name">
+                                </div>
+                                <button class="btn btn-sm btn-info" id="joinOrg"><i class="fad fa-users mr-1"></i>Join</button>
+                            </div>
+                        </li>
                         <!-- ============================================================== -->
                         <!-- User profile and search -->
                         <!-- ============================================================== -->
@@ -308,7 +311,7 @@
                             <!-- End User profile text-->
                         </li>
                         <!-- User Profile-->
-                        <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Memberships</span></li>
+                        <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Membership Organisations</span></li>
 <!--                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/" aria-expanded="false"><i class="fad fa-home-alt mr-1"></i> <span class="hide-menu">Overview</span></a></li>-->
                         {% if membership_packages %}
                             {% for package in membership_packages.all %}
@@ -406,6 +409,55 @@
     <script src="{% static 'dist/js/feather.min.js' %}"></script>
     <script src="{% static 'dist/js/custom.min.js' %}"></script>
 
+    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
+    <script>
+    var substringMatcher = function(strs) {
+        return function findMatches(q, cb) {
+            var matches, substringRegex;
+
+            // an array that will be populated with substring matches
+            matches = [];
+
+            // regex used to determine if a string contains the substring `q`
+            substrRegex = new RegExp(q, 'i');
+
+            // iterate through the pool of strings and for any string that
+            // contains the substring `q`, add it to the `matches` array
+            $.each(strs, function(i, str) {
+              if (substrRegex.test(str)) {
+                matches.push(str);
+              }
+            });
+
+            cb(matches);
+              };
+        };
+
+        var orgs = [{% for org in all_packages.all %}
+                            '{{ org.organisation_name }}',
+                            {% endfor %}];
+        $('#orgs .typeahead').typeahead({
+          hint: true,
+          highlight: true,
+          minLength: 1
+        },
+        {
+          name: 'organisations',
+          source: substringMatcher(orgs)
+        });
+        $('.typeahead').bind('typeahead:active', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "Type organisation name");
+        });
+        $('.typeahead').bind('typeahead:close', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "");
+        });
+        $('#joinOrg').click(function() {
+            if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
+                var url = "/membership/member-form/" + $('#organisations').val();
+                window.location.href = url;
+            }
+        });
+    </script>
 
     {% block footer %}
 

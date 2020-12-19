@@ -84,11 +84,6 @@ def logout_user(request):
 class DashboardBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                          Q(admins=self.request.user))
-        context['memberships'] = Member.objects.filter(user_account=self.request.user)
-
-        context['all_packages'] = MembershipPackage.objects.filter(enabled=True)
         return context
 
 
