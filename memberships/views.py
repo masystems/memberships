@@ -89,7 +89,7 @@ class DashboardBase(TemplateView):
 
 class Dashboard(LoginRequiredMixin, DashboardBase):
     template_name = 'dashboard.html'
-    login_url = 'accounts/login'
+    login_url = '/accounts/login'
 
     def dispatch(self, request, *args, **kwargs):
         """
