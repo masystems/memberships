@@ -145,7 +145,7 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
             Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.
              
             """
-            send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name, body, reply_to=request.user.email)
+            send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name, body, send_to=request.user.email, reply_to=request.user.email)
             return HttpResponse(dumps({'status': "success"}), content_type='application/json')
         else:
             message = {'status': "fail",
@@ -299,7 +299,7 @@ class MemberRegForm(LoginRequiredMixin, FormView):
             initial['email'] = self.request.user.email
             initial['first_name'] = self.request.user.first_name
             initial['last_name'] = self.request.user.last_name
-            initial['membership_number'] = self.get_membership_number(org)
+        initial['membership_number'] = self.get_membership_number(org)
 
         return initial
 
@@ -307,14 +307,14 @@ class MemberRegForm(LoginRequiredMixin, FormView):
     def get_membership_number(org):
         # get next available member number
         try:
-            membership_package = MembershipPackage.objects.get(organisation_name=org)
+            membership_package = MembershipPackage.objects.get(organisation_name=org, enabled=True)
             latest_added = Member.objects.filter(membership_package=membership_package).latest('membership_number')
             latest_member_number = latest_added.membership_number
             reg_ints_re = search("[0-9]+", latest_member_number)
             return latest_member_number.replace(str(reg_ints_re.group(0)),
                                                str(int(reg_ints_re.group(0)) + 1).zfill(len(reg_ints_re.group(0))))
         except Member.DoesNotExist:
-            return 'REG12345'
+            return 'MEM12345'
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -326,6 +326,22 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.context = self.get_context_data(**kwargs)
         self.member = form.save()
         self.create_andor_link_user()
+
+        # send confirmation email
+        body = f"""This is a confirmation email for your new Membership to {self.context['membership_package'].organisation_name}.
+
+                    Membership Organisation: {self.context['membership_package'].organisation_name}
+                    Name: {self.member.user_account.get_full_name}
+                    Email: {self.member.email}
+                    Payment Type: {self.member.payment_type}
+                    Billing Period: {self.member.billing_period}
+
+                    Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.
+
+                    """
+        send_email(f"Membership Confirmation: {self.context['membership_package'].organisation_name}", self.member.user_account.get_full_name,
+                   body, send_to=self.member.email)
+
         if self.context['membership_package'].bolton != 'none':
             return redirect(f"/membership/member-bolton-form/{self.context['membership_package'].organisation_name}/{self.member.id}")
         elif self.member.payment_type == 'card_payment':
