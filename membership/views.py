@@ -138,14 +138,18 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
             membership_package = form.save()
 
             # send confirmation email
-            body = f"""This is a confirmation email for your new Membership Organisation package.
+            body = f"""<p>This is a confirmation email for your new Membership Organisation package.
             
-            Membership Organisation: {membership_package.organisation_name}
+            <ul>
+            <li>Membership Organisation: {membership_package.organisation_name}</li>
+            </ul>
             
-            Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.
+            <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
              
             """
             send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name, body, send_to=request.user.email, reply_to=request.user.email)
+            send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name, body, reply_to=request.user.email)
+
             return HttpResponse(dumps({'status': "success"}), content_type='application/json')
         else:
             message = {'status': "fail",
@@ -328,15 +332,16 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.create_andor_link_user()
 
         # send confirmation email
-        body = f"""This is a confirmation email for your new Membership to {self.context['membership_package'].organisation_name}.
-
-                    Membership Organisation: {self.context['membership_package'].organisation_name}
-                    Name: {self.member.user_account.get_full_name}
-                    Email: {self.member.email}
-                    Payment Type: {self.member.payment_type}
-                    Billing Period: {self.member.billing_period}
-
-                    Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.
+        body = f"""<p>This is a confirmation email for your new Membership to {self.context['membership_package'].organisation_name}.</P
+                    <ul>
+                        <li>Membership Organisation: {self.context['membership_package'].organisation_name}</li>
+                        <li>Name: {self.member.user_account.get_full_name()}</li>
+                        <li>Email: {self.member.email}</li>
+                        <li>Payment Type: {self.member.payment_type}</li>
+                        <li>Billing Period: {self.member.billing_period}</li>
+                    </ul>
+                    
+                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
 
                     """
         send_email(f"Membership Confirmation: {self.context['membership_package'].organisation_name}", self.member.user_account.get_full_name,
