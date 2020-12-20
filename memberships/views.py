@@ -19,9 +19,9 @@ def login_user(request):
             auth.login(request, user)
             return redirect('dashboard')
         else:
-            return render(request, 'login.html', {'error': 'Username and/or password not recognised.'})
+            return render(request, '/accounts/login.html', {'error': 'Username and/or password not recognised.'})
     else:
-        return render(request, 'login.html')
+        return render(request, '/accounts/login.html')
 
 
 def register(request):
@@ -75,7 +75,7 @@ def register(request):
     return render(request, template, {'form': form})
 
 
-@login_required(login_url='login')
+@login_required(login_url='/accounts/login')
 def logout_user(request):
     logout(request)
     return redirect('dashboard')
@@ -89,7 +89,7 @@ class DashboardBase(TemplateView):
 
 class Dashboard(LoginRequiredMixin, DashboardBase):
     template_name = 'dashboard.html'
-    login_url = '/login/'
+    login_url = '/accounts/login'
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -99,7 +99,7 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
         :return:
         """
         if not self.request.user.is_authenticated:
-            return HttpResponseRedirect('/login')
+            return HttpResponseRedirect('/accounts/login')
 
         self.context = super().get_context_data(**kwargs)
         self.context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |

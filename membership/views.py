@@ -33,7 +33,7 @@ class MembershipBase(TemplateView):
 
 class Membership(LoginRequiredMixin, MembershipBase):
     template_name = 'membership-package.html'
-    login_url = '/login/'
+    login_url = '/accounts/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -43,7 +43,7 @@ class Membership(LoginRequiredMixin, MembershipBase):
 
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'select-membership-package.html'
-    login_url = '/login/'
+    login_url = '/accounts/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -66,7 +66,7 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
 
 class MembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'membership-package.html'
-    login_url = '/login/'
+    login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -115,7 +115,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
 class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
     template_name = 'membership-package-settings.html'
-    login_url = '/login/'
+    login_url = '/accounts/login/'
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -283,7 +283,7 @@ def get_account_link(membership):
 
 class MemberRegForm(LoginRequiredMixin, FormView):
     template_name = 'member_form_new.html'
-    login_url = '/login/'
+    login_url = '/accounts/login/'
     form_class = MemberForm
     success_url = '/membership/'
 
@@ -380,7 +380,7 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.member.save()
 
 
-@login_required(login_url='/login/')
+@login_required(login_url='/accounts/login/')
 def member_bolton_form(request, title, pk):
 
     membership_package = MembershipPackage.objects.get(organisation_name=title)
@@ -439,7 +439,7 @@ def member_bolton_form(request, title, pk):
 
 class UpdateMember(LoginRequiredMixin, UpdateView):
     template_name = 'member_form_update.html'
-    login_url = '/login/'
+    login_url = '/accounts/login/'
     form_class = MemberForm
     model = Member
     success_url = '/membership/'
@@ -511,7 +511,7 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
 
 class MemberPaymentView(LoginRequiredMixin, MembershipBase):
     template_name = 'member_payment.html'
-    login_url = '/login/'
+    login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -594,7 +594,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
 
 class MemberProfileView(MembershipBase):
     template_name = 'member_profile.html'
-    login_url = '/login/'
+    login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
         """
