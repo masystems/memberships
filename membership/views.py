@@ -149,8 +149,8 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
             <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
              
             """
-            send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name, body, send_to=request.user.email, reply_to=request.user.email)
-            send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name, body, reply_to=request.user.email)
+            send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
+            send_email(f"Organisation Confirmation: {membership_package.organisation_name}", request.user.get_full_name(), body, reply_to=request.user.email)
 
             return HttpResponse(dumps({'status': "success"}), content_type='application/json')
         else:
@@ -346,7 +346,7 @@ class MemberRegForm(LoginRequiredMixin, FormView):
                     <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
 
                     """
-        send_email(f"Membership Confirmation: {self.context['membership_package'].organisation_name}", self.member.user_account.get_full_name,
+        send_email(f"Membership Confirmation: {self.context['membership_package'].organisation_name}", self.member.user_account.get_full_name(),
                    body, send_to=self.member.email)
 
         if self.context['membership_package'].bolton != 'none':
