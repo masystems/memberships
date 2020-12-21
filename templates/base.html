@@ -439,18 +439,13 @@
         $('#orgs .typeahead').typeahead({
           hint: true,
           highlight: true,
-          minLength: 1
+          minLength: 0
         },
         {
           name: 'organisations',
           source: substringMatcher(orgs)
         });
-        $('.typeahead').bind('typeahead:active', function(ev, suggestion) {
-            $('#organisations').attr("placeholder", "Type organisation name");
-        });
-        $('.typeahead').bind('typeahead:close', function(ev, suggestion) {
-            $('#organisations').attr("placeholder", "");
-        });
+
         $('#joinOrg').click(function() {
             if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
                 var url = "/membership/member-form/" + $('#organisations').val();
