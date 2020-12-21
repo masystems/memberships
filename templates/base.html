@@ -445,7 +445,12 @@
           name: 'organisations',
           source: substringMatcher(orgs)
         });
-
+        $('.typeahead').bind('click', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "Type organisation name");
+        });
+        $('.typeahead').bind('typeahead:close', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "");
+        });
         $('#joinOrg').click(function() {
             if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
                 var url = "/membership/member-form/" + $('#organisations').val();
