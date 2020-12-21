@@ -445,7 +445,7 @@
           name: 'organisations',
           source: substringMatcher(orgs)
         });
-        $('.typeahead').bind('click', function(ev, suggestion) {
+        $('.typeahead').bind('typeahead:active', function(ev, suggestion) {
             $('#organisations').attr("placeholder", "Type organisation name");
         });
         $('.typeahead').bind('typeahead:close', function(ev, suggestion) {
