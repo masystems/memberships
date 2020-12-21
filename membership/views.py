@@ -136,6 +136,8 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
             # save form
             form.instance.owner = self.request.user
             membership_package = form.save()
+            membership_package.enabled = True
+            membership_package.save()
 
             # send confirmation email
             body = f"""<p>This is a confirmation email for your new Membership Organisation package.
