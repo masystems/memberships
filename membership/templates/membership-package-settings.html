@@ -117,19 +117,14 @@
                     </div>
                 </form>
                 <div class="col-lg-6 offset-lg-3 d-flex justify-content-center">
-                    <div id="spinner" class="d-none">
-                        <div class="spinner-border" role="status">
-                            <span class="sr-only">Loading...</span>
-                        </div>
-                    </div>
                     <div id="result" class="d-none text-center">
                         <h2>Success!</h2>
                         <h6>Your new Membership Package is now active!</h6>
                         <p>Now you can access your membership administration page, first thing to do is enter your <span class="text-info">organisation details.</span></p>
 
-                        <a href="#" target="_blank" id="receipt"><button type="button" id="receiptBtn" class="btn btn-dark">View Receipt</button></a>
+                        <a href="#" target="_blank" id="receipt"><button type="button" id="receiptBtn" class="btn btn-dark mb-2">View Receipt</button></a>
 
-                        <a href="#" id="goToOrgLink"><button type="button" class="btn btn-warning">Membership Admin</button></a>
+                        <a href="#" id="goToOrgLink"><button type="button" class="btn btn-warning mb-2">Membership Admin</button></a>
                     </div>
                 </div>
             </div>
@@ -154,9 +149,17 @@
         });
     </script>
     <script>
+        function sleep (time) {
+          return new Promise((resolve) => setTimeout(resolve, time));
+        }
+
         $("#membershipForm").submit(function(e){
+            $('#org-overlay-spinner').modal();
             e.preventDefault();
-            submitPackageForm()
+            sleep(2000).then(() => {
+                submitPackageForm()
+            });
+
         });
         function submitPackageForm() {
 
@@ -177,17 +180,15 @@
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
                 data: data,
                 beforeSend: function() {
-                    $('#org-overlay-spinner').modal('show');
                 },
                 success: function(data) {
                     var result = JSON.parse(data);
                     if (result['status'] == "fail") {
-                        // hide loader
-                        $('#org-overlay-spinner').modal('hide');
                         $('#formError').removeClass('d-none');
                         $('#formError').html(result['errors']);
+                        $('#org-overlay-spinner').modal('hide');
                     } else {
-                        $('#membershipForm').addClass('d-none');
+                        $('#formError').addClass('d-none');
                         generateCardToken(data);
                     }
                  },
@@ -246,7 +247,6 @@
             stripe.createToken(card).then(function(result) {
                 if (result.error) {
                     // Inform the customer that there was an error.
-                    $('#org-overlay-spinner').modal('hide');
                     var errorElement = document.getElementById('card-errors');
                     errorElement.textContent = result.error.message;
                 } else {
@@ -268,14 +268,14 @@
                     'token': token,
                     },
                 beforeSend: function() {
-                    $('#org-overlay-spinner').modal('show');
                 },
                 success: function(data) {
                     var result = JSON.parse(data);
-                    $('#org-overlay-spinner').modal('hide');
                     if (result.result == 'fail') {
                         $('#card-errors').html(result.feedback);
+                        $('#org-overlay-spinner').modal('hide');
                     } else {
+                        $('#membershipForm').addClass('d-none');
                         loadSuccessPage(result);
                     }
                  },
@@ -291,16 +291,15 @@
         }
 
         function loadSuccessPage(result) {
-            $('#org-overlay-spinner').modal('hide');
             $('#durationAndPayment').addClass('d-none');
             $('a[href="#finish"]').removeAttr('href');
             $('a[href="#previous"]').removeAttr('href');
 
             //update layout
-
             $('#result').removeClass('d-none');
             $('#receipt').attr("href", result.receipt);
-            $('#goToOrgLink').attr"href", '/membership/org/'+$('#id_organisation_name').val());
-        }(
+            $('#goToOrgLink').attr("href", '/membership/org/'+$('#id_organisation_name').val());
+            $('#org-overlay-spinner').modal('hide');
+        }
     </script>
 {% endblock %}
