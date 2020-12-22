@@ -110,6 +110,8 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         else:
             # stripe account not setup
             context['stripe_package_setup'] = create_package_on_stripe(self.request)
+        # function to delete membership package
+        context['delete_membership_package'] = delete_membership_package(self.request)
         return context
 
 
@@ -158,6 +160,35 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
                        'errors': f"{form.errors}"}
             return HttpResponse(dumps(message), content_type='application/json')
 
+
+@login_required(login_url='/accounts/login/')
+def delete_membership_package(request):
+    return HttpResponseRedirect('/')
+    """
+        validate that the user is the owner
+        validate that there are no existing members
+        stop mayments to stripe
+        delete org account
+        email confirmation email
+        redirect user to home page, and pass success message in
+    """
+
+    try:
+        membership_package = MembershipPackage.objects.get(owner=request.user, active=True)
+    except MembershipPackage.DoesNotExist:
+        # disallow access to page
+        # return to previous page
+        return HttpResponseRedirect("{% url 'membership_package' %}")
+
+    # validate that there are no existing members
+    if membership_package.count() <= 0:
+        raise MembershipPackage.DoesNotExist
+        return HttpResponseRedirect("{% url 'membership_package' %}")
+
+    # stop payments to stripe
+    # delete org account
+    # success message
+    return HttpResponseRedirect('/')
 
 def create_package_on_stripe(request):
     # get strip secret key
