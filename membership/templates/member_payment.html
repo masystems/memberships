@@ -8,6 +8,24 @@
 
 {% block content %}
 
+<!-- Spinner Overlay -->
+<div id="org-overlay-spinner" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog"
+    aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content modal-filled bg-info">
+            <div class="modal-body p-4">
+                <div class="text-center">
+                    <div id="spinner">
+                        <div class="spinner-border" role="status">
+                        </div>
+                            <h3 class="text-white mt-2">Processing card details...</h3>
+                        </div>
+                </div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
@@ -43,7 +61,7 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">{{ package.organisation_name }} Member Payment Information</h4>
-                    <div class="row mt-4">
+                    <div class="row mt-4" id="existing-customer-details">
                         <div class="col-6">
                             {% if subscription %}
                                 <h5>Existing Subscription Details</h5>
@@ -74,6 +92,15 @@
 
                 </div>
                 <hr>
+                <div id="result" class="d-none text-center">
+                    <h2>Success!</h2>
+                    <h6>Membership is now active!</h6>
+<!--                <p>Now you can access your membership administration page, first thing to do is enter your <span class="text-info">organisation details.</span></p>-->
+
+                    <a href="#" target="_blank" id="receipt"><button type="button" id="receiptBtn" class="btn btn-dark mt-2">View Receipt</button></a>
+
+                    <a href="#" id="goToMemberPageLink"><button type="button" class="btn btn-warning mt-2">Member Page</button></a>
+                </div>
                 <div class="col-lg-6 offset-lg-3">
                     <form id="payment-form">
                         <label>Card Holders Name:</label>
@@ -82,37 +109,18 @@
                         <div id="card-element"></div>
                         <!-- Used to display Element errors. -->
                         <div id="card-errors" role="alert"></div>
+                        <div class="text-center" id="cardTypes">
+                            <img class="mt-2" src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:50px">
+                            <img class="mt-2" src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:50px">
+                            <img class="mt-2" src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:50px">
+                        </div>
                     </form>
-                    <div class="text-center" id="cardTypes">
-                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:50px">
-                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:50px">
-                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:50px">
-                    </div>
-                </div>
-                <div id="loading" class="d-none">
-                    <div class="spinner-border text-primary align-self-center float-right"></div>
                 </div>
                 <hr>
-                <div class="card-body">
+                <div class="card-body" id="payment-buttons">
                     <div class="form-group mb-0 text-right">
                         <button id="save-membership" class="btn btn-info waves-effect waves-light">Make Payment</button>
                         <button type="submit" class="btn btn-dark waves-effect waves-light">Cancel</button>
-                    </div>
-                </div>
-                <div class="col-lg-6 offset-lg-3 d-flex justify-content-center">
-                    <div id="spinner" class="d-none">
-                        <div class="spinner-border" role="status">
-                            <span class="sr-only">Loading...</span>
-                        </div>
-                    </div>
-                    <div id="result" class="d-none text-center">
-                        <h2>Success!</h2>
-                        <h6>Membership is now active!</h6>
-<!--                        <p>Now you can access your membership administration page, first thing to do is enter your <span class="text-info">organisation details.</span></p>-->
-
-                        <a href="#" target="_blank" id="receipt"><button type="button" id="receiptBtn" class="btn btn-dark">View Receipt</button></a>
-
-                        <a href="#" id="goToMemberPageLink"><button type="button" class="btn btn-warning">Member Page</button></a>
                     </div>
                 </div>
             </div>
@@ -138,6 +146,19 @@
         });
     </script>
     <script>
+        function sleep (time) {
+          return new Promise((resolve) => setTimeout(resolve, time));
+        }
+
+        $("#save-membership").click(function(e){
+            $('#org-overlay-spinner').modal();
+            e.preventDefault();
+            sleep(2000).then(() => {
+                generateCardToken()
+            });
+
+        });
+
         $("#save-membership").click(function(e){
             generateCardToken();
         });
@@ -181,8 +202,6 @@
         });
 
         // Create a token or display an error when the form is submitted.
-        var form = document.getElementById('payment-form');
-        var cardButton = document.getElementById('card-button');
         function generateCardToken() {
             stripe.createToken(card).then(function(result) {
                 if (result.error) {
@@ -208,22 +227,18 @@
                     'token': token,
                     },
                 beforeSend: function() {
-                    $('#spinner').removeClass("d-none");
-                    $('#spinnerText').removeClass("d-none");
                     $('#paymentSuccess').addClass('d-none');
                     $('#paymentFail').addClass('d-none');
                 },
                 success: function(data) {
                     var result = JSON.parse(data);
-                    $('#spinner').addClass('d-none');
-                    $('#spinnerText').addClass('d-none');
                     if (result.result == 'fail') {
-                        // hide loader
-                        $('#loading').addClass('d-none');
+                        $('#org-overlay-spinner').modal('hide');
                         $('#card-errors').html(result.feedback);
-                        console.log(data);
                     } else {
-                        // hide loader
+                        $('#existing-customer-details').addClass('d-none');
+                        $('#payment-form').addClass('d-none');
+                        $('#payment-buttons').addClass('d-none');
                         loadSuccessPage(result);
                     }
                  },
@@ -239,7 +254,7 @@
         }
 
         function loadSuccessPage(result) {
-            $('#loading').addClass('d-none');
+            $('#org-overlay-spinner').modal('hide');
             $('#durationAndPayment').addClass('d-none');
             $('a[href="#finish"]').removeAttr('href');
             $('a[href="#previous"]').removeAttr('href');
