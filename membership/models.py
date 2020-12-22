@@ -18,11 +18,17 @@ class MembershipPackage(models.Model):
     bolton = models.CharField(max_length=12, choices=BOLTONS, null=True, default='none',
                               help_text="Boltons add additional fields to your member form.")
 
-    membership_price_per_month = models.DecimalField(blank=False, max_digits=5, decimal_places=2,
-                                                     help_text="Price in £ per month")
+    membership_price_per_month = models.DecimalField(blank=False,
+                                                     max_digits=5,
+                                                     decimal_places=2,
+                                                     help_text="Price in £ per month",
+                                                     verbose_name="Membership Price Per Month")
     membership_price_per_month_id = models.CharField(max_length=255, blank=True)
-    membership_price_per_year = models.DecimalField(blank=False, max_digits=5, decimal_places=2,
-                                                    help_text="Price in £ per year")
+    membership_price_per_year = models.DecimalField(blank=False,
+                                                    max_digits=5,
+                                                    decimal_places=2,
+                                                    help_text="Price in £ per year",
+                                                    verbose_name="Membership Price Per Year")
     membership_price_per_year_id = models.CharField(max_length=255, blank=True)
 
     cloud_lines_account = models.CharField(max_length=100, blank=True,
