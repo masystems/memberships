@@ -234,6 +234,7 @@
         card.addEventListener('change', function(event) {
           var displayError = document.getElementById('card-errors');
           if (event.error) {
+            $('#org-overlay-spinner').modal('hide');
             displayError.textContent = event.error.message;
           } else {
             displayError.textContent = '';
