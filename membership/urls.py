@@ -15,4 +15,5 @@ urlpatterns = [
     path('member-payment/<str:title>/<int:pk>', views.MemberPaymentView.as_view(), name="member_payment"),
     path('validate-card', views.validate_card, name="validate_card"),
     path('member-profile/<str:title>/<int:pk>', views.MemberProfileView.as_view(), name="member_profile"),
+    path('delete-organisation/<str:title>', views.delete_membership_package, name="delete_organisation"),
 ]
