@@ -57,11 +57,17 @@
                         <h4 class="card-title">{{ package.organisation_name }} Members</h4>
                         <div class="ml-auto">
                             <div class="btn-group">
-                                <a href="{% url 'member_form' package.organisation_name %}">
-                                    <button type="button" class="btn btn-success">
+                                {% if not stripe_package_setup %}
+                                    <a href="{% url 'member_form' package.organisation_name %}">
+                                        <button type="button" class="btn btn-success">
+                                            Add New Member
+                                        </button>
+                                    </a>
+                                {% else %}
+                                    <button type="button" class="btn btn-light" data-toggle="tooltip" data-placement="top" title="Cannot add new members until setup is completed.">
                                         Add New Member
                                     </button>
-                                </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -71,9 +77,8 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Phone</th>
                                     <th>Role</th>
-                                    <th>Joining date</th>
+                                    <th>Category</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -83,14 +88,36 @@
                                         <td>
                                             <a href="{% url 'member_profile' package.organisation_name member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
                                         </td>
-                                        <td>{{ member.user_account.email }}</td>
-                                        <td>{{ member.contact_number }}</td>
-                                        <td><span class="badge py-1 badge-info">Member</span> </td>
-                                        <td>{{ member.user_account.date_joined }}</td>
+                                        <td>{{ member.email }}</td>
                                         <td>
-                                            <a href="{% url 'member_payment' package.organisation_name member.id %}"><i class="fad fa-credit-card-front text-success mr-1"></i></a>
-                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><i class="fad fa-user-edit mr-1"></i></a>
-                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><i class="fad fa-user-slash text-danger"></i></a>
+                                            <span class="badge py-1 badge-info">
+                                            {{ member.record_type|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge py-1 badge-info">
+                                            {{ member.category|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if member.payment_type == 'card_payment' %}
+                                                {% if member.stripe_subscription_id %}
+                                                    <a href="{% url 'member_payment' package.organisation_name member.id %}">
+                                                        <button class="btn btn-xs btn-rounded btn-light mr-1">
+                                                            <i class="fad fa-credit-card-front text-success mr-1"></i>
+                                                        </button
+                                                    </a>
+                                                {% else %}
+                                                    <a href="{% url 'member_payment' package.organisation_name member.id %}">
+                                                        <button class="btn btn-rounded btn-light mr-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                            <i class="fad fa-credit-card-front text-danger"></i>
+                                                        </button>
+                                                    </a>
+
+                                                {% endif %}
+                                            {% endif %}
+                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-rounded btn-light mr-1"><i class="fad fa-user-edit text-info"></i></button></a>
+                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-rounded btn-light"><i class="fad fa-user-slash text-danger"></i></button></a>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -105,12 +132,26 @@
         <div class="col-lg-4 col-xl-3 col-md-3">
             <div class="card">
                 <div class="border-bottom p-3">
-                    <a href="{{ edit_account.url }}">
-                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#Sharemodel"
-                            style="width: 100%">
-                            <i class="fad fa-pencil-alt mr-2"></i> Edit Package
+                    {% if stripe_package_setup %}
+                    <a href="{{ stripe_package_setup.url }}">
+                        <button type="button" class="btn btn-warning" style="width: 100%">
+                            Continue Setup on Stripe
                         </button>
                     </a>
+
+                    {% elif account_link %}
+                        <a href="{{ account_link.url }}">
+                            <button type="button" class="btn btn-warning" style="width: 100%">
+                                Action Required on Stripe
+                            </button>
+                        </a>
+                    {% else %}
+                        <a href="{{ edit_account.url }}">
+                            <button type="button" class="btn btn-info" style="width: 100%">
+                                <i class="fad fa-pencil-alt mr-2"></i> Edit Package
+                            </button>
+                        </a>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <h4 class="card-title">Account Overview</h4>

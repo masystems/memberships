@@ -48,8 +48,6 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                          Q(admins=self.request.user))
         return context
 
     def get(self, *args, **kwargs):
@@ -99,10 +97,11 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         stripe.api_key = get_stripe_secret_key(self.request)
         context['stripe_package'] = stripe.Account.retrieve(context['package'].stripe_acct_id,
                                                             stripe_account=context['package'].stripe_acct_id)
+
         if context['package'].stripe_acct_id:
             try:
                 context['edit_account'] = stripe.Account.create_login_link(context['package'].stripe_acct_id)
-            except:
+            except stripe.error.InvalidRequestError:
                 # stripe account created but not setup
                 context['stripe_package_setup'] = get_account_link(context['package'])
             if context['stripe_package'].requirements.errors:
