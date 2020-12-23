@@ -144,6 +144,58 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
             return HttpResponse(dumps(message), content_type='application/json')
 
 
+@login_required(login_url='/accounts/login/')
+def delete_membership_package(request, title):
+    """
+        validate that the user is the owner
+        validate that there are no existing members
+        stop mayments to stripe
+        delete org account
+        email confirmation email
+        redirect user to home page, and pass success message in
+    """
+
+    try:
+        membership_package = MembershipPackage.objects.get(owner=request.user, organisation_name=title)
+    except MembershipPackage.DoesNotExist:
+        # disallow access to page
+        # return to previous page
+        return redirect('membership_package', membership_package.organisation_name)
+    # validate that there are no existing members
+    if Member.objects.filter(membership_package=membership_package).exists():
+        raise MembershipPackage.DoesNotExist
+        return redirect('membership_package', membership_package.organisation_name)
+
+    # stop payments to stripe
+    # get stripe secret key
+    stripe.api_key = get_stripe_secret_key(request)
+    membership_package = MembershipPackage.objects.get(owner=request.user)
+
+    # try to delete stripe account
+    try:
+        account = stripe.Account.delete(membership_package.stripe_acct_id)
+    except Account.DoesNotExist:
+        # account does not exist
+        return redirect('membership_package', membership_package.organisation_name)
+
+    # delete org account
+    membership_package.delete()
+
+    # send email confirmation
+    body = f"""<p>This is an email confirming the deletion of your Membership Organisation package.
+
+                    <ul>
+                    <li>Membership Organisation: {membership_package.organisation_name}</li>
+                    </ul>
+
+                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+
+                    """
+    send_email(f"Organisation Deletion Confirmation: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
+
+    # success message
+    return redirect('/')
+
 def create_package_on_stripe(request):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)

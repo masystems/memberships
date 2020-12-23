@@ -14,13 +14,6 @@
     <div class="row">
         <div class="col-md-5 align-self-center">
             <h4 class="page-title">Dashboard</h4>
-            <div class="d-flex align-items-center">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="#">Home</a></li>
-                    </ol>
-                </nav>
-            </div>
         </div>
         <div class="col-md-7">
 
@@ -65,7 +58,7 @@
                                         <div class="display-6 align-self-center"><i class="fad fa-users"></i></div>
                                         <div class="p-2 align-self-center">
                                             <h4 class="mb-0 text-white">{{ account.organisation_name }}</h4>
-                                            <span>
+                                            <span>Role:
                                                 {% if account.owner == request.user %}
                                                     Owner
                                                 {% else %}
@@ -122,7 +115,7 @@
                                         <div class="p-2 align-self-center">
                                             <h4 class="mb-0 text-white">{{ member.membership_package.organisation_name }}</h4>
                                             <span>
-                                                Member
+                                                Role: Member
                                             </span>
                                         </div>
                                         <div class="ml-auto align-self-center">
