@@ -9,14 +9,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     'membership',
     'storages',
     'rest_framework',
     'django_extensions',
     'widget_tweaks',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'crispy_forms',
 ]
 
-AUTHENTICATION_BACKENDS = ['memberships.functions.EmailBackend']
+# AUTHENTICATION_BACKENDS = ['memberships.functions.EmailBackend']
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
