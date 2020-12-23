@@ -156,23 +156,45 @@ def delete_membership_package(request, title):
     """
 
     try:
-        membership_package = MembershipPackage.objects.get(owner=request.user,
-                                                           organisation_name=title,
-                                                           enabled=True)
+        membership_package = MembershipPackage.objects.get(owner=request.user, organisation_name=title)
     except MembershipPackage.DoesNotExist:
         # disallow access to page
         # return to previous page
-        return redirect('/')
-
+        return redirect('membership_package', membership_package.organisation_name)
     # validate that there are no existing members
-    if membership_package.count() <= 0:
+    if Member.objects.filter(membership_package=membership_package).exists():
         raise MembershipPackage.DoesNotExist
         return redirect('membership_package', membership_package.organisation_name)
 
     # stop payments to stripe
+    # get stripe secret key
+    stripe.api_key = get_stripe_secret_key(request)
+    membership_package = MembershipPackage.objects.get(owner=request.user)
+
+    # try to delete stripe account
+    try:
+        account = stripe.Account.delete(membership_package.stripe_acct_id)
+    except Account.DoesNotExist:
+        # account does not exist
+        return redirect('membership_package', membership_package.organisation_name)
+
     # delete org account
+    membership_package.delete()
+
+    # send email confirmation
+    body = f"""<p>This is an email confirming the deletion of your Membership Organisation package.
+
+                    <ul>
+                    <li>Membership Organisation: {membership_package.organisation_name}</li>
+                    </ul>
+
+                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+
+                    """
+    send_email(f"Organisation Deletion Confirmation: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
+
     # success message
-    return HttpResponseRedirect('/')
+    return redirect('/')
 
 def create_package_on_stripe(request):
     # get strip secret key
