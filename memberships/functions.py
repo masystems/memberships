@@ -7,17 +7,17 @@ from django.conf import settings
 from random import randint
 
 
-class EmailBackend(ModelBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        UserModel = get_user_model()
-        try:
-            user = UserModel.objects.get(email=username)
-        except UserModel.DoesNotExist:
-            return None
-        else:
-            if user.check_password(password):
-                return user
-        return None
+# class EmailBackend(ModelBackend):
+#     def authenticate(self, request, username=None, password=None, **kwargs):
+#         UserModel = get_user_model()
+#         try:
+#             user = UserModel.objects.get(email=username)
+#         except UserModel.DoesNotExist:
+#             return None
+#         else:
+#             if user.check_password(password):
+#                 return user
+#         return None
 
 
 def generate_username(first_name, last_name):
