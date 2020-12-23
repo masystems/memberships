@@ -30,7 +30,7 @@ def send_email(subject, name, body,
               send_from='contact@masys.co.uk',
               reply_to='contact@masys.co.uk'):
 
-    html_content = render_to_string('account/email/email_base.html', {'name': name,
+    html_content = render_to_string('account/email/email.html', {'name': name,
                                                         'body': body})
     text_content = strip_tags(html_content)
 
