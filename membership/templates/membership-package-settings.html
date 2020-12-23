@@ -64,7 +64,7 @@
                     <h6 class="card-subtitle">Fill out the form below to create a new membership package.</h6>
                 </div>
                 <hr>
-                <div id="formError" class="alert alert-danger col-lg-6 ml-2 d-none" role="alert"></div>
+                <div id="formError" class="alert alert-danger col-lg-4 offset-lg-3 justify-content-center d-none" role="alert"></div>
                 <form class="form-horizontal" method="POST" action="{% url 'membership_package_settings' %}" id="membershipForm">
                     {% csrf_token %}
                     <div class="card-body">
@@ -92,7 +92,10 @@
                             {% endfor %}
                         </div>
                         <hr>
-                        Pricing here: £20p/m
+                        <div class="col-lg-6 offset-lg-3 text-center">
+                            Our Membership Package is a set fixed price, at <span class="text-info">£20p/m</span>
+                        </div>
+                        <hr>
                         <div class="col-lg-6 offset-lg-3">
                             <form id="payment-form">
                                 <label>Card Holders Name:</label>
@@ -185,7 +188,7 @@
                     var result = JSON.parse(data);
                     if (result['status'] == "fail") {
                         $('#formError').removeClass('d-none');
-                        $('#formError').html(result['errors']);
+                        $('#formError').html(result['errors'].replace('membership_price_per_month', 'Membership Price Per Month').replace('membership_price_per_year', 'Membership Price Per Year'));
                         $('#org-overlay-spinner').modal('hide');
                     } else {
                         $('#formError').addClass('d-none');
