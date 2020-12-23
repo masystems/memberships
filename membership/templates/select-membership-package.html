@@ -19,7 +19,9 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="#">Home</a></li>
-                        <li class="breadcrumb-item" aria-current="page">Members</li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item" aria-current="page">Members</li>
+                        {% endif %}
                         <li class="breadcrumb-item active" aria-current="page">Select Package</li>
                     </ol>
                 </nav>
