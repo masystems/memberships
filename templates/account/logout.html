@@ -1,4 +1,4 @@
-{% extends "login_base.html" %}
+{% extends "account/base.html" %}
 
 {% load i18n %}
 
@@ -9,7 +9,7 @@
 
 <p>{% trans 'Are you sure you want to sign out?' %}</p>
 
-<form method="post" action="{% url 'account_logout' %}">
+<form class="form-horizontal mt-3 form-material" method="post" action="{% url 'account_logout' %}">
   {% csrf_token %}
   {% if redirect_field_value %}
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}"/>

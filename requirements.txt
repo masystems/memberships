@@ -7,10 +7,12 @@ cffi==1.14.4
 cfn-flip==1.2.3
 chardet==3.0.4
 click==7.1.2
+crispy-forms-foundation==0.8.0
 cryptography==3.3.1
 defusedxml==0.6.0
 Django==3.1.2
 django-allauth==0.44.0
+django-crispy-forms==1.10.0
 django-extensions==3.0.9
 django-storages==1.10.1
 django-widget-tweaks==1.4.8
