@@ -8,6 +8,28 @@
     <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
 {% block content %}
 
+<!-- Modal to remove member -->
+<div id="remove-member-modal" class="modal fade" tabindex="-1" role="dialog"
+aria-labelledby="remove-member-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-danger">
+                <h4 class="modal-title text-white" id="remove-member-modalLabel">Remove Member</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this member from {{ package.organisation_name}}?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <a id="removeUserUrl" href="">
+                    <button type="button" class="btn btn-danger">Continue</button>
+                </a>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
@@ -105,21 +127,21 @@
                                             {% if member.payment_type == 'card_payment' %}
                                                 {% if member.stripe_subscription_id %}
                                                     <a href="{% url 'member_payment' package.organisation_name member.id %}">
-                                                        <button class="btn btn-xs btn-rounded btn-light mr-1">
+                                                        <button class="btn btn-xs btn-rounded btn-light mr-1 mt-1">
                                                             <i class="fad fa-credit-card-front text-success mr-1"></i>
-                                                        </button
+                                                        </button>
                                                     </a>
                                                 {% else %}
                                                     <a href="{% url 'member_payment' package.organisation_name member.id %}">
-                                                        <button class="btn btn-rounded btn-light mr-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                        <button class="btn btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
                                                             <i class="fad fa-credit-card-front text-danger"></i>
                                                         </button>
                                                     </a>
 
                                                 {% endif %}
                                             {% endif %}
-                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-rounded btn-light mr-1"><i class="fad fa-user-edit text-info"></i></button></a>
-                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-rounded btn-light"><i class="fad fa-user-slash text-danger"></i></button></a>
+                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
+                                            <button class="btn btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -267,4 +289,11 @@
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.print.min.js"></script>
     <script src="{% static 'dist/js/pages/datatable/datatable-advanced.init.js' %}"></script>
+
+    <script>
+        $('.removeUserBtn').on('click',function(){
+            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ package.organisation_name }}/" + $(this).attr("value"))
+            $('#remove-member-modal').modal('show');
+        });
+    </script>
 {% endblock %}

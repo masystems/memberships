@@ -146,12 +146,15 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
 @login_required(login_url='/accounts/login/')
 def delete_membership_package(request, title):
     """
-        validate that the user is the owner
-        validate that there are no existing members
-        stop mayments to stripe
-        delete org account
-        email confirmation email
-        redirect user to home page, and pass success message in
+    validate that the user is the owner
+    validate that there are no existing members
+    stop mayments to stripe
+    delete org account
+    email confirmation email
+    redirect user to home page, and pass success message in
+    :param request:
+    :param title:
+    :return:
     """
 
     try:
@@ -194,6 +197,7 @@ def delete_membership_package(request, title):
 
     # success message
     return redirect('/')
+
 
 def create_package_on_stripe(request):
     # get strip secret key
@@ -764,3 +768,24 @@ def send_payment_error(error):
     feedback += "<br><strong>Code is:</strong> %s" % err.get('code')
     feedback += "<br><strong>Message is:</strong> <span class='text-danger'>%s</span>" % err.get('message')
     return feedback
+
+
+@login_required(login_url='/accounts/login/')
+def remove_member(request, title, id):
+    """
+    Validate request.user is owner/admin
+    remove user from stripe account
+    delete member object
+
+    :param request:
+    :param title:
+    :param id:
+    :return:
+    """
+    try:
+        membership_package = MembershipPackage.objects.get(owner=request.user, organisation_name=title, enabled=True)
+    except MembershipPackage.DoesNotExist:
+        # disallow access to page
+        # return to previous page
+        return redirect('membership_package', membership_package.organisation_name)
+    
