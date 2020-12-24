@@ -692,6 +692,36 @@ class MemberProfileView(MembershipBase):
         return context
 
 
+@login_required(login_url="/accounts/login")
+def update_user(request, pk):
+    # where the user can update their own basic information
+    if request.method == 'POST':
+        # update user and get user object
+        user = User.objects.get(id=pk)
+        user.first_name = request.POST.get('user-settings-first-name')
+        user.last_name = request.POST.get('user-settings-last-name')
+        user.email = request.POST.get('user-settings-email')
+        member = Member.objects.get(user_account=request.user)
+        member.title = request.POST.get('user-settings-title')
+        member.first_name = request.POST.get('user-settings-first-name')
+        member.last_name = request.POST.get('user-settings-last-name')
+        member.email = request.POST.get('user-settings-email')
+        member.address_line_1 = request.POST.get('user-settings-address1')
+        member.address_line_2 = request.POST.get('user-settings-address2')
+        member.town = request.POST.get('user-settings-town')
+        member.county = request.POST.get('user-settings-county')
+        member.postcode = request.POST.get('user-settings-postcode')
+        member.contact_number = request.POST.get('user-settings-phone')
+        # set users password
+        if request.POST.get('user-settings-password') != "":
+            user.set_password(request.POST.get('user-settings-password'))
+        member.save()
+        user.save()
+
+        return HttpResponse(True)
+
+    return HttpResponse(False)
+
 def validate_card(request, type, pk=0):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
