@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+{% load custom_tags %}
 
 {% block header %}
 
@@ -120,7 +121,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         </td>
                                         <td>
                                             <span class="badge py-1 badge-info">
-                                            {{ member.category|title }}
+                                            {{ member.category|choicefieldformat }}
                                             </span>
                                         </td>
                                         <td>
