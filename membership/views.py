@@ -158,7 +158,7 @@ def delete_membership_package(request, title):
     """
 
     try:
-        membership_package = MembershipPackage.objects.get(owner=request.user, organisation_name=title)
+        membership_package = MembershipPackage.objects.get(owner=request.user, organisation_name=title, enabled=True)
     except MembershipPackage.DoesNotExist:
         # disallow access to page
         # return to previous page
@@ -800,10 +800,11 @@ def send_payment_error(error):
 
 
 @login_required(login_url='/accounts/login/')
-def remove_member(request, title, id):
+def remove_member(request, title, pk):
     """
     Validate request.user is owner/admin
-    remove user from stripe account
+    cancel subscription
+    delete user from stripe account
     delete member object
 
     :param request:
@@ -812,9 +813,28 @@ def remove_member(request, title, id):
     :return:
     """
     try:
-        membership_package = MembershipPackage.objects.get(owner=request.user, organisation_name=title, enabled=True)
+        membership_package = MembershipPackage.objects.get(Q(owner=request.user) |
+                                                           Q(admins=request.user),
+                                                           organisation_name=title,
+                                                           enabled=True)
     except MembershipPackage.DoesNotExist:
         # disallow access to page
         # return to previous page
         return redirect('membership_package', membership_package.organisation_name)
-    
+
+    member = Member.objects.get(id=pk)
+    stripe.api_key = get_stripe_secret_key(request)
+
+    # cancel subscription
+    if member.stripe_subscription_id:
+        stripe.Subscription.delete(member.stripe_subscription_id,
+                                   stripe_account=membership_package.stripe_acct_id)
+
+    # delete customer from stripe account
+    if member.stripe_id:
+        stripe.Customer.delete(member.stripe_id,
+                               stripe_account=membership_package.stripe_acct_id)
+
+    member.delete()
+
+    return redirect('membership')
