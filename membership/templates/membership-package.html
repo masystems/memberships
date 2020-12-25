@@ -128,20 +128,20 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             {% if member.payment_type == 'card_payment' %}
                                                 {% if member.stripe_subscription_id %}
                                                     <a href="{% url 'member_payment' package.organisation_name member.id %}">
-                                                        <button class="btn btn-rounded btn-light mr-1 mt-1">
-                                                            <i class="fad fa-credit-card-front text-success mr-1"></i>
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                            <i class="fad fa-credit-card-front text-success"></i>
                                                         </button>
                                                     </a>
                                                 {% else %}
                                                     <a href="{% url 'member_payment' package.organisation_name member.id %}">
-                                                        <button class="btn btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
                                                             <i class="fad fa-credit-card-front text-danger"></i>
                                                         </button>
                                                     </a>
                                                 {% endif %}
                                             {% endif %}
-                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
-                                            <button class="btn btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
                                     </tr>
                                 {% endfor %}

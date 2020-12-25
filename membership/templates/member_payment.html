@@ -161,11 +161,6 @@
 
         });
 
-        $("#save-membership").click(function(e){
-            generateCardToken();
-        });
-
-
         // STRIPE STUFF
         var stripe = Stripe('{{ public_api_key }}');
         var elements = stripe.elements();
