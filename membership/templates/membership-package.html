@@ -1,12 +1,35 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load widget_tweaks %}
+{% load custom_tags %}
 
 {% block header %}
 
 {% endblock %}
     <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
 {% block content %}
+
+<!-- Modal to remove member -->
+<div id="remove-member-modal" class="modal fade" tabindex="-1" role="dialog"
+aria-labelledby="remove-member-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-danger">
+                <h4 class="modal-title text-white" id="remove-member-modalLabel">Remove Member</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove this member from {{ package.organisation_name}}?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <a id="removeUserUrl" href="">
+                    <button type="button" class="btn btn-danger">Continue</button>
+                </a>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
@@ -18,8 +41,10 @@
             <div class="d-flex align-items-center">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        {% endif %}
                         <li class="breadcrumb-item active" aria-current="page">Package</li>
                     </ol>
                 </nav>
@@ -57,11 +82,17 @@
                         <h4 class="card-title">{{ package.organisation_name }} Members</h4>
                         <div class="ml-auto">
                             <div class="btn-group">
-                                <a href="{% url 'member_form' package.organisation_name %}">
-                                    <button type="button" class="btn btn-success">
+                                {% if not stripe_package_setup %}
+                                    <a href="{% url 'member_form' package.organisation_name %}">
+                                        <button type="button" class="btn btn-success">
+                                            Add New Member
+                                        </button>
+                                    </a>
+                                {% else %}
+                                    <button type="button" class="btn btn-light" data-toggle="tooltip" data-placement="top" title="Cannot add new members until setup is completed.">
                                         Add New Member
                                     </button>
-                                </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -71,9 +102,8 @@
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Phone</th>
                                     <th>Role</th>
-                                    <th>Joining date</th>
+                                    <th>Category</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -83,14 +113,35 @@
                                         <td>
                                             <a href="{% url 'member_profile' package.organisation_name member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
                                         </td>
-                                        <td>{{ member.user_account.email }}</td>
-                                        <td>{{ member.contact_number }}</td>
-                                        <td><span class="badge py-1 badge-info">Member</span> </td>
-                                        <td>{{ member.user_account.date_joined }}</td>
+                                        <td>{{ member.email }}</td>
                                         <td>
-                                            <a href="{% url 'member_payment' package.organisation_name member.id %}"><i class="fad fa-credit-card-front text-success mr-1"></i></a>
-                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><i class="fad fa-user-edit mr-1"></i></a>
-                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><i class="fad fa-user-slash text-danger"></i></a>
+                                            <span class="badge py-1 badge-info">
+                                            {{ member.record_type|title }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge py-1 badge-info">
+                                            {{ member.category|choicefieldformat }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if member.payment_type == 'card_payment' %}
+                                                {% if member.stripe_subscription_id %}
+                                                    <a href="{% url 'member_payment' package.organisation_name member.id %}">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                            <i class="fad fa-credit-card-front text-success"></i>
+                                                        </button>
+                                                    </a>
+                                                {% else %}
+                                                    <a href="{% url 'member_payment' package.organisation_name member.id %}">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                            <i class="fad fa-credit-card-front text-danger"></i>
+                                                        </button>
+                                                    </a>
+                                                {% endif %}
+                                            {% endif %}
+                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -105,12 +156,26 @@
         <div class="col-lg-4 col-xl-3 col-md-3">
             <div class="card">
                 <div class="border-bottom p-3">
-                    <a href="{{ edit_account.url }}">
-                        <button type="button" class="btn btn-info" data-toggle="modal" data-target="#Sharemodel"
-                            style="width: 100%">
-                            <i class="fad fa-pencil-alt mr-2"></i> Edit Package
+                    {% if stripe_package_setup %}
+                    <a href="{{ stripe_package_setup.url }}">
+                        <button type="button" class="btn btn-warning" style="width: 100%">
+                            Continue Setup on Stripe
                         </button>
                     </a>
+
+                    {% elif account_link %}
+                        <a href="{{ account_link.url }}">
+                            <button type="button" class="btn btn-warning" style="width: 100%">
+                                Action Required on Stripe
+                            </button>
+                        </a>
+                    {% else %}
+                        <a href="{{ edit_account.url }}">
+                            <button type="button" class="btn btn-info" style="width: 100%">
+                                <i class="fad fa-pencil-alt mr-2"></i> Edit Package
+                            </button>
+                        </a>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     <h4 class="card-title">Account Overview</h4>
@@ -173,6 +238,33 @@
                         </table>
                     </div>
                 </div>
+                <!-- Button to delete organisation -->
+                {% if request.user == package.owner and not members  %}
+                    <div class="border-bottom p-3">
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-org-modal" style="width: 100%">Delete Organisation</button>
+                    </div>
+                    <!-- Modal to delete organisation -->
+                    <div id="delete-org-modal" class="modal fade" tabindex="-1" role="dialog"
+                    aria-labelledby="delete-org-modalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header modal-colored-header bg-danger">
+                                    <h4 class="modal-title text-white" id="delete-org-modalLabel">Delete Organisation</h4>
+                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Are you sure you want to delete {{ package.organisation_name }}?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                                    <a href="{% url 'delete_membership_package' package.organisation_name %}">
+                                        <button type="button" class="btn btn-danger">Continue</button>
+                                    </a>
+                                </div>
+                            </div><!-- /.modal-content -->
+                        </div><!-- /.modal-dialog -->
+                    </div><!-- /.modal -->
+                {% endif %}
             </div>
         </div>
         <!-- Column -->
@@ -197,4 +289,11 @@
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.print.min.js"></script>
     <script src="{% static 'dist/js/pages/datatable/datatable-advanced.init.js' %}"></script>
+
+    <script>
+        $('.removeUserBtn').on('click',function(){
+            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ package.organisation_name }}/" + $(this).attr("value"))
+            $('#remove-member-modal').modal('show');
+        });
+    </script>
 {% endblock %}

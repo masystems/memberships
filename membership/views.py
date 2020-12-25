@@ -48,8 +48,6 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                          Q(admins=self.request.user))
         return context
 
     def get(self, *args, **kwargs):
@@ -99,10 +97,11 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         stripe.api_key = get_stripe_secret_key(self.request)
         context['stripe_package'] = stripe.Account.retrieve(context['package'].stripe_acct_id,
                                                             stripe_account=context['package'].stripe_acct_id)
+
         if context['package'].stripe_acct_id:
             try:
                 context['edit_account'] = stripe.Account.create_login_link(context['package'].stripe_acct_id)
-            except:
+            except stripe.error.InvalidRequestError:
                 # stripe account created but not setup
                 context['stripe_package_setup'] = get_account_link(context['package'])
             if context['stripe_package'].requirements.errors:
@@ -142,6 +141,62 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
             message = {'status': "fail",
                        'errors': f"{form.errors}"}
             return HttpResponse(dumps(message), content_type='application/json')
+
+
+@login_required(login_url='/accounts/login/')
+def delete_membership_package(request, title):
+    """
+    validate that the user is the owner
+    validate that there are no existing members
+    stop mayments to stripe
+    delete org account
+    email confirmation email
+    redirect user to home page, and pass success message in
+    :param request:
+    :param title:
+    :return:
+    """
+
+    try:
+        membership_package = MembershipPackage.objects.get(owner=request.user, organisation_name=title, enabled=True)
+    except MembershipPackage.DoesNotExist:
+        # disallow access to page
+        # return to previous page
+        return redirect('membership_package', membership_package.organisation_name)
+    # validate that there are no existing members
+    if Member.objects.filter(membership_package=membership_package).exists():
+        raise MembershipPackage.DoesNotExist
+        return redirect('membership_package', membership_package.organisation_name)
+
+    # stop payments to stripe
+    # get stripe secret key
+    stripe.api_key = get_stripe_secret_key(request)
+    membership_package = MembershipPackage.objects.get(owner=request.user)
+
+    # try to delete stripe account
+    try:
+        account = stripe.Account.delete(membership_package.stripe_acct_id)
+    except Account.DoesNotExist:
+        # account does not exist
+        return redirect('membership_package', membership_package.organisation_name)
+
+    # delete org account
+    membership_package.delete()
+
+    # send email confirmation
+    body = f"""<p>This is an email confirming the deletion of your Membership Organisation package.
+
+                    <ul>
+                    <li>Membership Organisation: {membership_package.organisation_name}</li>
+                    </ul>
+
+                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+
+                    """
+    send_email(f"Organisation Deletion Confirmation: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
+
+    # success message
+    return redirect('/')
 
 
 def create_package_on_stripe(request):
@@ -637,6 +692,35 @@ class MemberProfileView(MembershipBase):
         return context
 
 
+@login_required(login_url="/accounts/login")
+def update_user(request, pk):
+    # where the user can update their own basic information
+    if request.method == 'POST':
+        # update user and get user object
+        member = Member.objects.get(id=pk)
+        member.user_account.first_name = request.POST.get('user-settings-first-name')
+        member.user_account.last_name = request.POST.get('user-settings-last-name')
+        member.user_account.email = request.POST.get('user-settings-email')
+        # set users password
+        if request.POST.get('user-settings-password') != "":
+            member.user_account.set_password(request.POST.get('user-settings-password'))
+        member.user_account.save()
+        member.title = request.POST.get('user-settings-title')
+        member.first_name = request.POST.get('user-settings-first-name')
+        member.last_name = request.POST.get('user-settings-last-name')
+        member.email = request.POST.get('user-settings-email')
+        member.address_line_1 = request.POST.get('user-settings-address1')
+        member.address_line_2 = request.POST.get('user-settings-address2')
+        member.town = request.POST.get('user-settings-town')
+        member.county = request.POST.get('user-settings-county')
+        member.postcode = request.POST.get('user-settings-postcode')
+        member.contact_number = request.POST.get('user-settings-phone')
+        member.save()
+
+        return HttpResponse(True)
+
+    return HttpResponse(False)
+
 def validate_card(request, type, pk=0):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
@@ -713,3 +797,44 @@ def send_payment_error(error):
     feedback += "<br><strong>Code is:</strong> %s" % err.get('code')
     feedback += "<br><strong>Message is:</strong> <span class='text-danger'>%s</span>" % err.get('message')
     return feedback
+
+
+@login_required(login_url='/accounts/login/')
+def remove_member(request, title, pk):
+    """
+    Validate request.user is owner/admin
+    cancel subscription
+    delete user from stripe account
+    delete member object
+
+    :param request:
+    :param title:
+    :param id:
+    :return:
+    """
+    try:
+        membership_package = MembershipPackage.objects.get(Q(owner=request.user) |
+                                                           Q(admins=request.user),
+                                                           organisation_name=title,
+                                                           enabled=True)
+    except MembershipPackage.DoesNotExist:
+        # disallow access to page
+        # return to previous page
+        return redirect('membership_package', membership_package.organisation_name)
+
+    member = Member.objects.get(id=pk)
+    stripe.api_key = get_stripe_secret_key(request)
+
+    # cancel subscription
+    if member.stripe_subscription_id:
+        stripe.Subscription.delete(member.stripe_subscription_id,
+                                   stripe_account=membership_package.stripe_acct_id)
+
+    # delete customer from stripe account
+    if member.stripe_id:
+        stripe.Customer.delete(member.stripe_id,
+                               stripe_account=membership_package.stripe_acct_id)
+
+    member.delete()
+
+    return redirect('membership')

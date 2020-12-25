@@ -1,23 +1,8 @@
-from django.contrib.auth import get_user_model
-from django.contrib.auth.backends import ModelBackend
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from random import randint
-
-
-class EmailBackend(ModelBackend):
-    def authenticate(self, request, username=None, password=None, **kwargs):
-        UserModel = get_user_model()
-        try:
-            user = UserModel.objects.get(email=username)
-        except UserModel.DoesNotExist:
-            return None
-        else:
-            if user.check_password(password):
-                return user
-        return None
 
 
 def generate_username(first_name, last_name):
@@ -43,7 +28,7 @@ def send_email(subject, name, body,
               send_from='contact@masys.co.uk',
               reply_to='contact@masys.co.uk'):
 
-    html_content = render_to_string('mail/email.html', {'name': name,
+    html_content = render_to_string('account/email/email.html', {'name': name,
                                                         'body': body})
     text_content = strip_tags(html_content)
 

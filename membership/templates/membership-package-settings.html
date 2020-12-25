@@ -36,8 +36,10 @@
             <div class="d-flex align-items-center">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        {% endif %}
                         <li class="breadcrumb-item active" aria-current="page">Settings</li>
                     </ol>
                 </nav>
@@ -114,7 +116,7 @@
                         <div class="card-body">
                             <div class="form-group mb-0 text-right">
                                 <button id="save-membership" class="btn btn-info waves-effect waves-light">Start Membership Package</button>
-                                <button type="submit" class="btn btn-dark waves-effect waves-light">Cancel</button>
+                                <a href="{% url 'dashboard' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
                             </div>
                         </div>
                     </div>

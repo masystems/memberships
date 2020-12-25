@@ -256,7 +256,7 @@
                         <!-- User profile and search -->
                         <!-- ============================================================== -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fad fa-user rounded-circle mr-2 text-dark"></i>{{ request.user.get_full_name }}</a>
+                            <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ request.user.get_full_name }}<i class="fad fa-user rounded-circle ml-2 text-dark"></i></a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
                                 <div class="d-flex no-block align-items-center p-3 mb-2 border-bottom">
                                     <div class="u-img"><i class="fad fa-user-circle fa-4x"></i></div>
@@ -268,7 +268,7 @@
                                 </div>
 <!--                                <a class="dropdown-item" href="javascript:void(0)"><i class="ti-settings mr-1 ml-1"></i> Account Settings</a>-->
 <!--                                <div class="dropdown-divider"></div>-->
-                                <a class="dropdown-item" href="{% url 'logout_user' %}"><i class="fa fa-power-off mr-1 ml-1"></i> Logout</a>
+                                <a class="dropdown-item" href="{% url 'account_logout' %}"><i class="fa fa-power-off mr-1 ml-1"></i> Logout</a>
                             </div>
                         </li>
                         <!-- ============================================================== -->
@@ -347,7 +347,7 @@
                 <!-- item-->
 <!--                <a href="" class="link" data-toggle="tooltip" title="Email"><i class="mdi mdi-gmail"></i></a>-->
                 <!-- item-->
-                <a href="{% url 'logout_user' %}" class="link" data-toggle="tooltip" title="Logout"><i class="mdi mdi-power"></i></a>
+                <a href="{% url 'account_logout' %}" class="link" data-toggle="tooltip" title="Logout"><i class="mdi mdi-power"></i></a>
             </div>
             <!-- End Bottom points-->
         </aside>

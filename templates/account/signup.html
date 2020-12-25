@@ -1,0 +1,33 @@
+{% extends "account/base.html" %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+{% block head_title %}{% trans "Signup" %}{% endblock %}
+
+{% block content %}
+<h1>{% trans "Sign Up" %}</h1>
+
+<p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
+
+<form class="form-horizontal mt-3 form-material" id="signup_form" method="post" action="{% url 'account_signup' %}">
+  {% csrf_token %}
+  {{ form|crispy }}
+  {% if redirect_field_value %}
+  <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+  {% endif %}
+  <div class="form-group mb-3">
+      <div class="col-md-12">
+          <div class="checkbox checkbox-success pt-0 pl-2">
+              {{ form.terms }}
+              <input type="checkbox" id="checkbox-signup" name="checkbox-signup"><label for="checkbox-signup"> I agree to all <a href="#">Terms</a></label>
+          </div>
+      </div>
+  </div>
+  <div class="form-group text-center mb-3">
+      <div class="col-xs-12">
+          <button class="btn btn-info btn-lg btn-block text-uppercase waves-effect waves-light" type="submit">{% trans "Sign Up" %} &raquo;</button>
+      </div>
+  </div>
+</form>
+
+{% endblock %}

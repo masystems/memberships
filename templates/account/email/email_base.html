@@ -1,15 +1,19 @@
 <div class="main_body" style="width:500px; margin: auto; border: 1px solid #15888a;">
 
 	<div>
-		<p style="text-align:center;"><img src="https://static.cloud-lines-shows.com/static/cloud+lines+logo+transparent.png" style="max-width:495px"></p>
+		<p style="text-align:center;"><img src="https://static.cloud-lines.com/assets/images/cloud+lines+logo+transparent.png" style="max-width:495px"></p>
 	</div>
 
 	<div class="text_body" style="font-family: Arial,sans-serif; font-size: 14px; background-color:white; margin: 5px 5px 5px 5px;">
+		    <p>Dear {{ name }},</p>
+
+    			{% autoescape off %}
 				{% block content %}
 
 				{% endblock %}
+				{% endautoescape %}
 		<p>Many thanks,<br>
-			The Cloud Lines Shows Team</p>
+			The Cloud-Lines Team</p>
 	</div>
 	<div style="background-color:#15888a">
 		<p style="text-align:center;"></p>

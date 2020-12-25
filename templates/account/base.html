@@ -21,9 +21,7 @@
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
     <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-
     {% block header %}
-
     {% endblock %}
 <![endif]-->
 </head>
@@ -40,8 +38,11 @@
             </div>
         </div>
 
-        <div class="auth-wrapper d-flex no-block justify-content-center align-items-center" style="background:url({% static 'assets/images/background/login-members.jpg' %}) no-repeat top center;">
+        <div class="auth-wrapper d-flex no-block justify-content-center align-items-center" style="background-color: #44AAAC;">
             <div class="auth-box p-4 bg-white rounded">
+                <div>
+		            <p style="text-align:center;"><img src="https://static.cloud-lines.com/assets/images/cloud+lines+logo+transparent.png" style="max-width:250px"></p>
+	            </div>
                 {% block content %}
 
                 {% endblock %}
