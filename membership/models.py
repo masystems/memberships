@@ -50,7 +50,7 @@ class Member(models.Model):
     first_name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255)
     address_line_1 = models.CharField(max_length=255, blank=True)
-    address_line_2 = models.CharField(max_length=255, blank=True, null=True)
+    address_line_2 = models.CharField(max_length=255, blank=True)
     town = models.CharField(max_length=255, blank=True)
     county = models.CharField(max_length=255, blank=True)
     postcode = models.CharField(max_length=255, blank=True)

@@ -697,11 +697,14 @@ def update_user(request, pk):
     # where the user can update their own basic information
     if request.method == 'POST':
         # update user and get user object
-        user = User.objects.get(id=pk)
-        user.first_name = request.POST.get('user-settings-first-name')
-        user.last_name = request.POST.get('user-settings-last-name')
-        user.email = request.POST.get('user-settings-email')
-        member = Member.objects.get(user_account=request.user)
+        member = Member.objects.get(id=pk)
+        member.user_account.first_name = request.POST.get('user-settings-first-name')
+        member.user_account.last_name = request.POST.get('user-settings-last-name')
+        member.user_account.email = request.POST.get('user-settings-email')
+        # set users password
+        if request.POST.get('user-settings-password') != "":
+            member.user_account.set_password(request.POST.get('user-settings-password'))
+        member.user_account.save()
         member.title = request.POST.get('user-settings-title')
         member.first_name = request.POST.get('user-settings-first-name')
         member.last_name = request.POST.get('user-settings-last-name')
@@ -712,11 +715,7 @@ def update_user(request, pk):
         member.county = request.POST.get('user-settings-county')
         member.postcode = request.POST.get('user-settings-postcode')
         member.contact_number = request.POST.get('user-settings-phone')
-        # set users password
-        if request.POST.get('user-settings-password') != "":
-            user.set_password(request.POST.get('user-settings-password'))
         member.save()
-        user.save()
 
         return HttpResponse(True)
 
