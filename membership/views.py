@@ -680,6 +680,7 @@ class MemberProfileView(MembershipBase):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['member'] = Member.objects.get(id=self.kwargs['pk'])
+        context['public_api_key'] = get_stripe_public_key(self.request)
         context['package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         if context['member'].stripe_subscription_id:
             stripe.api_key = get_stripe_secret_key(self.request)
