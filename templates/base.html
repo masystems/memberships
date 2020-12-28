@@ -262,7 +262,7 @@
                             <a class="nav-link dropdown-toggle text-white waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ request.user.get_full_name }}<i class="fad fa-user rounded-circle ml-2 text-dark"></i></a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
                                 <div class="d-flex no-block align-items-center p-3 mb-2 border-bottom">
-                                    <div class="u-img"><i class="fad fa-user-circle fa-4x"></i></div>
+                                    <div class="u-img"><i class="fad fa-user-circle text-success fa-4x"></i></div>
                                     <div class="ml-2">
                                         <h4 class="mb-0">{{ request.user.get_full_name }}</h4>
                                         <p class=" mb-0">{{ request.user.email }}</p>
@@ -299,9 +299,9 @@
                             <!-- User profile -->
                             <div class="user-profile text-center position-relative pt-4 mt-1">
                                 <!-- User profile image -->
-                                <div class="m-auto"> <i class="fad fa-user-circle fa-2x"></i> </div>
+                                <div class="m-auto"> <i class="fad fa-user-circle text-success fa-2x"></i> </div>
                                 <!-- User profile text-->
-                                <div class="profile-text py-1"> <a href="#" class="link u-dropdown" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">{{ request.user.get_full_name }}</a>
+                                <div class="profile-text py-1"> <span class="link u-dropdown text-info" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">{{ request.user.get_full_name }}</span>
 
                                 </div>
                             </div>
@@ -326,7 +326,7 @@
                         <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">My Memberships</span></li>
                         {% if memberships %}
                             {% for membership in memberships.all %}
-                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'member_profile' membership.membership_package request.user.pk %}" aria-expanded="false"><i class="fad fa-user mr-1"></i><span class="hide-menu">
+                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'member_profile' membership.membership_package.organisation_name membership.id %}" aria-expanded="false"><i class="fad fa-user mr-1"></i><span class="hide-menu">
                                     {{ membership.membership_package }}
                                 </span></a></li>
                             {% endfor %}
