@@ -127,13 +127,13 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         <td>
                                             {% if member.payment_type == 'card_payment' %}
                                                 {% if member.stripe_subscription_id %}
-                                                    <a href="{% url 'member_payment' package.organisation_name member.id %}">
+                                                    <a href="{% url 'member_profile' package.organisation_name member.id %}#card-details">
                                                         <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
                                                             <i class="fad fa-credit-card-front text-success"></i>
                                                         </button>
                                                     </a>
                                                 {% else %}
-                                                    <a href="{% url 'member_payment' package.organisation_name member.id %}">
+                                                    <a href="{% url 'member_profile' package.organisation_name member.id %}#card-details">
                                                         <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
                                                             <i class="fad fa-credit-card-front text-danger"></i>
                                                         </button>
@@ -288,7 +288,22 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.print.min.js"></script>
-    <script src="{% static 'dist/js/pages/datatable/datatable-advanced.init.js' %}"></script>
+    <style>
+
+    </style>
+    <script>
+        $('#file_export').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'excel', 'pdf', 'print'
+            ],
+            "language": {
+                            "search": "Filter members:"
+                          },
+            "pagingType": "full_numbers"
+        });
+        $('.buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel').addClass('btn btn-info mr-1');
+    </script>
 
     <script>
         $('.removeUserBtn').on('click',function(){
