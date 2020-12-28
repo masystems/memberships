@@ -356,9 +356,6 @@
                     }
                  },
                 error: function(jqXHR, textStatus, errorThrown){
-                    $('#billingLoader').addClass('d-none');
-                    $('#billingForm').removeClass('d-none');
-                    $('#billingErrors').html('<div class="sb-msg"><i class="icon-remove"></i><strong>Oh snap!</strong> Check your information and try submitting again.</div>');
                     console.log('jqXHR:');
                     console.log(jqXHR);
                     console.log('textStatus:');
