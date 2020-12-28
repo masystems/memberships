@@ -16,6 +16,7 @@
     <title>Memberships</title>
 
     <!-- Custom CSS -->
+    <link href="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.css' %}" rel="stylesheet">
     <link href="{% static 'dist/css/style.min.css' %}" rel="stylesheet">
 
     {% block header %}
@@ -402,6 +403,32 @@
     <!--Custom JavaScript -->
     <script src="{% static 'dist/js/feather.min.js' %}"></script>
     <script src="{% static 'dist/js/custom.min.js' %}"></script>
+
+    <!--Page Messages -->
+    <script src="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.js' %}"></script>
+    <script>
+        function infoMsg(msg) {
+            toastr.info(msg, 'Information', { "progressBar": true });
+        }
+        function warningMsg(msg) {
+            toastr.warning(msg, 'Information', { "progressBar": true });
+        }
+        function errorMsg(msg) {
+            toastr.error(msg, 'Information', { "progressBar": true });
+        }
+
+        {% if info_message %}
+            toastr.info({{ info_message }}, 'Information', { "progressBar": true });
+        {% endif %}
+
+        {% if warning_message %}
+            toastr.warning({{ warning_message }}, 'Warning', { "progressBar": true });
+        {% endif %}
+
+        {% if error_message %}
+            toastr.error({{ error_message }}, 'Error', { "progressBar": true });
+        {% endif %}
+    </script>
 
     {% block footer %}
 
