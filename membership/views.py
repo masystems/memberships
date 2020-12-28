@@ -19,8 +19,7 @@ def get_packages(request):
     if request.user.is_authenticated:
         return {'membership_packages': MembershipPackage.objects.filter(Q(owner=request.user) |
                                                                         Q(admins=request.user), enabled=True),
-                'memberships': Member.objects.filter(user_account=request.user),
-                'all_packages': MembershipPackage.objects.filter(enabled=True)}
+                'memberships': Member.objects.filter(user_account=request.user)}
     else:
         return {'authenticated': False}
 

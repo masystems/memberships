@@ -16,6 +16,7 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
     login_url = '/accounts/login'
 
     def get_context_data(self, **kwargs):
-        self.context = super().get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         # check account statuses and redirect as appropriate
-        return self.context
+        context['all_packages'] = MembershipPackage.objects.filter(enabled=True)
+        return context
