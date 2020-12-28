@@ -16,11 +16,14 @@
     <title>Memberships</title>
 
     <!-- Custom CSS -->
+    <link href="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.css' %}" rel="stylesheet">
     <link href="{% static 'dist/css/style.min.css' %}" rel="stylesheet">
 
     {% block header %}
 
     {% endblock %}
+
+    {% include 'css.html' %}
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -60,9 +63,9 @@
                         <b class="logo-icon">
                             <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
                             <!-- Dark Logo icon -->
-                            <i class="fad fa-clouds dark-logo"></i>
+                            <i class="fad fa-clouds dark-logo text-success"></i>
                             <!-- Light Logo icon -->
-                            <i class="fad fa-clouds fa-2x text-white light-logo"></i>
+                            <i class="fad fa-clouds fa-2x text-white light-logo text-success"></i>
                         </b>
                         <!--End Logo icon -->
                     </a>
@@ -256,7 +259,7 @@
                         <!-- User profile and search -->
                         <!-- ============================================================== -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-muted waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ request.user.get_full_name }}<i class="fad fa-user rounded-circle ml-2 text-dark"></i></a>
+                            <a class="nav-link dropdown-toggle text-white waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ request.user.get_full_name }}<i class="fad fa-user rounded-circle ml-2 text-dark"></i></a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
                                 <div class="d-flex no-block align-items-center p-3 mb-2 border-bottom">
                                     <div class="u-img"><i class="fad fa-user-circle fa-4x"></i></div>
@@ -402,6 +405,44 @@
     <!--Custom JavaScript -->
     <script src="{% static 'dist/js/feather.min.js' %}"></script>
     <script src="{% static 'dist/js/custom.min.js' %}"></script>
+
+    <!--Page Messages -->
+    <script src="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.js' %}"></script>
+    <script>
+        function infoMsg(msg) {
+            toastr.info(msg, 'Information', { "progressBar": true });
+        }
+        function warningMsg(msg) {
+            toastr.warning(msg, 'Information', { "progressBar": true });
+        }
+        function errorMsg(msg) {
+            toastr.error(msg, 'Information', { "progressBar": true });
+        }
+
+        {% if info_message %}
+            toastr.info({{ info_message }}, 'Information', { "progressBar": true });
+        {% endif %}
+
+        {% if warning_message %}
+            toastr.warning({{ warning_message }}, 'Warning', { "progressBar": true });
+        {% endif %}
+
+        {% if error_message %}
+            toastr.error({{ error_message }}, 'Error', { "progressBar": true });
+        {% endif %}
+
+        $(document).ready(function(){
+            // get the tab from url
+            var hash = window.location.hash;
+
+            console.log(hash)
+            // if a hash is present (when you come to this page)
+            if (hash !='') {
+                // show the tab
+                $('a[href="' + hash + '"]').tab('show');
+            }
+        });
+    </script>
 
     {% block footer %}
 

@@ -1,8 +1,5 @@
 {% extends 'account/email/email_base.html' %}
 {% block content %}
-
-    <p>Dear {{ name }},</p>
-
     {% autoescape off %}
         {{ body }}
     {% endautoescape %}
