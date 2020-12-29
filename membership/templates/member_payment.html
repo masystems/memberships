@@ -87,6 +87,17 @@
 
                     <a href="#" id="goToMemberPageLink"><button type="button" class="btn btn-warning mt-2">Member Page</button></a>
                 </div>
+                <!-- Displaying the price before user pays -->
+                <div class="col-lg-6 offset-lg-3">
+                    {% if member.billing_period == "monthly" %}
+                        <label>Price per month:</label>
+                        <b>£{{ package.membership_price_per_month }}</b>
+                    <!--price_id = package.membership_price_per_month_id-->
+                    {% else %}
+                        <label>Price per year:</label>
+                        <b>£{{ package.membership_price_per_year }}</b>
+                    {% endif %}
+                </div>
                 <div class="col-lg-6 offset-lg-3">
                     <form id="payment-form">
                         <label>Card Holders Name:</label>
