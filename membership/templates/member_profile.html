@@ -255,9 +255,6 @@
                                 <div class="col-2">
                                     <button id="selectUserSettings" type="submit" class="btn btn-success float-left">Update Profile</button>
                                 </div>
-                                <div class="col-10">
-                                    <div id="userSettingsMessage" class="text-success"></div>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -353,19 +350,12 @@
                 data: $('#userSettings').serialize(),
                 success: function(data) {
                     if (data) {
-                        $('#userSettingsAlert').addClass('alert-success');
-                        $('#userSettingsAlert').removeClass('d-none');
-                        $('#userSettingsMessage').html('Settings updated!');
+                        infoMsg('Member settings updated')
                     } else {
-                        $('#userSettingsAlert').addClass('alert-danger');
-                        $('#userSettingsAlert').removeClass('d-none');
-                        $('#userSettingsMessage').html('Error: something went wrong!');
+                        errorMsg('Member settings failed to update')
                     }
                  },
                 error: function(jqXHR, textStatus, errorThrown){
-                    $('#billingLoader').addClass('d-none');
-                    $('#billingForm').removeClass('d-none');
-                    $('#billingErrors').html('<div class="sb-msg"><i class="icon-remove"></i><strong>Oh snap!</strong> Check your information and try submitting again.</div>');
                     console.log('jqXHR:');
                     console.log(jqXHR);
                     console.log('textStatus:');
