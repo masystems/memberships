@@ -413,10 +413,10 @@
             toastr.info(msg, 'Information', { "progressBar": true });
         }
         function warningMsg(msg) {
-            toastr.warning(msg, 'Information', { "progressBar": true });
+            toastr.warning(msg, 'Warning', { "progressBar": true });
         }
         function errorMsg(msg) {
-            toastr.error(msg, 'Information', { "progressBar": true });
+            toastr.error(msg, 'Error', { "progressBar": true });
         }
 
         {% if info_message %}
@@ -435,7 +435,6 @@
             // get the tab from url
             var hash = window.location.hash;
 
-            console.log(hash)
             // if a hash is present (when you come to this page)
             if (hash !='') {
                 // show the tab
