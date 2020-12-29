@@ -49,15 +49,15 @@
                     <h4 class="card-title">{{ package.organisation_name }} Member Payment Information</h4>
                     <div class="row mt-4" id="existing-customer-details">
                         <div class="col-6">
-                            {% if subscription %}
+                            {% if subscription_details %}
                                 <h5>Existing Subscription Details</h5>
                                 <ul class="list-style-none">
-                                    <li><i class="fad fa-chevron-right"></i> Status: {% if subscription.items.data.0.plan.active == True %}<span class="text-success">Active</span>
+                                    <li><i class="fad fa-chevron-right"></i> Status: {% if subscription_details.items.data.0.plan.active == True %}<span class="text-success">Active</span>
                                         {% else %}
                                         <span class="text-danger">Inactive</span>{% endif %}
                                     </li>
-                                    <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if subscription.items.data.0.plan.interval == 'month' %}Monthly
-                                        {% elif subscription.items.data.0.plan.interval == 'year' %}
+                                    <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if subscription_details.items.data.0.plan.interval == 'month' %}Monthly
+                                        {% elif subscription_details.items.data.0.plan.interval == 'year' %}
                                         Yearly{% endif %}
                                     </li>
                                 </ul>

@@ -95,7 +95,7 @@
                     <li class="nav-item">
                         <a class="nav-link nav-0" id="pills-setting-tab" data-toggle="pill" href="#settings" role="tab" aria-controls="pills-setting" aria-selected="false">Settings</a>
                     </li>
-                    {% if subscription %}
+                    {% if subscription_details %}
                         <li class="nav-item">
                             <a class="nav-link nav-0" id="pills-card-tab" data-toggle="pill" href="#card-details" role="tab" aria-controls="pills-card" aria-selected="false">Card Details</a>
                         </li>
@@ -109,8 +109,8 @@
                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Status</strong>
                                     <br>
                                     <p class="text-muted">
-                                        {% if subscription %}
-                                            {% if subscription.plan.active == True %}
+                                        {% if subscription_details %}
+                                            {% if subscription_details.plan.active == True %}
                                                 <span class="text-success">Active</span>
                                             {% else %}
                                                 <span class="text-danger">Inactive</span>
@@ -123,8 +123,8 @@
                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Start</strong>
                                     <br>
                                     <p class="text-muted">
-                                        {% if subscription %}
-                                            {{ subscription.start_date|parsetimestamp }}</p>
+                                        {% if subscription_details %}
+                                            {{ subscription_details.start_date|parsetimestamp }}</p>
                                         {% else %}
                                             {{ member.created }}
                                         {% endif %}
@@ -132,10 +132,10 @@
                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Payment Interval</strong>
                                     <br>
                                     <p class="text-muted">
-                                        {% if subscription %}
-                                            {% if subscription.plan.interval == 'month' %}
+                                        {% if subscription_details %}
+                                            {% if subscription_details.plan.interval == 'month' %}
                                                 Monthly
-                                            {% elif subscription.plan.interval == 'year' %}
+                                            {% elif subscription_details.plan.interval == 'year' %}
                                                 Yearly
                                             {% endif %}
                                         {% else %}
@@ -149,7 +149,7 @@
                                 </div>
                             </div>
                             <hr>
-                            {% if subscription %}
+                            {% if subscription_details %}
                                 <h4 class="font-weight-medium mt-4">Payments</h4>
                                 <hr>
                                 <div class="table-responsive">
@@ -264,14 +264,14 @@
                         <div class="card-body">
                             <div class="row mt-4" id="existing-customer-details">
                                 <div class="col-6">
-                                    {% if subscription %}
+                                    {% if subscription_details %}
                                         <h5>Existing Subscription Details</h5>
                                         <ul class="list-style-none">
-                                            <li><i class="fad fa-chevron-right"></i> Status: {% if subscription.items.data.0.plan.active == True %}<span class="text-success">Active</span>
+                                            <li><i class="fad fa-chevron-right"></i> Status: {% if subscription_details.items.data.0.plan.active == True %}<span class="text-success">Active</span>
                                                 {% else %}
                                                 <span class="text-danger">Inactive</span>{% endif %}
                                             </li>
-                                            <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if subscription.items.data.0.plan.interval == 'month' %}Monthly
+                                            <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if subscription_details.items.data.0.plan.interval == 'month' %}Monthly
                                                 {% elif subscription.items.data.0.plan.interval == 'year' %}
                                                 Yearly{% endif %}
                                             </li>

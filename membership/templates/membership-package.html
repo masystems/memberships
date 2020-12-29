@@ -96,6 +96,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                             </div>
                         </div>
                     </div>
+
                     <div class="table-responsive">
                         <table id="file_export" class="table table-bordered nowrap display">
                             <thead>
@@ -109,41 +110,43 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                             </thead>
                             <tbody>
                                 {% for member in members.all %}
-                                    <tr>
-                                        <td>
-                                            <a href="{% url 'member_profile' package.organisation_name member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
-                                        </td>
-                                        <td>{{ member.email }}</td>
-                                        <td>
-                                            <span class="badge py-1 badge-info">
-                                            {{ member.record_type|title }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <span class="badge py-1 badge-info">
-                                            {{ member.category|choicefieldformat }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            {% if member.payment_type == 'card_payment' %}
-                                                {% if member.stripe_subscription_id %}
-                                                    <a href="{% url 'member_profile' package.organisation_name member.id %}#card-details">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
-                                                            <i class="fad fa-credit-card-front text-success"></i>
-                                                        </button>
-                                                    </a>
-                                                {% else %}
-                                                    <a href="{% url 'member_profile' package.organisation_name member.id %}#card-details">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                            <i class="fad fa-credit-card-front text-danger"></i>
-                                                        </button>
-                                                    </a>
+                                    {% for membership in member.subscription.all %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'member_profile' package.organisation_name member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
+                                            </td>
+                                            <td>{{ member.email }}</td>
+                                            <td>
+                                                <span class="badge py-1 badge-info">
+                                                {{ membership.record_type|title }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge py-1 badge-info">
+                                                {{ membership.category|choicefieldformat }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {% if membership.payment_type == 'card_payment' %}
+                                                    {% if membership.stripe_subscription_id %}
+                                                        <a href="{% url 'member_profile' package.organisation_name member.id %}#card-details">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                                <i class="fad fa-credit-card-front text-success"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% else %}
+                                                        <a href="{% url 'member_profile' package.organisation_name member.id %}#card-details">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% endif %}
                                                 {% endif %}
-                                            {% endif %}
-                                            <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
-                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
-                                        </td>
-                                    </tr>
+                                                <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
+                                                <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
                                 {% endfor %}
                             </tbody>
                         </table>

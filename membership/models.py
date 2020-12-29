@@ -41,14 +41,11 @@ class MembershipPackage(models.Model):
 
 
 class Member(models.Model):
-    membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, blank=True, null=True, related_name='membership_package', verbose_name="Membership Package")
-    user_account = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='user_account', verbose_name="User Account")
-    stripe_id = models.CharField(max_length=255, blank=True)
-    stripe_subscription_id = models.CharField(max_length=255, blank=True)
+    user_account = models.OneToOneField(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
-    email = models.EmailField(max_length=255)
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
+    # email = models.EmailField(max_length=255)
+    # first_name = models.CharField(max_length=255)
+    # last_name = models.CharField(max_length=255)
     address_line_1 = models.CharField(max_length=255, blank=True)
     address_line_2 = models.CharField(max_length=255, blank=True)
     town = models.CharField(max_length=255, blank=True)
@@ -56,22 +53,24 @@ class Member(models.Model):
     postcode = models.CharField(max_length=255, blank=True)
     contact_number = models.CharField(max_length=255, blank=True)
 
+    def __str__(self):
+        return self.user_account.email
+
+
+class MembershipSubscription(models.Model):
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, blank=True, null=True, related_name='subscription', verbose_name="Membership Subscription")
+    membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, blank=True, null=True, related_name='membership_package', verbose_name="Membership Package")
+    stripe_id = models.CharField(max_length=255, blank=True)
+    stripe_subscription_id = models.CharField(max_length=255, blank=True)
+    validated = models.BooleanField(default=False)
+
     RECORD_TYPE = (
         ('member', 'Member'),
         ('complimentry', 'Complimentry'),
         ('donor', 'Donor')
     )
     record_type = models.CharField(max_length=12, choices=RECORD_TYPE, null=True, default='member',
-                               help_text="Type of member")
-
-    # STATUS = (
-    #     ('archive', 'Archive'),
-    #     ('dead', 'Dead'),
-    #     ('live', 'Live'),
-    #     ('resigned', 'Resigned')
-    # )
-    # status = models.CharField(max_length=10, choices=STATUS, null=True, default='live',
-    #                                help_text="Current status")
+                                   help_text="Type of member")
 
     membership_number = models.CharField(max_length=100, unique=True)
 
@@ -88,7 +87,7 @@ class Member(models.Model):
         ('governor', 'Governor')
     )
     category = models.CharField(max_length=19, choices=CATEGORY, null=True, default='member',
-                              help_text="Category of member")
+                                help_text="Category of member")
 
     PAYMENT_TYPE = (
         ('card_payment', 'Card Payment'),
@@ -103,16 +102,16 @@ class Member(models.Model):
         ('paypal', 'Paypal')
     )
     payment_type = models.CharField(max_length=19, choices=PAYMENT_TYPE, null=True, default='card_payment',
-                                      help_text="Payment type used by member")
+                                    help_text="Payment type used by member")
 
     BILLING_PERIOD = (
         ('monthly', 'Monthly'),
         ('yearly', 'Yearly '),
     )
     billing_period = models.CharField(max_length=19, choices=BILLING_PERIOD, null=True, default='monthly',
-                                    help_text="Payment frequency")
+                                      help_text="Payment frequency")
 
-    #membership_price = models.DecimalField(blank=False, max_digits=5, decimal_places=2, help_text="Price in £ for requency given")
+    # membership_price = models.DecimalField(blank=False, max_digits=5, decimal_places=2, help_text="Price in £ for requency given")
 
     comments = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)

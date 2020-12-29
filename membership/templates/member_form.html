@@ -10,7 +10,7 @@
                 <div class="form-group row">
                     <label for="{{ field.id }}" class="col-sm-3 text-right control-label col-form-label">{{ field.label }}{% if field.field.required %}*{% endif %}</label>
                     <div class="col-sm-9">
-                        {% render_field field class+="" %}
+                        {% render_field field class+="form-control" %}
                         <small>{{ field.help_text }}</small>
                         {% if field.errors %}
                             <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
