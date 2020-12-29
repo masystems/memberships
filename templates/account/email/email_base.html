@@ -5,7 +5,9 @@
 	</div>
 
 	<div class="text_body" style="font-family: Arial,sans-serif; font-size: 14px; background-color:white; margin: 5px 5px 5px 5px;">
-		    <p>Dear {{ name }},</p>
+		{% if request.user.is_authenticated %}
+		    <p>Dear {{ request.user.get_full_name }},</p>
+		{% endif %}
 
     			{% autoescape off %}
 				{% block content %}
