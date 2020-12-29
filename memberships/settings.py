@@ -76,6 +76,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+ACCOUNT_FORMS = {'signup': 'memberships.forms.CustomSignupForm'}
+
 
 TIME_FORMAT = 'H:i'
 DATETIME_FORMAT = 'd/m/Y H:i'
