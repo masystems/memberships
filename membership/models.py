@@ -2,6 +2,17 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
+class Donation(models.Model):
+    donator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Donator',
+                              verbose_name="Donator")
+    organisation_name = models.CharField(max_length=50)
+    full_name = models.CharField(max_length=255)
+    email_address = models.CharField(max_length=255)
+    message = models.TextField(blank=True, null=True)
+    stripe_id = models.CharField(max_length=255, blank=True)
+    validated = models.BooleanField(default=False)
+
+
 class MembershipPackage(models.Model):
     organisation_name = models.CharField(max_length=50)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='owner', verbose_name="Owner")
