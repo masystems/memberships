@@ -89,6 +89,14 @@
                 </div>
                 <div class="col-lg-6 offset-lg-3">
                     <form id="payment-form">
+                        <!-- Displaying the price before user pays -->
+                        {% if subscription.billing_period == "monthly" %}
+                            <p>Price for the month: 
+                            <b>£{{ package.membership_price_per_month }}</b></p>
+                        {% else %}
+                            <p>Price for the year: 
+                            <b>£{{ package.membership_price_per_year }}</b></p>
+                        {% endif %}
                         <label>Card Holders Name:</label>
                         <input id="cardholder-name" type="text" class="form-control" value="{{ user.get_full_name }}">
                         <!-- placeholder for Elements -->
