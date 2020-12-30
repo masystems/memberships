@@ -66,7 +66,9 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
         if len(membership_packages) == 1:
             return HttpResponseRedirect(f'org/{membership_packages[0].organisation_name}')
         if len(membership_packages) > 1:
-            return super().get(*args, **kwargs)
+            return HttpResponseRedirect(f'/')
+
+        return super().get(*args, **kwargs)
 
 
 class MembershipPackageView(LoginRequiredMixin, MembershipBase):
