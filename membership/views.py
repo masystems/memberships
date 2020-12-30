@@ -501,19 +501,22 @@ def member_bolton_form(request, title, pk):
     member = Member.objects.get(id=pk)
     subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
     # access permissions
-    if not MembershipPackage.objects.filter(Q(owner=request.user,
-                                              organisation_name=title) |
-                                            Q(admins=request.user,
-                                              organisation_name=title) |
-                                            Q(members=request.user, organisation_name=title)).exists():
+    if MembershipPackage.objects.filter(Q(owner=request.user) |
+                                            Q(admins=request.user), organisation_name=title).exists() or \
+            request.user == member.user_account:
+        # allow access to page
+        pass
+
+    else:
         # disallow access to page
         return redirect('dashboard')
+
 
     if request.method == "POST":
         # get the correct bolton
         if membership_package.bolton == 'equine':
-            if Equine.objects.filter(membership_package=membership_package, member=member).exists():
-                form = EquineForm(request.POST, instance=Equine.objects.get(membership_package=membership_package, member=member))
+            if Equine.objects.filter(membership_package=membership_package, subscription=subscription).exists():
+                form = EquineForm(request.POST, instance=Equine.objects.get(membership_package=membership_package, subscription=subscription))
             else:
                 form = EquineForm(request.POST)
         else:
@@ -540,8 +543,8 @@ def member_bolton_form(request, title, pk):
     else:
         if membership_package.bolton == 'equine':
             # check for existing object
-            if Equine.objects.filter(membership_package=membership_package, member=member).exists():
-                form = EquineForm(instance=Equine.objects.get(membership_package=membership_package, member=member))
+            if Equine.objects.filter(membership_package=membership_package, subscription=subscription).exists():
+                form = EquineForm(instance=Equine.objects.get(membership_package=membership_package, subscription=subscription))
             else:
                 form = EquineForm()
             return render(request, 'member_bolton_form.html', {'bolton_form': form,
@@ -741,13 +744,15 @@ class MemberProfileView(MembershipBase):
         context['subscriptions'] = {}
         stripe.api_key = get_stripe_secret_key(self.request)
         for subscription in context['member'].subscription.all():
+
+            print(subscription.membership_package.stripe_acct_id)
             if subscription.stripe_subscription_id:
                 context['subscriptions'][subscription.id] = {}
                 context['subscriptions'][subscription.id]['subscription'] = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
                                                                        stripe_account=subscription.membership_package.stripe_acct_id)
-                context['subscriptions'][subscription.id]['customer'] = stripe.Customer.retrieve(subscription.stripe_subscription_id,
+                context['subscriptions'][subscription.id]['customer'] = stripe.Customer.retrieve(subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
-                context['subscriptions'][subscription.id] = context['payments'] = stripe.Charge.list(customer=subscription.stripe_subscription_id,
+                context['subscriptions'][subscription.id] = context['payments'] = stripe.Charge.list(customer=subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
         return context
 

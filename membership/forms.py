@@ -82,7 +82,7 @@ class EquineForm(forms.ModelForm):
         model = Equine
         fields = '__all__'
         exclude = ('membership_package',
-                   'member')
+                   'subscription')
         widgets = {
             'animal_owner': forms.CheckboxInput(attrs={'class': ''}),
             'badge': forms.CheckboxInput(attrs={'class': ''}),
