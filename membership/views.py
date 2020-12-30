@@ -97,24 +97,24 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                          Q(admins=self.request.user))
-        context['package'] = context['membership_packages'][0]
-        context['members'] = Member.objects.filter(subscription__membership_package=context['package'])
+        context['membership_package'] = MembershipPackage.objects.get(Q(owner=self.request.user) |
+                                                                          Q(admins=self.request.user),
+                                                                       organisation_name=self.kwargs['title'])
+
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'])
 
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
-        context['stripe_package'] = stripe.Account.retrieve(context['package'].stripe_acct_id,
-                                                            stripe_account=context['package'].stripe_acct_id)
+        context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
 
-        if context['package'].stripe_acct_id:
+        if context['membership_package'].stripe_acct_id:
             try:
-                context['edit_account'] = stripe.Account.create_login_link(context['package'].stripe_acct_id)
+                context['edit_account'] = stripe.Account.create_login_link(context['membership_package'].stripe_acct_id)
             except stripe.error.InvalidRequestError:
                 # stripe account created but not setup
-                context['stripe_package_setup'] = get_account_link(context['package'])
+                context['stripe_package_setup'] = get_account_link(context['membership_package'])
             if context['stripe_package'].requirements.errors:
-                context['account_link'] = get_account_link(context['package'])
+                context['account_link'] = get_account_link(context['membership_package'])
         else:
             # stripe account not setup
             context['stripe_package_setup'] = create_package_on_stripe(self.request)
@@ -719,14 +719,16 @@ class MemberProfileView(MembershipBase):
         :param kwargs:
         :return:
         """
-        # allow access if requesting user is and owner or admin OR if page is members own profile
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user), organisation_name=kwargs['title']).exists()\
-            or Member.objects.filter(id=self.kwargs['pk'],
-                                     user_account=self.request.user).exists():
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+        # allow access if requesting user is and owner or admin of one of members subscriptions
+        # OR
+        # if page is members own profile
+        member = Member.objects.get(id=self.kwargs['pk'])
+        for subscription in member.subscription.all():
+            if self.request.user == subscription.membership_package.owner or \
+                    self.request.user in subscription.membership_package.admins.all():
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
         else:
             # disallow access to page
             return HttpResponseRedirect('/')
@@ -735,17 +737,18 @@ class MemberProfileView(MembershipBase):
         context = super().get_context_data(**kwargs)
         context['member'] = Member.objects.get(id=self.kwargs['pk'])
         context['public_api_key'] = get_stripe_public_key(self.request)
-        context['package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-        context['subscription'] = MembershipSubscription.objects.get(member=context['member'], membership_package=context['package'])
 
-        if context['subscription'].stripe_subscription_id:
-            stripe.api_key = get_stripe_secret_key(self.request)
-            context['subscription_details'] = stripe.Subscription.retrieve(context['subscription'].stripe_subscription_id,
-                                                                   stripe_account=context['package'].stripe_acct_id)
-            context['customer'] = stripe.Customer.retrieve(context['subscription'].stripe_id,
-                                                           stripe_account=context['package'].stripe_acct_id)
-            context['payments'] = stripe.Charge.list(customer=context['subscription'].stripe_id,
-                                                           stripe_account=context['package'].stripe_acct_id)
+        context['subscriptions'] = {}
+        stripe.api_key = get_stripe_secret_key(self.request)
+        for subscription in context['member'].subscription.all():
+            if subscription.stripe_subscription_id:
+                context['subscriptions'][subscription.id] = {}
+                context['subscriptions'][subscription.id]['subscription'] = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
+                                                                       stripe_account=subscription.membership_package.stripe_acct_id)
+                context['subscriptions'][subscription.id]['customer'] = stripe.Customer.retrieve(subscription.stripe_subscription_id,
+                                                               stripe_account=subscription.membership_package.stripe_acct_id)
+                context['subscriptions'][subscription.id] = context['payments'] = stripe.Charge.list(customer=subscription.stripe_subscription_id,
+                                                               stripe_account=subscription.membership_package.stripe_acct_id)
         return context
 
 

@@ -436,10 +436,12 @@
         }
 
         function stripeTokenHandler(token) {
+            // need to capture what org to make a payment to!
+            // url 'member_payment' package.organisation_name member.id
 
             // Submit the token
             $.ajax({
-                url: '{% url 'member_payment' package.organisation_name member.id %}',
+                url: $memberPaymentUrl,
                 type: 'post',
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},

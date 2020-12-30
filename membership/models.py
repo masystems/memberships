@@ -6,7 +6,7 @@ class MembershipPackage(models.Model):
     organisation_name = models.CharField(max_length=50)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='owner', verbose_name="Owner")
     admins = models.ManyToManyField(User, blank=True, related_name='admins', verbose_name="Admins")
-    members = models.ManyToManyField(User, blank=True, related_name='members', verbose_name="Members")
+    #members = models.ManyToManyField(User, blank=True, related_name='members', verbose_name="Members")
     stripe_acct_id = models.CharField(max_length=255, blank=True)
     stripe_owner_id = models.CharField(max_length=255, blank=True)
     stripe_product_id = models.CharField(max_length=255, blank=True)
@@ -122,7 +122,7 @@ class MembershipSubscription(models.Model):
 
 class Equine(models.Model):
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, blank=True, null=True, related_name='emembership_package', verbose_name="Equine Membership Package")
-    member = models.ForeignKey(Member, on_delete=models.CASCADE, blank=True, null=True, related_name='emember', verbose_name="Equine Member")
+    subscription = models.ForeignKey(MembershipSubscription, on_delete=models.CASCADE, blank=True, null=True, related_name='esub', verbose_name="Equine Subscription")
     date_resigned = models.DateField(auto_now=True)
     gift_aid = models.BooleanField(default=False)
     signature_given_date = models.DateField(auto_now=False, blank=True, null=True)

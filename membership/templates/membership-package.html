@@ -19,7 +19,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to remove this member from {{ package.organisation_name}}?</p>
+                <p>Are you sure you want to remove this member from {{ membership_package.organisation_name}}?</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
@@ -79,11 +79,11 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex no-block align-items-center mb-4">
-                        <h4 class="card-title">{{ package.organisation_name }} Members</h4>
+                        <h4 class="card-title">{{ membership_package.organisation_name }} Members</h4>
                         <div class="ml-auto">
                             <div class="btn-group">
                                 {% if not stripe_package_setup %}
-                                    <a href="{% url 'member_form' package.organisation_name %}">
+                                    <a href="{% url 'member_form' membership_package.organisation_name %}">
                                         <button type="button" class="btn btn-success">
                                             Add New Member
                                         </button>
@@ -113,9 +113,9 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                     {% for membership in member.subscription.all %}
                                         <tr>
                                             <td>
-                                                <a href="{% url 'member_profile' package.organisation_name member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
+                                                <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
                                             </td>
-                                            <td>{{ member.email }}</td>
+                                            <td>{{ member.user_account.email }}</td>
                                             <td>
                                                 <span class="badge py-1 badge-info">
                                                 {{ membership.record_type|title }}
@@ -129,20 +129,20 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             <td>
                                                 {% if membership.payment_type == 'card_payment' %}
                                                     {% if membership.stripe_subscription_id %}
-                                                        <a href="{% url 'member_profile' package.organisation_name member.id %}#card-details">
+                                                        <a href="{% url 'member_profile' member.id %}#card-details">
                                                             <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
                                                                 <i class="fad fa-credit-card-front text-success"></i>
                                                             </button>
                                                         </a>
                                                     {% else %}
-                                                        <a href="{% url 'member_profile' package.organisation_name member.id %}#card-details">
+                                                        <a href="{% url 'member_profile' member.id %}#card-details">
                                                             <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
                                                                 <i class="fad fa-credit-card-front text-danger"></i>
                                                             </button>
                                                         </a>
                                                     {% endif %}
                                                 {% endif %}
-                                                <a href="{% url 'edit_member' package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
+                                                <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
                                                 <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                             </td>
                                         </tr>
@@ -242,7 +242,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                     </div>
                 </div>
                 <!-- Button to delete organisation -->
-                {% if request.user == package.owner and not members  %}
+                {% if request.user == membership_package.owner and not members  %}
                     <div class="border-bottom p-3">
                         <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-org-modal" style="width: 100%">Delete Organisation</button>
                     </div>
@@ -256,11 +256,11 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                 </div>
                                 <div class="modal-body">
-                                    <p>Are you sure you want to delete {{ package.organisation_name }}?</p>
+                                    <p>Are you sure you want to delete {{ membership_package.organisation_name }}?</p>
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                                    <a href="{% url 'delete_membership_package' package.organisation_name %}">
+                                    <a href="{% url 'delete_membership_package' membership_package.organisation_name %}">
                                         <button type="button" class="btn btn-danger">Continue</button>
                                     </a>
                                 </div>
@@ -307,7 +307,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
 
     <script>
         $('.removeUserBtn').on('click',function(){
-            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ package.organisation_name }}/" + $(this).attr("value"))
+            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + $(this).attr("value"))
             $('#remove-member-modal').modal('show');
         });
     </script>
