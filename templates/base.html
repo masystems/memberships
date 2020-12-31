@@ -165,7 +165,6 @@
                                 <div class="mega-dropdown-menu row">
                                     <div class="col-lg-3 col-xlg-2 mb-4">
                                         <h4 class="mb-3">SELECT ORGANISATION</h4>
-                                        <!-- CAROUSEL -->
                                         <div class="input-group d-flex">
                                             <div id="orgs">
                                                 <input class="typeahead1 form-control" type="text" id="organisations" name="donate-organisation" placeholder="Type organisation name">
@@ -175,16 +174,20 @@
                                             <span id="org-error" style="color:red; font-size: small;"></span>
                                             <span id="org-success" style="color:green; font-size: small;"></span>
                                         </div>
-                                        <!-- End CAROUSEL -->
                                     </div>
                                     <div class="col-lg-3  mb-4">
                                         <h4 class="mb-3">DONATION DETAILS</h4>
                                         <!-- Contact -->
                                         <form>
                                             <div class="form-group">
-                                                <input type="text" class="form-control" name="donator-full-name" value="{{ request.user.get_full_name }}"> </div>
+                                                <input id="donation-amount" class="form-control" type="text" placeholder="Donation Amount" maxlength="4" size="4">
+                                            </div>
                                             <div class="form-group">
-                                                <input type="email" class="form-control" name="donator-email" value="{{ request.user.email }}"> </div>
+                                                <input type="text" class="form-control" name="donator-full-name" value="{{ request.user.get_full_name }}">
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="email" class="form-control" name="donator-email" value="{{ request.user.email }}">
+                                            </div>
                                             <div class="form-group">
                                                 <textarea class="form-control" id="exampleTextarea" rows="3" placeholder="Message"></textarea>
                                             </div>
@@ -204,10 +207,6 @@
                                                     <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
                                                     <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
                                                     <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
-                                                </div>
-                                                <div class="text-left mt-0" style="margin:0 auto;">
-                                                    <label for="donation-amount">Amount:</label>
-                                                    <input id="donation-amount" type="text" value="" maxlength="4" size="4">
                                                 </div>
                                                 <div class="card-body" id="donation-payment-buttons">
                                                     <div class="form-group mb-0 text-right">

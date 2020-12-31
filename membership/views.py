@@ -510,7 +510,6 @@ def member_bolton_form(request, title, pk):
         # disallow access to page
         return redirect('dashboard')
 
-
     if request.method == "POST":
         # get the correct bolton
         if membership_package.bolton == 'equine':
