@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
 from memberships.functions import *
-from .models import MembershipPackage, Member, MembershipSubscription, Equine
+from .models import MembershipPackage, Member, MembershipSubscription, Equine, Donation
 from .forms import MembershipPackageForm, MemberForm, MemberSubscriptionForm, EquineForm
 from json import dumps
 import stripe
@@ -15,17 +15,15 @@ from re import search
 from urllib.parse import unquote
 
 
-def get_packages(request):
+def generate_site_vars(request):
     context = {}
-
     if request.user.is_authenticated:
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=request.user) |
                                                                           Q(admins=request.user), enabled=True)
+        context['memberships'] = Member.objects.filter(user_account=request.user)
+        context['public_api_key'] = get_stripe_public_key(request)
+        context['all_packages'] = MembershipPackage.objects.filter(enabled=True)
 
-        try:
-            context['member'] = Member.objects.get(user_account=request.user)
-        except Member.DoesNotExist:
-            pass
     else:
         context['authenticated'] = False
 
@@ -157,7 +155,7 @@ def delete_membership_package(request, title):
     """
     validate that the user is the owner
     validate that there are no existing members
-    stop mayments to stripe
+    stop payments to stripe
     delete org account
     email confirmation email
     redirect user to home page, and pass success message in

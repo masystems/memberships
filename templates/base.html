@@ -34,6 +34,21 @@
 </head>
 
 <body>
+    <!-- Spinner Overlay -->
+    <div id="donation-overlay-spinner" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content modal-filled bg-info">
+                <div class="modal-body p-4">
+                    <div class="text-center">
+                        <div id="spinner">
+                            <div class="spinner-border" role="status"></div>
+                                <h3 class="text-white mt-2">Processing donation...</h3>
+                            </div>
+                    </div>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
     <!-- ============================================================== -->
     <!-- Preloader - style you can find in spinners.css -->
     <!-- ============================================================== -->
@@ -141,107 +156,70 @@
 <!--                        &lt;!&ndash; ============================================================== &ndash;&gt;-->
 <!--                        &lt;!&ndash; mega menu &ndash;&gt;-->
 <!--                        &lt;!&ndash; ============================================================== &ndash;&gt;-->
-<!--                        <li class="nav-item dropdown mega-dropdown"><a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">-->
-<!--                             <span class=""><i class="mdi mdi-view-grid"></i></span>-->
-<!--                            </a>-->
-<!--                            <div class="dropdown-menu animated bounceInDown">-->
-<!--                                <div class="mega-dropdown-menu row">-->
-<!--                                    <div class="col-lg-3 col-xlg-2 mb-4">-->
-<!--                                        <h4 class="mb-3">CAROUSEL</h4>-->
-<!--                                        &lt;!&ndash; CAROUSEL &ndash;&gt;-->
-<!--                                        <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">-->
-<!--                                            <div class="carousel-inner" role="listbox">-->
-<!--                                                <div class="carousel-item active">-->
-<!--                                                    <div class="container p-0"> <img class="d-block img-fluid" src="../assets/images/big/img1.jpg" alt="First slide"></div>-->
-<!--                                                </div>-->
-<!--                                                <div class="carousel-item">-->
-<!--                                                    <div class="container p-0"><img class="d-block img-fluid" src="../assets/images/big/img2.jpg" alt="Second slide"></div>-->
-<!--                                                </div>-->
-<!--                                                <div class="carousel-item">-->
-<!--                                                    <div class="container p-0"><img class="d-block img-fluid" src="../assets/images/big/img3.jpg" alt="Third slide"></div>-->
-<!--                                                </div>-->
-<!--                                            </div>-->
-<!--                                            <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev"> <span class="carousel-control-prev-icon" aria-hidden="true"></span> <span class="sr-only">Previous</span> </a>-->
-<!--                                            <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next"> <span class="carousel-control-next-icon" aria-hidden="true"></span> <span class="sr-only">Next</span> </a>-->
-<!--                                        </div>-->
-<!--                                        &lt;!&ndash; End CAROUSEL &ndash;&gt;-->
-<!--                                    </div>-->
-<!--                                    <div class="col-lg-3 mb-4">-->
-<!--                                        <h4 class="mb-3">ACCORDION</h4>-->
-<!--                                        &lt;!&ndash; Accordian &ndash;&gt;-->
-<!--                                        <div id="accordion">-->
-<!--                                            <div class="card mb-1">-->
-<!--                                                <div class="card-header" id="headingOne">-->
-<!--                                                    <h5 class="mb-0">-->
-<!--                                                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">-->
-<!--                                                  Collapsible Group Item #1-->
-<!--                                                </button>-->
-<!--                                              </h5>-->
-<!--                                                </div>-->
-<!--                                                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">-->
-<!--                                                    <div class="card-body">-->
-<!--                                                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry.-->
-<!--                                                    </div>-->
-<!--                                                </div>-->
-<!--                                            </div>-->
-<!--                                            <div class="card mb-1">-->
-<!--                                                <div class="card-header" id="headingTwo">-->
-<!--                                                    <h5 class="mb-0">-->
-<!--                                                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">-->
-<!--                                                  Collapsible Group Item #2-->
-<!--                                                </button>-->
-<!--                                              </h5>-->
-<!--                                                </div>-->
-<!--                                                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">-->
-<!--                                                    <div class="card-body">-->
-<!--                                                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry.-->
-<!--                                                    </div>-->
-<!--                                                </div>-->
-<!--                                            </div>-->
-<!--                                            <div class="card mb-1">-->
-<!--                                                <div class="card-header" id="headingThree">-->
-<!--                                                    <h5 class="mb-0">-->
-<!--                                                <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">-->
-<!--                                                  Collapsible Group Item #3-->
-<!--                                                </button>-->
-<!--                                              </h5>-->
-<!--                                                </div>-->
-<!--                                                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">-->
-<!--                                                    <div class="card-body">-->
-<!--                                                        Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry.-->
-<!--                                                    </div>-->
-<!--                                                </div>-->
-<!--                                            </div>-->
-<!--                                        </div>-->
-<!--                                    </div>-->
-<!--                                    <div class="col-lg-3  mb-4">-->
-<!--                                        <h4 class="mb-3">CONTACT US</h4>-->
-<!--                                        &lt;!&ndash; Contact &ndash;&gt;-->
-<!--                                        <form>-->
-<!--                                            <div class="form-group">-->
-<!--                                                <input type="text" class="form-control" id="exampleInputname1" placeholder="Enter Name"> </div>-->
-<!--                                            <div class="form-group">-->
-<!--                                                <input type="email" class="form-control" placeholder="Enter email"> </div>-->
-<!--                                            <div class="form-group">-->
-<!--                                                <textarea class="form-control" id="exampleTextarea" rows="3" placeholder="Message"></textarea>-->
-<!--                                            </div>-->
-<!--                                            <button type="submit" class="btn btn-info">Submit</button>-->
-<!--                                        </form>-->
-<!--                                    </div>-->
-<!--                                    <div class="col-lg-3 col-xlg-4 mb-4">-->
-<!--                                        <h4 class="mb-3">List style</h4>-->
-<!--                                        &lt;!&ndash; List style &ndash;&gt;-->
-<!--                                        <ul class="list-style-none">-->
-<!--                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> You can give link</a></li>-->
-<!--                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> Give link</a></li>-->
-<!--                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> Another Give link</a></li>-->
-<!--                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> Forth link</a></li>-->
-<!--                                            <li><a href="javascript:void(0)"><i class="fa fa-check text-success"></i> Another fifth link</a></li>-->
-<!--                                        </ul>-->
-<!--                                    </div>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </li>-->
+                        <li class="nav-item dropdown mega-dropdown"><a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                             <span class=""><i class="mdi mdi-view-grid"></i></span>
+                            </a>
+                        <form method="POST" action="{% url 'donation_payment' %}" id="donationForm">
+                        {% csrf_token %}
+                            <div class="dropdown-menu animated bounceInDown">
+                                <div class="mega-dropdown-menu row">
+                                    <div class="col-lg-3 col-xlg-2 mb-4">
+                                        <h4 class="mb-3">SELECT ORGANISATION</h4>
+                                        <!-- CAROUSEL -->
+                                        <div class="input-group d-flex">
+                                            <div id="orgs">
+                                                <input class="typeahead1 form-control" type="text" id="organisations" name="donate-organisation" placeholder="Type organisation name">
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-info" id="selectDonOrg"><i class="fad fa-users mr-1"></i>Select</button>
+                                            <button type="button" class="btn btn-sm btn-info d-none" id="changeDonOrg"><i class="fad fa-users mr-1"></i>Change</button>
+                                            <span id="org-error" style="color:red; font-size: small;"></span>
+                                            <span id="org-success" style="color:green; font-size: small;"></span>
+                                        </div>
+                                        <!-- End CAROUSEL -->
+                                    </div>
+                                    <div class="col-lg-3  mb-4">
+                                        <h4 class="mb-3">DONATION DETAILS</h4>
+                                        <!-- Contact -->
+                                        <form>
+                                            <div class="form-group">
+                                                <input type="text" class="form-control" name="donator-full-name" value="{{ request.user.get_full_name }}"> </div>
+                                            <div class="form-group">
+                                                <input type="email" class="form-control" name="donator-email" value="{{ request.user.email }}"> </div>
+                                            <div class="form-group">
+                                                <textarea class="form-control" id="exampleTextarea" rows="3" placeholder="Message"></textarea>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
+                                        <h4 class="mb-3">PAYMENT DETAILS</h4>
+                                        <!-- List style -->
+                                            <form id="donation-payment-form">
+                                                <label>Card Holders Name:</label>
+                                                <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
+                                                <!-- placeholder for Elements -->
+                                                <div id="donation-card-element"></div>
+                                                <!-- Used to display Element errors. -->
+                                                <div id="donation-card-errors" role="alert"></div>
+                                                <div class="text-right mt-3" id="cardTypes" style="margin:0 auto;">
+                                                    <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
+                                                    <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
+                                                    <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
+                                                </div>
+                                                <div class="text-left mt-0" style="margin:0 auto;">
+                                                    <label for="donation-amount">Amount:</label>
+                                                    <input id="donation-amount" type="text" value="" maxlength="4" size="4">
+                                                </div>
+                                                <div class="card-body" id="donation-payment-buttons">
+                                                    <div class="form-group mb-0 text-right">
+                                                        <button id="save-donation" class="btn btn-info waves-effect waves-light d-none">Donate!</button>
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                            </div>
+                        </form>
+                        </li>
                         <!-- ============================================================== -->
                         <!-- End mega menu -->
                         <!-- ============================================================== -->
@@ -406,13 +384,170 @@
     <!--Custom JavaScript -->
     <script src="{% static 'dist/js/feather.min.js' %}"></script>
     <script src="{% static 'dist/js/custom.min.js' %}"></script>
+    <!--Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        function sleep (time) {
+          return new Promise((resolve) => setTimeout(resolve, time));
+        }
 
+        $("#save-donation").click(function(e){
+            $('#donation-overlay-spinner').modal();
+            e.preventDefault();
+            sleep(2000).then(() => {
+                submitDonationForm()
+            });
+
+        });
+
+        function submitDonationForm() {
+
+            // Get form
+            var form = $('#donationForm')[0];
+            console.log(form);
+
+            // Create an FormData object
+            var data = new FormData(form);
+            console.log(data);
+
+            $.ajax({
+                url: '{% url 'donation_payment' %}',
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                cache: false,
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#donationForm').serialize(),
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        $('#formError').removeClass('d-none');
+                        $('#donation-overlay-spinner').modal('hide');
+                    } else {
+                        $('#formError').addClass('d-none');
+                        generateCardToken(data);
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                    console.log('jqXHR:');
+                    console.log(jqXHR);
+                    console.log('textStatus:');
+                    console.log(textStatus);
+                    console.log('errorThrown:');
+                    console.log(errorThrown);
+                }
+            });
+        }
+
+        // STRIPE STUFF
+        var stripe = Stripe('{{ public_api_key }}');
+        var elements = stripe.elements();
+
+        // Custom styling can be passed to options when creating an Element.
+        var style = {
+          base: {
+            color: '#32325d',
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '16px',
+            '::placeholder': {
+              color: '#aab7c4'
+            }
+          },
+          invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+          }
+        };
+
+        // Create an instance of the card Element.
+        var card = elements.create('card', {style: style});
+
+        // Add an instance of the card Element into the `card-element` <div>.
+        card.mount('#donation-card-element');
+
+
+        card.addEventListener('change', function(event) {
+          var displayError = document.getElementById('card-errors');
+          if (event.error) {
+            displayError.textContent = event.error.message;
+          } else {
+            displayError.textContent = '';
+          }
+        });
+
+        // Create a token or display an error when the form is submitted.
+        function generateCardToken() {
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    // Inform the customer that there was an error.
+                    var errorElement = document.getElementById('donation-card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    donationStripeTokenHandler(result.token);
+                }
+            });
+        }
+
+        function donationStripeTokenHandler(token) {
+
+            // Submit the token
+            $.ajax({
+                url: '{% url 'donation_payment' %}',
+                type: 'post',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: {
+                    'token': token,
+                    },
+                beforeSend: function() {
+                    $('#paymentSuccess').addClass('d-none');
+                    $('#paymentFail').addClass('d-none');
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result.result == 'fail') {
+                        $('#donation-overlay-spinner').modal('hide');
+                        $('#donation-card-errors').html(result.feedback);
+                    } else {
+                        $('#existing-customer-details').addClass('d-none');
+                        $('#donation-payment-form').addClass('d-none');
+                        $('#donation-payment-buttons').addClass('d-none');
+                        loadSuccessPage(result);
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                    console.log('jqXHR:');
+                    console.log(jqXHR);
+                    console.log('textStatus:');
+                    console.log(textStatus);
+                    console.log('errorThrown:');
+                    console.log(errorThrown);
+                }
+            });
+        }
+
+        function loadSuccessPage(result) {
+            $('#donation-overlay-spinner').modal('hide');
+
+            //update layout
+            $('#result').removeClass('d-none');
+            $('#receipt').attr("href", result.receipt);
+            $('#goToMemberPageLink').attr("href", '/membership/member-profile/{{ package.organisation_name }}/{{ member.pk }}');
+        }
+    </script>
     <!--Page Messages -->
     <script src="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.js' %}"></script>
     <script>
         function infoMsg(msg) {
             toastr.info(msg, 'Information', { "progressBar": true });
         }
+
         function warningMsg(msg) {
             toastr.warning(msg, 'Warning', { "progressBar": true });
         }
@@ -443,9 +578,70 @@
             }
         });
     </script>
+    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
+    <script>
+    var substringMatcher = function(strs) {
+        return function findMatches(q, cb) {
+            var matches, substringRegex;
 
+            // an array that will be populated with substring matches
+            matches = [];
+
+            // regex used to determine if a string contains the substring `q`
+            substrRegex = new RegExp(q, 'i');
+
+            // iterate through the pool of strings and for any string that
+            // contains the substring `q`, add it to the `matches` array
+            $.each(strs, function(i, str) {
+              if (substrRegex.test(str)) {
+                matches.push(str);
+              }
+            });
+
+            cb(matches);
+              };
+        };
+
+        var orgs = [{% for org in all_packages.all %}
+                            '{{ org.organisation_name }}',
+                            {% endfor %}];
+        $('#orgs .typeahead,#orgs .typeahead1').typeahead({
+          hint: true,
+          highlight: true,
+          minLength: 0
+        },
+        {
+          name: 'organisations',
+          source: substringMatcher(orgs)
+        });
+        $('.typeahead, .typeahead1').bind('typeahead:active', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "Type organisation name");
+        });
+        $('.typeahead, .typeahead1').bind('typeahead:close', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "");
+        });
+        $('#selectDonOrg').click(function() {
+            if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
+                $('#organisations').attr('readonly', true);
+                $('#save-donation').removeClass('d-none');
+                $('#selectDonOrg').addClass('d-none');
+                $('#changeDonOrg').removeClass('d-none');
+                $('#org-error').html("");
+                $('#org-success').html("Organisation selected successfully!");
+            } else {
+                $('#org-success').html("");
+                $('#org-error').html("Organisation dose not exist!");
+            }
+        });
+
+        $('#changeDonOrg').click(function() {
+            $('#organisations').attr('readonly', false);
+            $('#selectDonOrg').removeClass('d-none');
+            $('#changeDonOrg').addClass('d-none');
+            $('#save-donation').addClass('d-none');
+        });
+    </script>
     {% block footer %}
-
     {% endblock %}
 </body>
 
