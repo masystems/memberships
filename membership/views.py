@@ -466,12 +466,13 @@ class MemberSubForm(LoginRequiredMixin, UpdateView):
         except MembershipSubscription.DoesNotExist:
             return 'MEM12345'
 
-            latest_member_number = latest_added.membership_number
-            reg_ints_re = search("[0-9]+", latest_member_number)
+        latest_member_number = latest_added.membership_number
+        reg_ints_re = search("[0-9]+", latest_added.membership_number)
         try:
             return latest_member_number.replace(str(reg_ints_re.group(0)),
                                                 str(int(reg_ints_re.group(0)) + 1).zfill(len(reg_ints_re.group(0))))
         except:
+            print('this')
             return 'MEM12345'
 
     def get_context_data(self, **kwargs):
@@ -561,6 +562,22 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
     model = Member
     success_url = '/membership/'
 
+    def get_initial(self):
+        """
+        Returns the initial data to use for forms on this view.
+        """
+        initial = super().get_initial()
+
+        # get membership title
+        decoded_url = unquote(self.request.get_full_path())
+        member_id = decoded_url.split('/')[4]
+        member = Member.objects.get(id=member_id)
+        initial['email'] = member.user_account.email
+        initial['first_name'] = member.user_account.first_name
+        initial['last_name'] = member.user_account.last_name
+
+        return initial
+
     def dispatch(self, request, *args, **kwargs):
         """
         Only allow the owner and admins to view this page
@@ -570,8 +587,7 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         :return:
         """
 
-        if not MembershipPackage.objects.filter(Q(owner=self.request.user,
-                                                  organisation_name=kwargs['title']) |
+        if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
                                                 Q(admins=self.request.user),
                                                   organisation_name=kwargs['title']).exists():
             # disallow access to page
@@ -589,41 +605,42 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form, **kwargs):
         self.context = self.get_context_data(**kwargs)
-        self.member = form.save()
-        self.update_andor_link_user()
+        self.form = form
+        self.member = self.form.save()
+        self.update_user()
+        self.update_stripe_customer()
+
         if self.context['membership_package'].bolton != 'none':
             return redirect(
-                f"/membership/member-bolton-form/{self.context['membership_package'].organisation_name}/{self.member.id}")
+                f"member_bolton_form", self.context['membership_package'].organisation_name, self.member.id)
         elif self.member.payment_type == 'card_payment':
             return redirect(
-                f"/membership/member-payment/{self.context['membership_package'].organisation_name}/{self.member.id}")
+                f"member_payment", self.context['membership_package'].organisation_name, self.member.id)
         else:
             return super().form_valid(form)
 
-    def update_andor_link_user(self):
+    def update_user(self):
         """
         Update and link user
         :return:
         """
-        user, created = User.objects.get_or_create(email=self.member.email)
-        user.username = generate_username(self.member.first_name, self.member.last_name)
-        user.first_name = self.member.first_name
-        user.last_name = self.member.last_name
-        user.save()
+        # update the user from the member id
+        self.member.user_account.email = self.form.cleaned_data['email']
+        self.member.user_account.first_name = self.form.cleaned_data['first_name']
+        self.member.user_account.last_name = self.form.cleaned_data['last_name']
+        self.member.save()
 
-        self.member.user_account = user
-        self.member.membership_package = self.context['membership_package']
-
+    def update_stripe_customer(self):
         stripe.api_key = get_stripe_secret_key(self.request)
+
+        subscription = MembershipSubscription.objects.get(member=self.member,
+                                                          membership_package=self.context['membership_package'])
         stripe_customer = stripe.Customer.modify(
-            self.member.stripe_id,
-            name=user.get_full_name(),
-            email=user.email,
+            subscription.stripe_id,
+            name=self.member.user_account.get_full_name(),
+            email=self.member.user_account.email,
             stripe_account=self.context['membership_package'].stripe_acct_id
         )
-        self.member.stripe_id = stripe_customer.id
-
-        self.member.save()
 
 
 class MemberPaymentView(LoginRequiredMixin, MembershipBase):
@@ -744,15 +761,14 @@ class MemberProfileView(MembershipBase):
         context['subscriptions'] = {}
         stripe.api_key = get_stripe_secret_key(self.request)
         for subscription in context['member'].subscription.all():
-
-            print(subscription.membership_package.stripe_acct_id)
             if subscription.stripe_subscription_id:
                 context['subscriptions'][subscription.id] = {}
                 context['subscriptions'][subscription.id]['subscription'] = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
                                                                        stripe_account=subscription.membership_package.stripe_acct_id)
+
                 context['subscriptions'][subscription.id]['customer'] = stripe.Customer.retrieve(subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
-                context['subscriptions'][subscription.id] = context['payments'] = stripe.Charge.list(customer=subscription.stripe_id,
+                context['subscriptions'][subscription.id]['payments'] = stripe.Charge.list(customer=subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
         return context
 
@@ -785,6 +801,7 @@ def update_user(request, pk):
         return HttpResponse(True)
 
     return HttpResponse(False)
+
 
 def validate_card(request, type, pk=0):
     # get strip secret key

@@ -93,183 +93,169 @@
                         <a class="nav-link nav-0 active" id="pills-membership-tab" data-toggle="pill" href="#overview" role="tab" aria-controls="pills-membership" aria-selected="true">Membership</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-0" id="pills-setting-tab" data-toggle="pill" href="#settings" role="tab" aria-controls="pills-setting" aria-selected="false">Settings</a>
+                        <a class="nav-link nav-0" id="pills-payments-tab" data-toggle="pill" href="#payments" role="tab" aria-controls="pills-payments" aria-selected="false">Payments</a>
                     </li>
-                    {% if subscription_details %}
+                    {% if subscriptions %}
                         <li class="nav-item">
                             <a class="nav-link nav-0" id="pills-card-tab" data-toggle="pill" href="#card-details" role="tab" aria-controls="pills-card" aria-selected="false">Card Details</a>
                         </li>
                     {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link nav-0" id="pills-setting-tab" data-toggle="pill" href="#settings" role="tab" aria-controls="pills-setting" aria-selected="false">Settings</a>
+                    </li>
                 </ul>
                 <!-- Tabs -->
                 <div class="tab-content" id="pills-tabContent">
                     <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="pills-membership-tab">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Status</strong>
-                                    <br>
-                                    <p class="text-muted">
-                                        {% if subscription_details %}
-                                            {% if subscription_details.plan.active == True %}
-                                                <span class="text-success">Active</span>
+                            <!-- Iterate over all subscriptions attached to the member -->
+                            {% for subscription in member.subscription.all %}
+                                <!-- Validate request.user is owner/admin/ of subscription package
+                                 or is a superuser
+                                 or user and member are the same -->
+                                {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member %}
+                                    <h3>{{ subscription.membership_package.organisation_name }}</h3>
+                                    <!-- Check if it is a strip subscription -->
+                                    {% if subscription.stripe_subscription_id %}
+                                        <!-- Iterate over all subscriptions -->
+                                        {% for id, details in subscriptions.items %}
+                                            <!-- Check to see if the ID matches the top level loop -->
+                                            {% if details.subscription.id == subscription.stripe_subscription_id %}
+                                                <div class="row">
+                                                    <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Status</strong>
+                                                        <br>
+                                                        <p class="text-muted">
+                                                            {% if details.subscription.plan.active == True %}
+                                                                <span class="text-success">Active</span>
+                                                            {% else %}
+                                                                <span class="text-danger">Inactive</span>
+                                                            {% endif %}
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Start</strong>
+                                                        <br>
+                                                        <p class="text-muted">
+                                                            {{ details.subscription.start_date|parsetimestamp }}
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-3 col-xs-6 b-r"> <strong>Payment Interval</strong>
+                                                        <br>
+                                                        <p class="text-muted">
+                                                            {% if details.subscription.plan.interval == 'month' %}
+                                                                Monthly
+                                                            {% elif details.subscription.plan.interval == 'year' %}
+                                                                Yearly
+                                                            {% endif %}
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
+                                                        <br>
+                                                        <p class="text-muted">{{ subscription.payment_type|choicefieldformat }}</p>
+                                                    </div>
+                                                    {% if details.subscription.plan.interval == "month" %}
+                                                        <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
+                                                            <p class="text-muted">
+                                                                £{{ subscription.membership_package.membership_price_per_month }}
+                                                            </p>
+                                                        </div>
+                                                    {% else %}
+                                                        <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Year</strong>
+                                                            <p class="text-muted">
+                                                                £{{ subscription.membership_package.membership_price_per_year }}
+                                                            </p>
+                                                        </div>
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="row">
+                                            <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Status</strong>
+                                                <br>
+                                                <p class="text-muted">
+                                                        <span class="text-success">Active</span>
+                                                </p>
+                                            </div>
+                                            <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Start</strong>
+                                                <br>
+                                                <p class="text-muted">
+                                                    {{ subscription.created }}
+                                                </p>
+                                            </div>
+                                            <div class="col-md-3 col-xs-6 b-r"> <strong>Payment Interval</strong>
+                                                <br>
+                                                <p class="text-muted">
+                                                    {{ subscription.billing_period|title }}
+                                                </p>
+                                            </div>
+                                            <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
+                                                <br>
+                                                <p class="text-muted">{{ subscription.payment_type|choicefieldformat }}</p>
+                                            </div>
+                                            {% if subscription.billing_period == "monthly" %}
+                                                <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
+                                                    <p class="text-muted">
+                                                        £{{ subscription.membership_package.membership_price_per_month }}
+                                                    </p>
+                                                </div>
                                             {% else %}
-                                                <span class="text-danger">Inactive</span>
+                                                <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Year</strong>
+                                                    <p class="text-muted">
+                                                        £{{ subscription.membership_package.membership_price_per_year }}
+                                                    </p>
+                                                </div>
                                             {% endif %}
-                                        {% else %}
-                                            Active <small>(Self managed)</small>
-                                        {% endif %}
-                                    </p>
-                                </div>
-                                <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Start</strong>
-                                    <br>
-                                    <p class="text-muted">
-                                        {% if subscription_details %}
-                                            {{ subscription_details.start_date|parsetimestamp }}</p>
-                                        {% else %}
-                                            {{ member.created }}
-                                        {% endif %}
-                                </div>
-                                <div class="col-md-3 col-xs-6 b-r"> <strong>Payment Interval</strong>
-                                    <br>
-                                    <p class="text-muted">
-                                        {% if subscription_details %}
-                                            {% if subscription_details.plan.interval == 'month' %}
-                                                Monthly
-                                            {% elif subscription_details.plan.interval == 'year' %}
-                                                Yearly
-                                            {% endif %}
-                                        {% else %}
-                                            {{ member.billing_period|title }}
-                                        {% endif %}
-                                    </p>
-                                </div>
-                                <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
-                                    <br>
-                                    <p class="text-muted">{{ member.payment_type|choicefieldformat }}</p>
-                                </div>
-                                {% if subscription.billing_period == "monthly" %}
-                                    <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
-                                        <p class="text-muted">
-                                            £{{ package.membership_price_per_month }}
-                                        </p>
-                                    </div>
-                                {% else %}
-                                    <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Year</strong>
-                                        <p class="text-muted">
-                                            £{{ package.membership_price_per_year }}
-                                        </p>
-                                    </div>
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
-                            </div>
-                            <hr>
-                            {% if subscription_details %}
-                                <h4 class="font-weight-medium mt-4">Payments</h4>
                                 <hr>
-                                <div class="table-responsive">
-                                    <table id="scroll_ver_hor" class="table table-striped table-bordered display no-wrap"
-                                        style="width:100%">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">ID</th>
-                                                <th scope="col">Amount</th>
-                                                <th scope="col">Created</th>
-                                                <th scope="col">Paid</th>
-                                                <th scope="col">Receipt</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for payment in payments %}
-                                                <tr>
-                                                    <td scope="row"><p data-toggle="tooltip" data-placement="top" title="{{ charge.id }}">{{ payment.id|slice:"-6:" }}</p></td>
-                                                    <td>{{ payment.amount|price }} {{ payment.currency|upper}}</td>
-                                                    <td>{{ payment.created|parsetimestamp }}</td>
-                                                    <td><span class="label {% if payment.paid %}label-light-success{% else %}label-light-danger{% endif %}"> {% if payment.paid %}Yes{% else %}No{% endif %} </span></td>
-                                                    <td>{% if payment.paid %}<a href="{{ payment.receipt_url }}"><button class="btn btn-outline-success">Download</button></a>{% endif %}</td>
-                                                </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            {% endif %}
+                            {% endfor %}
                         </div>
                     </div>
-                    <div class="tab-pane" id="settings" role="tabpanel">
+                    <div class="tab-pane" id="payments" role="tabpanel">
                         <div class="card-body">
-                            <form id="userSettings" method="POST" class="form-horizontal form-material">
-                                {% csrf_token %}
-                                <div class="form-group">
-                                    <label class="col-md-12">Title</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.title }}" name="user-settings-title" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-12">First Name</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.first_name }}" name="user-settings-first-name" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-12">Last Name</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.last_name }}" name="user-settings-last-name" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="example-email" class="col-md-12">Email</label>
-                                    <div class="col-md-12">
-                                        <input type="email" value="{{ member.email }}" class="form-control form-control-line" name="user-settings-email" id="example-email">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-12">Address 1</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.address_line_1 }}" name="user-settings-address1" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-12">Address 2</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.address_line_2 }}" name="user-settings-address2" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-12">Town</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.town }}" name="user-settings-town" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-12">County</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.county }}" name="user-settings-county" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-12">Postcode</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.postcode }}" name="user-settings-postcode" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label class="col-md-12">Phone Number</label>
-                                    <div class="col-md-12">
-                                        <input type="text" value="{{ member.contact_number }}" name="user-settings-phone" class="form-control form-control-line">
-                                    </div>
-                                </div>
-                                {% if request.user == member.user_account %}
-                                    <div class="form-group">
-                                        <label class="col-md-12">Password</label>
-                                        <div class="col-md-12">
-                                            <input type="password" name="user-settings-password" class="form-control form-control-line">
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                </form>
-                            <div class="row">
-                                <div class="col-2">
-                                    <button id="selectUserSettings" type="submit" class="btn btn-success float-left">Update Profile</button>
-                                </div>
+                            <h4 class="font-weight-medium mt-4">Payments</h4>
+                            <p>Shows all payments handled by Stripe <small>(Card Payment Gateway)</small></p>
+                            <hr>
+                            <div class="table-responsive">
+                                <table id="scroll_ver_hor" class="table table-striped table-bordered display no-wrap"
+                                    style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">ID</th>
+                                            <th scope="col">Amount</th>
+                                            <th scope="col">Created</th>
+                                            <th scope="col">Paid</th>
+                                            <th scope="col">Receipt</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Iterate over all subscriptions attached to the member -->
+                                        {% for subscription in member.subscription.all %}
+                                            <!-- Iterate over all subscriptions -->
+                                            {% for id, details in subscriptions.items %}
+                                                <!-- Validate request.user is owner/admin/ of subscription package
+                                                 or is a superuser
+                                                 or user and member are the same -->
+                                                {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member %}
+                                                    <!-- Loop over all payments made -->
+                                                    {% for payment in details.payments %}
+                                                        <!-- Check to see if the ID matches the top level loop -->
+                                                        {% if payment.customer == subscription.stripe_id %}
+                                                            <tr>
+                                                                <td scope="row"><p data-toggle="tooltip" data-placement="top" title="{{ charge.id }}">{{ payment.id|slice:"-6:" }}</p></td>
+                                                                <td>{{ payment.amount|price }} {{ payment.currency|upper}}</td>
+                                                                <td>{{ payment.created|parsetimestamp }}</td>
+                                                                <td><span class="label {% if payment.paid %}label-light-success{% else %}label-light-danger{% endif %}"> {% if payment.paid %}Yes{% else %}No{% endif %} </span></td>
+                                                                <td>{% if payment.paid %}<a href="{{ payment.receipt_url }}"><button class="btn btn-outline-success">Download</button></a>{% endif %}</td>
+                                                            </tr>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -337,6 +323,86 @@
                             </div>
                         </div>
                     </div>
+                    <div class="tab-pane" id="settings" role="tabpanel">
+                        <div class="card-body">
+                            <form id="userSettings" method="POST" class="form-horizontal form-material">
+                                {% csrf_token %}
+                                <div class="form-group">
+                                    <label class="col-md-12">Title</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.title }}" name="user-settings-title" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">First Name</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.user_account.first_name }}" name="user-settings-first-name" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">Last Name</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.user_account.last_name }}" name="user-settings-last-name" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="example-email" class="col-md-12">Email</label>
+                                    <div class="col-md-12">
+                                        <input type="email" value="{{ member.user_account.email }}" class="form-control form-control-line" name="user-settings-email" id="example-email">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">Address 1</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.address_line_1 }}" name="user-settings-address1" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">Address 2</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.address_line_2 }}" name="user-settings-address2" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">Town</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.town }}" name="user-settings-town" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">County</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.county }}" name="user-settings-county" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">Postcode</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.postcode }}" name="user-settings-postcode" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-12">Phone Number</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.contact_number }}" name="user-settings-phone" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                {% if request.user == member.user_account %}
+                                    <div class="form-group">
+                                        <label class="col-md-12">Password</label>
+                                        <div class="col-md-12">
+                                            <input type="password" name="user-settings-password" class="form-control form-control-line">
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                </form>
+                            <div class="row">
+                                <div class="col-2">
+                                    <button id="selectUserSettings" type="submit" class="btn btn-success float-left">Update Profile</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -354,7 +420,17 @@
 {% block footer %}
     <script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
-    <script src="{% static 'dist/js/pages/datatable/datatable-basic.init.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            $('a[data-toggle="pill"]').on( 'shown.bs.tab', function (e) {
+                $.fn.dataTable.tables( {visible: true, api: true} ).columns.adjust();
+            } );
+        } );
+        $('#scroll_ver_hor').DataTable({
+            "scrollY": 300,
+            "scrollX": true
+        });
+    </script>
 
     <script>
          $('#selectUserSettings').click( function() {
