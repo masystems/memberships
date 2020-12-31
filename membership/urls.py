@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path('', views.SelectMembershipPackageView.as_view(), name="membership"),
     path('org/<str:title>', views.MembershipPackageView.as_view(), name="membership_package"),
+    path('org/<str:title>/manage-admins', views.ManageAdminsView.as_view(), name="manage_admins"),
     path('org/select-package', views.SelectMembershipPackageView.as_view(), name="select_package"),
     path('organisation-payment', views.organisation_payment, name='organisation_payment'),
     path('create-package-on-stripe', views.create_package_on_stripe, name='create_package_on_stripe'),

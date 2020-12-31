@@ -167,7 +167,7 @@
                                         <h4 class="mb-3">SELECT ORGANISATION</h4>
                                         <div class="input-group d-flex">
                                             <div id="orgs">
-                                                <input class="typeahead1 form-control" type="text" id="organisations" name="donate-organisation" placeholder="Type organisation name">
+                                                <input class="typeahead1 form-control" type="text" id="organisation-donation" name="donate-organisation" placeholder="Type organisation name">
                                             </div>
                                             <button type="button" class="btn btn-sm btn-info" id="selectDonOrg"><i class="fad fa-users mr-1"></i>Select</button>
                                             <button type="button" class="btn btn-sm btn-info d-none" id="changeDonOrg"><i class="fad fa-users mr-1"></i>Change</button>
@@ -579,26 +579,26 @@
     </script>
     <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
     <script>
-    var substringMatcher = function(strs) {
-        return function findMatches(q, cb) {
-            var matches, substringRegex;
+        var substringMatcher = function(strs) {
+            return function findMatches(q, cb) {
+                var matches, substringRegex;
 
-            // an array that will be populated with substring matches
-            matches = [];
+                // an array that will be populated with substring matches
+                matches = [];
 
-            // regex used to determine if a string contains the substring `q`
-            substrRegex = new RegExp(q, 'i');
+                // regex used to determine if a string contains the substring `q`
+                substrRegex = new RegExp(q, 'i');
 
-            // iterate through the pool of strings and for any string that
-            // contains the substring `q`, add it to the `matches` array
-            $.each(strs, function(i, str) {
-              if (substrRegex.test(str)) {
-                matches.push(str);
-              }
-            });
+                // iterate through the pool of strings and for any string that
+                // contains the substring `q`, add it to the `matches` array
+                $.each(strs, function(i, str) {
+                    if (substrRegex.test(str)) {
+                        matches.push(str);
+                    }
+                });
 
-            cb(matches);
-              };
+                cb(matches);
+            };
         };
 
         var orgs = [{% for org in all_packages.all %}
@@ -618,26 +618,6 @@
         });
         $('.typeahead, .typeahead1').bind('typeahead:close', function(ev, suggestion) {
             $('#organisations').attr("placeholder", "");
-        });
-        $('#selectDonOrg').click(function() {
-            if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
-                $('#organisations').attr('readonly', true);
-                $('#save-donation').removeClass('d-none');
-                $('#selectDonOrg').addClass('d-none');
-                $('#changeDonOrg').removeClass('d-none');
-                $('#org-error').html("");
-                $('#org-success').html("Organisation selected successfully!");
-            } else {
-                $('#org-success').html("");
-                $('#org-error').html("Organisation dose not exist!");
-            }
-        });
-
-        $('#changeDonOrg').click(function() {
-            $('#organisations').attr('readonly', false);
-            $('#selectDonOrg').removeClass('d-none');
-            $('#changeDonOrg').addClass('d-none');
-            $('#save-donation').addClass('d-none');
         });
     </script>
     {% block footer %}

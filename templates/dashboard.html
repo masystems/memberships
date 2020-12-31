@@ -119,7 +119,7 @@
                                             </span>
                                         </div>
                                         <div class="ml-auto align-self-center">
-                                            <a href="{% url 'member_profile' member.membership_package.organisation_name member.id %}"><button class="font-weight-medium mb-0 btn btn-light">View</button></a>
+                                            <a href="{% url 'member_profile' member.id %}"><button class="font-weight-medium mb-0 btn btn-light">View</button></a>
                                         </div>
                                     </div>
                                 </div>
@@ -146,4 +146,12 @@
 {% endblock %}
 
 {% block footer %}
+    <script>
+        $('#joinOrg').click(function() {
+            if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
+                var url = "/membership/member-form/" + $('#organisations').val();
+                window.location.href = url;
+            }
+        });
+    </script>
 {% endblock %}
