@@ -167,12 +167,8 @@
                                         <h4 class="mb-3">SELECT ORGANISATION</h4>
                                         <div class="input-group d-flex">
                                             <div id="orgs">
-                                                <input class="typeahead1 form-control" type="text" id="organisations" name="donate-organisation" placeholder="Type organisation name">
+                                                <input class="typeahead1 form-control" type="text" id="organisation-donation" name="donate-organisation" placeholder="Type organisation name">
                                             </div>
-                                            <button type="button" class="btn btn-sm btn-info" id="selectDonOrg"><i class="fad fa-users mr-1"></i>Select</button>
-                                            <button type="button" class="btn btn-sm btn-info d-none" id="changeDonOrg"><i class="fad fa-users mr-1"></i>Change</button>
-                                            <span id="org-error" style="color:red; font-size: small;"></span>
-                                            <span id="org-success" style="color:green; font-size: small;"></span>
                                         </div>
                                     </div>
                                     <div class="col-lg-3  mb-4">
@@ -180,16 +176,16 @@
                                         <!-- Contact -->
                                         <form>
                                             <div class="form-group">
-                                                <input id="donation-amount" class="form-control" type="text" placeholder="Donation Amount" maxlength="4" size="4">
+                                                <input id="donation-amount" class="form-control" type="text" placeholder="Donation Amount">
                                             </div>
                                             <div class="form-group">
-                                                <input type="text" class="form-control" name="donator-full-name" value="{{ request.user.get_full_name }}">
+                                                <input id="donator-full-name" type="text" class="form-control" name="donator-full-name" value="{{ request.user.get_full_name }}">
                                             </div>
                                             <div class="form-group">
-                                                <input type="email" class="form-control" name="donator-email" value="{{ request.user.email }}">
+                                                <input id="donator-email" type="email" class="form-control" name="donator-email" value="{{ request.user.email }}">
                                             </div>
                                             <div class="form-group">
-                                                <textarea class="form-control" id="exampleTextarea" rows="3" placeholder="Message"></textarea>
+                                                <textarea class="form-control" id="donator-message" rows="3" placeholder="Message"></textarea>
                                             </div>
                                         </form>
                                     </div>
@@ -203,14 +199,14 @@
                                                 <div id="donation-card-element"></div>
                                                 <!-- Used to display Element errors. -->
                                                 <div id="donation-card-errors" role="alert"></div>
-                                                <div class="text-right mt-3" id="cardTypes" style="margin:0 auto;">
+                                                <div class="text-center mt-3" id="cardTypes" style="margin:0 auto;">
                                                     <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
                                                     <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
                                                     <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
                                                 </div>
                                                 <div class="card-body" id="donation-payment-buttons">
                                                     <div class="form-group mb-0 text-right">
-                                                        <button id="save-donation" class="btn btn-info waves-effect waves-light d-none">Donate!</button>
+                                                        <button id="donation-button" class="btn btn-success waves-effect waves-light">Donate</button>
                                                     </div>
                                                 </div>
                                             </form>
@@ -383,20 +379,104 @@
     <!--Custom JavaScript -->
     <script src="{% static 'dist/js/feather.min.js' %}"></script>
     <script src="{% static 'dist/js/custom.min.js' %}"></script>
+    <!-- Type Head JavaScript -->
+    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
+    <script>
+    var substringMatcher = function(strs) {
+        return function findMatches(q, cb) {
+            var matches, substringRegex;
+
+            // an array that will be populated with substring matches
+            matches = [];
+
+            // regex used to determine if a string contains the substring `q`
+            substrRegex = new RegExp(q, 'i');
+
+            // iterate through the pool of strings and for any string that
+            // contains the substring `q`, add it to the `matches` array
+            $.each(strs, function(i, str) {
+              if (substrRegex.test(str)) {
+                matches.push(str);
+              }
+            });
+
+            cb(matches);
+              };
+    };
+
+    var orgs = [{% for org in all_packages.all %}
+                        '{{ org.organisation_name }}',
+                        {% endfor %}];
+    $('#orgs .typeahead,#orgs .typeahead1').typeahead({
+      hint: true,
+      highlight: true,
+      minLength: 0
+    },
+    {
+      name: 'organisations',
+      source: substringMatcher(orgs)
+    });
+    $('.typeahead, .typeahead1').bind('typeahead:active', function(ev, suggestion) {
+        $('#organisations').attr("placeholder", "Type organisation name");
+    });
+    $('.typeahead, .typeahead1').bind('typeahead:close', function(ev, suggestion) {
+        $('#organisations').attr("placeholder", "");
+    });
+
+    $('#joinOrg').click(function(e) {
+        if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
+            var url = "/membership/member-form/" + $('#organisations').val();
+            window.location.href = url;
+        }
+    });
+    </script>
     <!--Stripe JS -->
     <script src="https://js.stripe.com/v3/"></script>
     <script>
+
         function sleep (time) {
           return new Promise((resolve) => setTimeout(resolve, time));
         }
 
-        $("#save-donation").click(function(e){
-            $('#donation-overlay-spinner').modal();
-            e.preventDefault();
-            sleep(2000).then(() => {
-                submitDonationForm()
-            });
+        $("#donation-button").click(function(e){
+            // Define organisation checks
+            var isOrganisation = $('#organisation-donation').val() != "";
+            var organisationExists = orgs.includes($('#organisation-donation').val());
 
+            // Define float checks
+            var amount = $("#donation-amount").val();
+            var floatRegex = /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/;
+            var amountCheck = floatRegex.test(amount);
+
+            // Define email checks
+            var email = $("#donator-email").val();
+            var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            var emailCheck = emailRegex.test(email);
+
+
+            // Check organisation field
+            if (isOrganisation && organisationExists && amountCheck && emailCheck) {
+                $('#donation-overlay-spinner').modal();
+                sleep(2000).then(() => {
+                    submitDonationForm()
+                });
+            } else if (isOrganisation == false){
+                errorMsg("Please fill the organisation name!");
+                e.preventDefault();
+            } else if (organisationExists == false){
+                errorMsg("Oganisation does not exist!");
+                e.preventDefault();
+            }
+
+            if(emailCheck == false){
+               errorMsg("The Email is invalid!");
+               e.preventDefault();
+            }
+
+            if(amountCheck == false){
+               errorMsg("The amount is invalid!");
+               e.preventDefault();
+            }
         });
 
         function submitDonationForm() {
@@ -575,69 +655,6 @@
                 // show the tab
                 $('a[href="' + hash + '"]').tab('show');
             }
-        });
-    </script>
-    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
-    <script>
-    var substringMatcher = function(strs) {
-        return function findMatches(q, cb) {
-            var matches, substringRegex;
-
-            // an array that will be populated with substring matches
-            matches = [];
-
-            // regex used to determine if a string contains the substring `q`
-            substrRegex = new RegExp(q, 'i');
-
-            // iterate through the pool of strings and for any string that
-            // contains the substring `q`, add it to the `matches` array
-            $.each(strs, function(i, str) {
-              if (substrRegex.test(str)) {
-                matches.push(str);
-              }
-            });
-
-            cb(matches);
-              };
-        };
-
-        var orgs = [{% for org in all_packages.all %}
-                            '{{ org.organisation_name }}',
-                            {% endfor %}];
-        $('#orgs .typeahead,#orgs .typeahead1').typeahead({
-          hint: true,
-          highlight: true,
-          minLength: 0
-        },
-        {
-          name: 'organisations',
-          source: substringMatcher(orgs)
-        });
-        $('.typeahead, .typeahead1').bind('typeahead:active', function(ev, suggestion) {
-            $('#organisations').attr("placeholder", "Type organisation name");
-        });
-        $('.typeahead, .typeahead1').bind('typeahead:close', function(ev, suggestion) {
-            $('#organisations').attr("placeholder", "");
-        });
-        $('#selectDonOrg').click(function() {
-            if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
-                $('#organisations').attr('readonly', true);
-                $('#save-donation').removeClass('d-none');
-                $('#selectDonOrg').addClass('d-none');
-                $('#changeDonOrg').removeClass('d-none');
-                $('#org-error').html("");
-                $('#org-success').html("Organisation selected successfully!");
-            } else {
-                $('#org-success').html("");
-                $('#org-error').html("Organisation dose not exist!");
-            }
-        });
-
-        $('#changeDonOrg').click(function() {
-            $('#organisations').attr('readonly', false);
-            $('#selectDonOrg').removeClass('d-none');
-            $('#changeDonOrg').addClass('d-none');
-            $('#save-donation').addClass('d-none');
         });
     </script>
     {% block footer %}
