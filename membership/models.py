@@ -17,7 +17,6 @@ class MembershipPackage(models.Model):
     organisation_name = models.CharField(max_length=50)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='owner', verbose_name="Owner")
     admins = models.ManyToManyField(User, blank=True, related_name='admins', verbose_name="Admins")
-    #members = models.ManyToManyField(User, blank=True, related_name='members', verbose_name="Members")
     stripe_acct_id = models.CharField(max_length=255, blank=True)
     stripe_owner_id = models.CharField(max_length=255, blank=True)
     stripe_product_id = models.CharField(max_length=255, blank=True)
