@@ -20,7 +20,8 @@ def generate_site_vars(request):
     if request.user.is_authenticated:
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=request.user) |
                                                                           Q(admins=request.user), enabled=True).distinct()
-        context['membership'] = Member.objects.filter(user_account=request.user)
+        context['membership'] = Member.objects.get(user_account=request.user)
+
         context['public_api_key'] = get_stripe_public_key(request)
         context['all_packages'] = MembershipPackage.objects.filter(enabled=True)
     else:
@@ -397,6 +398,27 @@ def get_account_link(membership):
 
 class MembersDetailed(LoginRequiredMixin, MembershipBase):
     template_name = 'members_detailed.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        """
+        Only allow the owner and admins to view this page
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+
+        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                            Q(admins=self.request.user),
+                                            organisation_name=kwargs['title'],
+                                            enabled=True).exists():
+            # kwargs.update({'foo': 'bar'})  # inject the foo value
+            # now process dispatch as it otherwise normally would
+            return super().dispatch(request, *args, **kwargs)
+
+        # disallow access to page
+        return HttpResponseRedirect('/')
+
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -961,18 +983,19 @@ def remove_member(request, title, pk):
         return redirect('membership_package', membership_package.organisation_name)
 
     member = Member.objects.get(id=pk)
+    subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
     stripe.api_key = get_stripe_secret_key(request)
 
     # cancel subscription
-    if member.stripe_subscription_id:
-        stripe.Subscription.delete(member.stripe_subscription_id,
+    if subscription.stripe_subscription_id:
+        stripe.Subscription.delete(subscription.stripe_subscription_id,
                                    stripe_account=membership_package.stripe_acct_id)
 
     # delete customer from stripe account
-    if member.stripe_id:
-        stripe.Customer.delete(member.stripe_id,
+    if subscription.stripe_id:
+        stripe.Customer.delete(subscription.stripe_id,
                                stripe_account=membership_package.stripe_acct_id)
 
-    member.delete()
+    subscription.delete()
 
     return redirect('membership')

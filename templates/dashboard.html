@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_tags %}
 
 {% block header %}
 
@@ -110,34 +111,33 @@
                     </div>
                     <p>You can be a member of a Membership organisation and manage all of your own information.</p>
                     <hr>
-                    {% if memberships %}
-                        {% for member in memberships.all %}
+                    {% if membership.subscription.all %}
+                        {% for subscription in membership.subscription.all %}
                             <div class="card bg-info">
                                 <div class="card-body text-white">
                                     <div class="d-flex flex-row">
                                         <div class="display-6 align-self-center"><i class="fad fa-clipboard-check"></i></div>
                                         <div class="p-2 align-self-center">
-                                            <h4 class="mb-0 text-white">{{ member.membership_package.organisation_name }}</h4>
+                                            <h4 class="mb-0 text-white">{{ subscription.membership_package.organisation_name }}</h4>
                                             <span>
-                                                Role: Member
+                                                Role: {{ subscription.record_type|choicefieldformat }}
                                             </span>
                                         </div>
                                         <div class="ml-auto align-self-center">
-                                            <a href="{% url 'member_profile' member.id %}"><button class="font-weight-medium mb-0 btn btn-light">View</button></a>
+                                            <a href="{% url 'member_profile' subscription.member.id %}"><button class="font-weight-medium mb-0 btn btn-light">View</button></a>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         {% endfor %}
-                    {% else %}
-                        <p>You're not a member of any Organisations yet. Use the field below to find the organisation you'd like to join.</p>
-                        <div class="input-group d-flex">
-                            <div id="orgs">
-                                <input class="typeahead form-control" type="text" id="organisations" name="organisations" placeholder="Type organisation name">
-                            </div>
-                            <button class="btn btn-sm btn-info" id="joinOrg"><i class="fad fa-users mr-1"></i>Join</button>
-                        </div>
                     {% endif %}
+                    <p>Use the field below to find the organisation you'd like to join.</p>
+                    <div class="input-group d-flex">
+                        <div id="orgs">
+                            <input class="typeahead form-control" type="text" id="organisations" name="organisations" placeholder="Type organisation name">
+                        </div>
+                        <button class="btn btn-sm btn-info" id="joinOrg"><i class="fad fa-users mr-1"></i>Join</button>
+                    </div>
                 </div>
             </div>
         </div>
