@@ -395,6 +395,18 @@ def get_account_link(membership):
     return account_link
 
 
+class MembersDetailed(LoginRequiredMixin, MembershipBase):
+    template_name = 'members_detailed.html'
+
+    def get_context_data(self, **kwargs):
+        self.context = super().get_context_data(**kwargs)
+        self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
+        self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
+        if self.context['membership_package'].bolton != "none":
+            self.context['bolton'] = True
+        return self.context
+
+
 class MemberRegForm(LoginRequiredMixin, FormView):
     template_name = 'member_form_new.html'
     login_url = '/accounts/login/'
