@@ -304,10 +304,11 @@
 
                         <li class="nav-devider"></li>
                         <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">My Memberships</span></li>
-                        {% if member.membership.all %}
-                            {% for membership in member__membership.all %}
-                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'member_profile' membership.membership_package.organisation_name membership.id %}" aria-expanded="false"><i class="fad fa-user mr-1"></i><span class="hide-menu">
-                                    {{ membership.membership_package }}
+                        {% if membership %}
+
+                            {% for subscription in memberships__memberships.all %}
+                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'member_profile' membership.id %}" aria-expanded="false"><i class="fad fa-user mr-1"></i><span class="hide-menu">
+                                    {{ membership }}
                                 </span></a></li>
                             {% endfor %}
                         {% else %}
@@ -315,7 +316,6 @@
                                 No Membership
                             </span></a></li>
                         {% endif %}
-
                     </ul>
                 </nav>
                 <!-- End Sidebar navigation -->

@@ -29,7 +29,7 @@ class MembersAdmin(admin.ModelAdmin):
     inlines = [MembershipSubInline]
 
 admin.site.register(Member, MembersAdmin)
-
+admin.site.register(MembershipSubscription)
 
 class EquestrianAdmin(admin.ModelAdmin):
     list_filter = ('membership_package',)

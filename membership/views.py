@@ -20,10 +20,9 @@ def generate_site_vars(request):
     if request.user.is_authenticated:
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=request.user) |
                                                                           Q(admins=request.user), enabled=True).distinct()
-        context['memberships'] = Member.objects.filter(user_account=request.user)
+        context['membership'] = Member.objects.filter(user_account=request.user)
         context['public_api_key'] = get_stripe_public_key(request)
         context['all_packages'] = MembershipPackage.objects.filter(enabled=True)
-
     else:
         context['authenticated'] = False
 
@@ -463,46 +462,58 @@ class MemberRegForm(LoginRequiredMixin, FormView):
 
 @login_required(login_url='/accounts/login/')
 def member_sub_form(request, title, pk):
-    # get next available member number
-    try:
-        membership_package = MembershipPackage.objects.get(organisation_name=title, enabled=True)
-        latest_added = MembershipSubscription.objects.filter(membership_package=membership_package).latest(
-            'membership_number')
-    except MembershipSubscription.DoesNotExist:
-        membership_number = 'MEM12345'
-
-    latest_member_number = latest_added.membership_number
-    reg_ints_re = search("[0-9]+", latest_added.membership_number)
-    try:
-        membership_number = latest_member_number.replace(str(reg_ints_re.group(0)),
-                                            str(int(reg_ints_re.group(0)) + 1).zfill(len(reg_ints_re.group(0))))
-    except:
-        membership_number = 'MEM12345'
-
     # get page vars
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
 
     if request.method == "POST":
-        form = MemberSubscriptionForm(request.POST)
+        try:
+            subscription_existing = False
+            subscription_existing = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+            form = MemberSubscriptionForm(request.POST, instance=subscription_existing)
+        except MembershipSubscription.DoesNotExist:
+            form = MemberSubscriptionForm(request.POST)
         if form.is_valid():
-            create_stripe_customer(request, member, membership_package)
-            subscription = form.save()
+            subscription = form.save(commit=False)
+            subscription.membership_package = membership_package
+            subscription.member = member
+            # create/ update stripe customer
+            stripe.api_key = get_stripe_secret_key(request)
+
+            if subscription_existing and subscription_existing.stripe_id:
+                # stripe user already exists
+                stripe_customer = stripe.Customer.modify(
+                    subscription_existing.stripe_id,
+                    name=member.user_account.get_full_name(),
+                    email=member.user_account.email,
+                    stripe_account=membership_package.stripe_acct_id
+                )
+            else:
+                stripe_customer = stripe.Customer.create(
+                    name=member.user_account.get_full_name(),
+                    email=member.user_account.email,
+                    stripe_account=membership_package.stripe_acct_id
+                )
+
+                subscription.stripe_id = stripe_customer.id
+            subscription.save()
 
             # send confirmation email
-            body = f"""<p>This is a confirmation email for your new Membership to {membership_package.organisation_name}.</P
-                                <ul>
-                                    <li>Membership Organisation: {membership_package.organisation_name}</li>
-                                    <li>Name: {member.user_account.get_full_name()}</li>
-                                    <li>Email: {member.user_account.email}</li>
-                                </ul>
-    
-                                <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
-    
-                                """
-            send_email(f"Membership Confirmation: {membership_package.organisation_name}",
-                       member.user_account.get_full_name(),
-                       body, send_to=member.user_account.email)
+            if not subscription_existing:
+                # not an existing member
+                body = f"""<p>This is a confirmation email for your new Membership to {membership_package.organisation_name}.</P
+                                    <ul>
+                                        <li>Membership Organisation: {membership_package.organisation_name}</li>
+                                        <li>Name: {member.user_account.get_full_name()}</li>
+                                        <li>Email: {member.user_account.email}</li>
+                                    </ul>
+        
+                                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+        
+                                    """
+                send_email(f"Membership Confirmation: {membership_package.organisation_name}",
+                           member.user_account.get_full_name(),
+                           body, send_to=member.user_account.email)
 
             if membership_package.bolton != 'none':
                 return redirect(
@@ -525,26 +536,11 @@ def member_sub_form(request, title, pk):
             form = MemberSubscriptionForm(
                 instance=MembershipSubscription.objects.get(membership_package=membership_package, member=member))
         else:
-            form = MemberSubscriptionForm({'membership_number': membership_number})
+            form = MemberSubscriptionForm()
         return render(request, 'member_subscription_form_new.html', {'form': form,
                                                                      'membership_package': membership_package,
                                                                      'member': member})
 
-
-def create_stripe_customer(request, member, membership_package):
-    stripe.api_key = get_stripe_secret_key(request)
-
-    stripe_customer = stripe.Customer.create(
-        name=member.user_account.get_full_name(),
-        email=member.user_account.email,
-        stripe_account=membership_package.stripe_acct_id
-    )
-    subscription, created = MembershipSubscription.objects.get_or_create(member=member,
-                                                                         membership_package=membership_package,
-                                                                         membership_number=membership_number)
-    subscription.stripe_id = stripe_customer.id
-
-    subscription.save()
 
 
 @login_required(login_url='/accounts/login/')
@@ -661,12 +657,9 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         self.update_user()
         self.update_stripe_customer()
 
-        if self.context['membership_package'].bolton != 'none':
-            return redirect(
-                f"member_bolton_form", self.context['membership_package'].organisation_name, self.member.id)
-        elif self.member.payment_type == 'card_payment':
-            return redirect(
-                f"member_payment", self.context['membership_package'].organisation_name, self.member.id)
+        if self.request.user == self.context['membership_package'].owner or self.request.user in self.context[
+            'membership_package'].admins:
+            return redirect(f"member_sub_form", self.context['membership_package'].organisation_name, self.member.id)
         else:
             return super().form_valid(form)
 

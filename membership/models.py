@@ -68,8 +68,8 @@ class Member(models.Model):
 
 
 class MembershipSubscription(models.Model):
-    member = models.ForeignKey(Member, on_delete=models.CASCADE, blank=True, null=True, related_name='subscription', verbose_name="Membership Subscription")
-    membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, blank=True, null=True, related_name='membership_package', verbose_name="Membership Package")
+    member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='subscription', verbose_name="Membership Subscription")
+    membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='membership_package', verbose_name="Membership Package")
     stripe_id = models.CharField(max_length=255, blank=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
     validated = models.BooleanField(default=False)
@@ -81,8 +81,6 @@ class MembershipSubscription(models.Model):
     )
     record_type = models.CharField(max_length=12, choices=RECORD_TYPE, null=True, default='member',
                                    help_text="Type of member")
-
-    membership_number = models.CharField(max_length=100, unique=True)
 
     CATEGORY = (
         ('member', 'Member'),
@@ -127,7 +125,7 @@ class MembershipSubscription(models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return self.membership_number
+        return self.membership_package.organisation_name
 
 
 class Equine(models.Model):
