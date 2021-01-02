@@ -26,9 +26,6 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="/">Home</a></li>
-                        {% if membership_packages %}
-                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
-                        {% endif %}
                         <li class="breadcrumb-item active" aria-current="page">Member Profile</li>
                     </ol>
                 </nav>
@@ -62,8 +59,7 @@
 <!--                        </div>-->
                     </center>
                 </div>
-                <div>
-                    <hr> </div>
+                <hr>
                 <div class="card-body"> <small class="text-muted">Email address </small>
                     <h6>{{ member.user_account.email }}</h6>
                     <small class="text-muted pt-4 db">Phone</small>

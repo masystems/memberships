@@ -77,6 +77,7 @@ def donation_payment(request):
 
             return HttpResponse(dumps(result))
 
+
 class DashboardBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -89,4 +90,8 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        try:
+            context['membership_package'] = MembershipPackage.objects.get(owner=self.request.user)
+        except MembershipPackage.DoesNotExist:
+            pass
         return context

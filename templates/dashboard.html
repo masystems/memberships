@@ -46,44 +46,48 @@
                         <p>Membership organisation have the ability to hold many members of different types,
                             managing your members payments and creating an organisation structure.</p>
                         <hr>
+                        <!-- Iterate over all packages -->
                         {% for account in membership_packages.all %}
-                            <div class="card
-                                {% if account.enabled %}
-                                    bg-info
-                                {% else %}
-                                    bg-warning
-                                {% endif %}">
-                                <div class="card-body text-white">
-                                    <div class="d-flex flex-row">
-                                        <div class="display-6 align-self-center"><i class="fad fa-users"></i></div>
-                                        <div class="p-2 align-self-center">
-                                            <h4 class="mb-0 text-white">{{ account.organisation_name }}</h4>
-                                            <span>Role:
+                            <!-- Validate request.user is owner or admin of package -->
+                            {% if request.user == account.owner or request.user in account.admins.all %}
+                                <div class="card
+                                    {% if account.enabled %}
+                                        bg-info
+                                    {% else %}
+                                        bg-warning
+                                    {% endif %}">
+                                    <div class="card-body text-white">
+                                        <div class="d-flex flex-row">
+                                            <div class="display-6 align-self-center"><i class="fad fa-users"></i></div>
+                                            <div class="p-2 align-self-center">
+                                                <h4 class="mb-0 text-white">{{ account.organisation_name }}</h4>
+                                                <span>Role:
+                                                    {% if account.owner == request.user %}
+                                                        Owner
+                                                    {% else %}
+                                                        {% for admin in account.admins.all %}
+                                                            {% if admin == request.user %}
+                                                                Admin
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                            <div class="ml-auto align-self-center">
                                                 {% if account.owner == request.user %}
-                                                    Owner
-                                                {% else %}
-                                                    {% for admin in account.admins.all %}
-                                                        {% if admin == request.user %}
-                                                            Admin
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                {% endif %}
-                                            </span>
-                                        </div>
-                                        <div class="ml-auto align-self-center">
-                                            {% if account.owner == request.user %}
-                                            <a href="{% url 'membership_package' account.organisation_name %}"><button class="font-weight-medium mb-0 btn btn-light">View</button></a>
-                                                {% else %}
-                                                    {% for admin in account.admins.all %}
-                                                        {% if admin == request.user %}
-                                            <a href="{% url 'membership_package' account.organisation_name %}"><button class="font-weight-medium mb-0 btn btn-light">View</button></a>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                {% endif %}
+                                                <a href="{% url 'membership_package' account.organisation_name %}"><button class="font-weight-medium mb-0 btn btn-light">View</button></a>
+                                                    {% else %}
+                                                        {% for admin in account.admins.all %}
+                                                            {% if admin == request.user %}
+                                                <a href="{% url 'membership_package' account.organisation_name %}"><button class="font-weight-medium mb-0 btn btn-light">View</button></a>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    {% endif %}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            {% endif %}
                         {% endfor %}
                     {% else %}
                         <p>You don't currently have an organisation, <a href="{% url 'membership_package_settings' %}"><button class="btn btn-sm btn-success btn-rounded">Create one?</button></a></p>

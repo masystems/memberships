@@ -11,7 +11,7 @@ from .models import MembershipPackage, Member, MembershipSubscription, Equine, D
 from .forms import MembershipPackageForm, MemberForm, MemberSubscriptionForm, EquineForm
 from json import dumps
 import stripe
-from re import search
+from re import search, match
 from urllib.parse import unquote
 
 
@@ -19,7 +19,7 @@ def generate_site_vars(request):
     context = {}
     if request.user.is_authenticated:
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                                          Q(admins=request.user), enabled=True)
+                                                                          Q(admins=request.user), enabled=True).distinct()
         context['memberships'] = Member.objects.filter(user_account=request.user)
         context['public_api_key'] = get_stripe_public_key(request)
         context['all_packages'] = MembershipPackage.objects.filter(enabled=True)
@@ -46,14 +46,51 @@ class Membership(LoginRequiredMixin, MembershipBase):
         return context
 
 
-class ManageAdminsView(LoginRequiredMixin, MembershipBase):
-    template_name = 'membership-package.html'
-    login_url = '/accounts/login/'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        return context
+@login_required(login_url='/accounts/login/')
+def manage_admins(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    if request.method == "POST":
+        if request.POST['type'] == "add_admin":
+            # validate email address
+            if not match(r"^[A-Za-z0-9\.\+_-]+@[A-Za-z0-9\._-]+\.[a-zA-Z]*$", request.POST['email']):
+                return HttpResponse(dumps({'status': "fail",
+                                           'message': 'Not a valid email address'}), content_type='application/json')
+            # validate user not already an admin
+            try:
+                user = User.objects.get(email=request.POST['email'])
+                if user in membership_package.admins.all():
+                    return HttpResponse(dumps({'status': "fail",
+                                               'message': 'Admin already exists!'}), content_type='application/json')
+            except User.DoesNotExist:
+                # passed validation
+                pass
+            # get/create user
+            user, created = User.objects.get_or_create(email=request.POST['email'])
+            if created:
+                user.username = generate_username(request.POST['first_name'],
+                                                  request.POST['last_name'])
+                user.first_name = request.POST['first_name']
+                user.last_name = request.POST['last_name']
+                user.save()
+            # add user admin of membership_package
+            membership_package.admins.add(user)
+            # send email to user
+        elif request.POST['type'] == "remove_admin":
+            # get user
+            try:
+                user = User.objects.get(email=request.POST['email'])
+            except User.DoesNotExist:
+                return HttpResponse(dumps({'status': "fail",
+                                           'message': "User doesn't exists!"}), content_type='application/json')
+            # remove from admins
+            membership_package.admins.remove(user)
+            # return success
+            return HttpResponse(dumps({'status': "success",
+                                       'message': "User successfully removed"}), content_type='application/json')
+        return HttpResponse(dumps({'status': "success",
+                                   'message': "Request not recognised"}), content_type='application/json')
+    else:
+        return render(request, 'manage-admins.html', {'membership_package': membership_package})
 
 
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
@@ -105,9 +142,10 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['membership_package'] = MembershipPackage.objects.get(Q(owner=self.request.user) |
-                                                                          Q(admins=self.request.user),
-                                                                       organisation_name=self.kwargs['title'])
+        context['membership_package'] = MembershipPackage.objects.filter(Q(owner=self.request.user, organisation_name=self.kwargs['title']) |
+                                                                         Q(admins=self.request.user, organisation_name=self.kwargs['title'])).distinct()
+        # sigh
+        context['membership_package'] = context['membership_package'][0]
 
         context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'])
 

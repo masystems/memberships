@@ -157,26 +157,32 @@
 <!--                        &lt;!&ndash; mega menu &ndash;&gt;-->
 <!--                        &lt;!&ndash; ============================================================== &ndash;&gt;-->
                         <li class="nav-item dropdown mega-dropdown"><a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                             <span class=""><i class="mdi mdi-view-grid"></i></span>
+                            <span class=""><button class="btn btn-primary"><i class="fad fa-envelope-open-dollar mr-2"></i>Donate to Organisation</button></span>
                             </a>
                         <form method="POST" action="{% url 'donation_payment' %}" id="donationForm">
                         {% csrf_token %}
                             <div class="dropdown-menu animated bounceInDown">
                                 <div class="mega-dropdown-menu row">
                                     <div class="col-lg-3 col-xlg-2 mb-4">
-                                        <h4 class="mb-3">SELECT ORGANISATION</h4>
-                                        <div class="input-group d-flex">
+                                        <h4 class="mb-3">Donation Form</h4>
+                                        <p>Donate to an organisation but filling out the below fields.</p>
+                                        <div class="input-group">
                                             <div id="orgs">
                                                 <input class="typeahead1 form-control" type="text" id="organisation-donation" name="donate-organisation" placeholder="Type organisation name">
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col-lg-3  mb-4">
-                                        <h4 class="mb-3">DONATION DETAILS</h4>
+<!--                                        <h5 class="mb-3">DONATION DETAILS</h5>-->
                                         <!-- Contact -->
                                         <form>
                                             <div class="form-group">
-                                                <input id="donation-amount" class="form-control" type="text" placeholder="Donation Amount">
+                                                <div class="input-group mb-3">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
+                                                    </div>
+                                                    <input id="donation-amount" class="form-control" type="text" placeholder="Donation Amount">
+                                                </div>
                                             </div>
                                             <div class="form-group">
                                                 <input id="donator-full-name" type="text" class="form-control" name="donator-full-name" value="{{ request.user.get_full_name }}">
@@ -190,7 +196,7 @@
                                         </form>
                                     </div>
                                     <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
-                                        <h4 class="mb-3">PAYMENT DETAILS</h4>
+<!--                                        <h5 class="mb-3">PAYMENT DETAILS</h5>-->
                                         <!-- List style -->
                                             <form id="donation-payment-form">
                                                 <label>Card Holders Name:</label>
@@ -418,9 +424,6 @@
     });
     $('.typeahead, .typeahead1').bind('typeahead:active', function(ev, suggestion) {
         $('#organisations').attr("placeholder", "Type organisation name");
-    });
-    $('.typeahead, .typeahead1').bind('typeahead:close', function(ev, suggestion) {
-        $('#organisations').attr("placeholder", "");
     });
 
     $('#joinOrg').click(function(e) {
@@ -655,49 +658,6 @@
                 // show the tab
                 $('a[href="' + hash + '"]').tab('show');
             }
-        });
-    </script>
-    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
-    <script>
-        var substringMatcher = function(strs) {
-            return function findMatches(q, cb) {
-                var matches, substringRegex;
-
-                // an array that will be populated with substring matches
-                matches = [];
-
-                // regex used to determine if a string contains the substring `q`
-                substrRegex = new RegExp(q, 'i');
-
-                // iterate through the pool of strings and for any string that
-                // contains the substring `q`, add it to the `matches` array
-                $.each(strs, function(i, str) {
-                    if (substrRegex.test(str)) {
-                        matches.push(str);
-                    }
-                });
-
-                cb(matches);
-            };
-        };
-
-        var orgs = [{% for org in all_packages.all %}
-                            '{{ org.organisation_name }}',
-                            {% endfor %}];
-        $('#orgs .typeahead,#orgs .typeahead1').typeahead({
-          hint: true,
-          highlight: true,
-          minLength: 0
-        },
-        {
-          name: 'organisations',
-          source: substringMatcher(orgs)
-        });
-        $('.typeahead, .typeahead1').bind('typeahead:active', function(ev, suggestion) {
-            $('#organisations').attr("placeholder", "Type organisation name");
-        });
-        $('.typeahead, .typeahead1').bind('typeahead:close', function(ev, suggestion) {
-            $('#organisations').attr("placeholder", "");
         });
     </script>
     {% block footer %}
