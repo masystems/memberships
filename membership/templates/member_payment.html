@@ -49,15 +49,15 @@
                     <h4 class="card-title">{{ package.organisation_name }} Member Payment Information</h4>
                     <div class="row mt-4" id="existing-customer-details">
                         <div class="col-6">
-                            {% if subscription %}
+                            {% if subscription_details %}
                                 <h5>Existing Subscription Details</h5>
                                 <ul class="list-style-none">
-                                    <li><i class="fad fa-chevron-right"></i> Status: {% if subscription.items.data.0.plan.active == True %}<span class="text-success">Active</span>
+                                    <li><i class="fad fa-chevron-right"></i> Status: {% if subscription_details.items.data.0.plan.active == True %}<span class="text-success">Active</span>
                                         {% else %}
                                         <span class="text-danger">Inactive</span>{% endif %}
                                     </li>
-                                    <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if subscription.items.data.0.plan.interval == 'month' %}Monthly
-                                        {% elif subscription.items.data.0.plan.interval == 'year' %}
+                                    <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if subscription_details.items.data.0.plan.interval == 'month' %}Monthly
+                                        {% elif subscription_details.items.data.0.plan.interval == 'year' %}
                                         Yearly{% endif %}
                                     </li>
                                 </ul>
@@ -89,6 +89,14 @@
                 </div>
                 <div class="col-lg-6 offset-lg-3">
                     <form id="payment-form">
+                        <!-- Displaying the price before user pays -->
+                        {% if subscription.billing_period == "monthly" %}
+                            <p>Price for the month: 
+                            <b>£{{ package.membership_price_per_month }}</b></p>
+                        {% else %}
+                            <p>Price for the year: 
+                            <b>£{{ package.membership_price_per_year }}</b></p>
+                        {% endif %}
                         <label>Card Holders Name:</label>
                         <input id="cardholder-name" type="text" class="form-control" value="{{ user.get_full_name }}">
                         <!-- placeholder for Elements -->
@@ -106,7 +114,7 @@
                 <div class="card-body" id="payment-buttons">
                     <div class="form-group mb-0 text-right">
                         <button id="save-membership" class="btn btn-info waves-effect waves-light">Make Payment</button>
-                        <button type="submit" class="btn btn-dark waves-effect waves-light">Cancel</button>
+                        <a href="{% url 'membership_package' package.organisation_name %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
                     </div>
                 </div>
             </div>
@@ -240,7 +248,7 @@
             //update layout
             $('#result').removeClass('d-none');
             $('#receipt').attr("href", result.receipt);
-            $('#goToMemberPageLink').attr("href", '/membership/member-profile/{{ package.organisation_name }}/{{ member.pk }}');
+            $('#goToMemberPageLink').attr("href", '/membership/member-profile/{{ member.pk }}');
         }
     </script>
 {% endblock %}

@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load custom_tags %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">Manage Admins</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active" aria-current="page">Manage Admins</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
+
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <!-- Column -->
+        <div class="col-lg-4 col-xlg-3 col-md-5">
+            <div class="card">
+                <div class="card-body">
+                    <center class="mt-4">
+                        <h4 class="card-title mt-2">{{ membership_package.organisation_name }}</h4>
+                        <h6 class="card-title mt-2">Owner: {{ membership_package.owner.get_full_name }}</h6>
+                    </center>
+                </div>
+                <hr>
+                <div class="card-body">
+<!--                    list of existing admins-->
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+        <!-- Column -->
+        <div class="col-lg-8 col-xlg-9 col-md-7">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Add/Remove Admins</h4>
+                    <div id="adminFields" class=" m-t-20">
+                        {% for admin in membership_package.admins.all %}
+                            <div class="form-group removeclass{{ forloop.counter }}">
+                                <form id="removeAdminForm{{ forloop.counter }}" class="row">
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" id="email" name="email" placeholder="Email Address" value="{{ admin.email }}" readonly>
+                                        </div></div><div class="col-sm-2">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" id="first_name" name="first_name" placeholder="First Name" value="{{ admin.first_name }}" readonly>
+                                        </div></div><div class="col-sm-2">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Last Name" value="{{ admin.last_name }}" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="form-group">
+                                            <input type="hidden" name="type" value="remove_admin">
+                                            <button class="btn btn-danger removeAdmin" value="removeAdminForm{{ forloop.counter }}" type="button">
+                                                <i class="fa fa-minus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <form id="addAdminForm" class="row">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="email_new" name="email" placeholder="Email Address">
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="first_name_new" name="first_name" placeholder="First Name">
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="last_name_new" name="last_name" placeholder="Last Name">
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <input type="hidden" name="type" value="add_admin">
+                                <button class="btn btn-success addAdmin" value="addAdminForm" type="button">
+                                    <i class="fa fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+    </div>
+    <!-- Row -->
+
+</div>
+
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}
+
+{% block footer %}
+    <script>
+        var admin = {{ membership_package.admins.count }};
+
+        $(".addAdmin, .removeAdmin").click(function(){
+            // post request to manage admins
+            var formId = $(this).attr("value")
+            var type = $('#' + $(this).attr("value")).find('input[name="type"]').val();
+            formSerialised = $('#' + $(this).attr("value")).serialize();
+
+            $.ajax({
+                url: '{% url 'manage_admins' membership_package.organisation_name %}',
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: formSerialised,
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        if (type == "add_admin") {
+                            infoMsg('New admin added');
+                            submitNewAdmin()
+                        } else if (type == "remove_admin") {
+                            console.log(formId)
+                            removeAdmin(formId.substr(formId.length - 1))
+                        }
+
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                    console.log('jqXHR:');
+                    console.log(jqXHR);
+                    console.log('textStatus:');
+                    console.log(textStatus);
+                    console.log('errorThrown:');
+                    console.log(errorThrown);
+                }
+            });
+        });
+
+        function submitNewAdmin() {
+            admin++;
+            var objTo = document.getElementById('adminFields')
+            var divtest = document.createElement("div");
+            divtest.setAttribute("class", "form-group removeclass" + admin);
+            var rdiv = 'removeclass' + admin;
+            divtest.innerHTML = '<form id="removeAdminForm' + admin + '" class="row">\
+                                    <div class="col-sm-3">\
+                                        <div class="form-group">\
+                                            <input type="text" class="form-control" id="email" name="email" value="' + $('#email_new').val() + '" readonly>\
+                                        </div></div><div class="col-sm-2">\
+                                        <div class="form-group">\
+                                            <input type="text" class="form-control" id="first_name" name="first_name" value="' + $('#first_name_new').val() + '" readonly>\
+                                        </div></div><div class="col-sm-2">\
+                                        <div class="form-group">\
+                                            <input type="text" class="form-control" id="last_name" name="last_name" value="' + $('#last_name_new').val() + '" readonly>\
+                                        </div>\
+                                    </div>\
+                                    <div class="col-sm-2">\
+                                        <div class="form-group">\
+                                            <input type="hidden" name="type" value="remove_admin">\
+                                            <button class="btn btn-danger removeAdmin" type="button" value="removeAdminForm' + admin + '">\
+                                                <i class="fa fa-minus"></i>\
+                                            </button>\
+                                        </div>\
+                                    </div>\
+                                </form>';
+
+            objTo.appendChild(divtest)
+        }
+
+        function removeAdmin(rid) {
+            // show pop up to confirm removal
+            $('.removeclass' + rid).remove();
+        }
+    </script>
+{% endblock %}

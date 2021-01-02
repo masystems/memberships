@@ -1,4 +1,4 @@
-from .models import MembershipPackage, Member, Equine
+from .models import MembershipPackage, Member, MembershipSubscription, Equine
 from django.utils.translation import gettext_lazy as _
 from django import forms
 
@@ -29,13 +29,14 @@ class MembershipPackageForm(forms.ModelForm):
 
 
 class MemberForm(forms.ModelForm):
+    email = forms.EmailField()
+    first_name = forms.CharField()
+    last_name = forms.CharField()
+
     class Meta:
         model = Member
         fields = '__all__'
-        exclude = ('membership_package',
-                   'user_account',
-                   'stripe_id',
-                   'stripe_subscription_id')
+        exclude = ('user_account',)
         help_texts = {
             # 'service': _('If your query is not regarding a service, leave this blank.'),
         }
@@ -49,13 +50,27 @@ class MemberForm(forms.ModelForm):
             'town': forms.TextInput(attrs={'class': 'form-control'}),
             'county': forms.TextInput(attrs={'class': 'form-control'}),
             'postcode': forms.TextInput(attrs={'class': 'form-control'}),
-            'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
+            'contact_number': forms.TextInput(attrs={'class': 'form-control'})
+        }
 
+
+class MemberSubscriptionForm(forms.ModelForm):
+    class Meta:
+        model = MembershipSubscription
+        fields = '__all__'
+        exclude = ('member',
+                   'membership_package',
+                   'stripe_id',
+                   'stripe_subscription_id',
+                   'validated')
+        help_texts = {
+            # 'service': _('If your query is not regarding a service, leave this blank.'),
+        }
+        widgets = {
             'record_type': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'membership_number': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
-
             'payment_type': forms.Select(attrs={'class': 'form-control'}),
             'billing_period': forms.Select(attrs={'class': 'form-control'}),
             'comments': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
@@ -67,7 +82,7 @@ class EquineForm(forms.ModelForm):
         model = Equine
         fields = '__all__'
         exclude = ('membership_package',
-                   'member')
+                   'subscription')
         widgets = {
             'animal_owner': forms.CheckboxInput(attrs={'class': ''}),
             'badge': forms.CheckboxInput(attrs={'class': ''}),

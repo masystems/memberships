@@ -49,7 +49,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'membership.views.get_packages',
+                'membership.views.generate_site_vars',
             ],
         },
     },
@@ -75,6 +75,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+ACCOUNT_FORMS = {'signup': 'memberships.forms.CustomSignupForm'}
 
 
 TIME_FORMAT = 'H:i'
