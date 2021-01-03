@@ -576,13 +576,13 @@ def member_sub_form(request, title, pk):
                 return redirect(
                     f"member_payment", membership_package.organisation_name, member.id)
             else:
-                pass
+                return redirect(
+                    f"member_profile", member.id)
         else:
             # form not valid
             return render(request, 'member_subscription_form_new.html', {'form': form,
                                                                'membership_package': membership_package,
                                                                'member': member})
-            pass
     else:
         # get request
         # check for existing object
