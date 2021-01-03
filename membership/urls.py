@@ -10,6 +10,7 @@ urlpatterns = [
     path('organisation-payment', views.organisation_payment, name='organisation_payment'),
     path('create-package-on-stripe', views.create_package_on_stripe, name='create_package_on_stripe'),
     path('membership-package-settings', views.CreateMembershipPackage.as_view(), name="membership_package_settings"),
+    path('members-detailed/<str:title>', views.MembersDetailed.as_view(), name="members_detailed"),
     path('member-form/<str:title>', views.MemberRegForm.as_view(), name="member_form"),
     path('member-subscription-form/<str:title>/<int:pk>', views.member_sub_form, name="member_sub_form"),
     path('member-bolton-form/<str:title>/<int:pk>', views.member_bolton_form, name="member_bolton_form"),

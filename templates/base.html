@@ -163,61 +163,65 @@
                         {% csrf_token %}
                             <div class="dropdown-menu animated bounceInDown">
                                 <div class="mega-dropdown-menu row">
-                                    <div class="col-lg-3 col-xlg-2 mb-4">
-                                        <h4 class="mb-3">Donation Form</h4>
-                                        <p>Donate to an organisation but filling out the below fields.</p>
-                                        <div class="input-group">
-                                            <div id="orgs">
-                                                <input class="typeahead1 form-control" type="text" id="organisation-donation" name="donate-organisation" placeholder="Type organisation name">
+                                    <form id="donationForm">
+                                        <div class="col-lg-3 col-xlg-2 mb-4">
+                                            <h4 class="mb-3">Donation Form</h4>
+                                            <p>Donate to an organisation but filling out the below fields.</p>
+                                            <div class="input-group">
+                                                <div id="orgs">
+                                                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col-lg-3  mb-4">
-<!--                                        <h5 class="mb-3">DONATION DETAILS</h5>-->
-                                        <!-- Contact -->
-                                        <form>
+                                        <div class="col-lg-3  mb-4">
                                             <div class="form-group">
                                                 <div class="input-group mb-3">
                                                     <div class="input-group-prepend">
                                                         <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
                                                     </div>
-                                                    <input id="donation-amount" class="form-control" type="text" placeholder="Donation Amount">
+                                                    <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount">
                                                 </div>
                                             </div>
                                             <div class="form-group">
-                                                <input id="donator-full-name" type="text" class="form-control" name="donator-full-name" value="{{ request.user.get_full_name }}">
+                                                <input id="donator-full-name" type="text" class="form-control" name="full_name" value="{{ request.user.get_full_name }}">
                                             </div>
                                             <div class="form-group">
-                                                <input id="donator-email" type="email" class="form-control" name="donator-email" value="{{ request.user.email }}">
+                                                <input id="donator-email" type="email" class="form-control" name="email_address" value="{{ request.user.email }}">
                                             </div>
                                             <div class="form-group">
-                                                <textarea class="form-control" id="donator-message" rows="3" placeholder="Message"></textarea>
+                                                <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
+                                            </div>
+                                        </div>
+                                    </form>
+                                    <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
+                                        <form id="donation-payment-form">
+                                            <label>Card Holders Name:</label>
+                                            <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
+                                            <!-- placeholder for Elements -->
+                                            <div id="donation-card-element"></div>
+                                            <!-- Used to display Element errors. -->
+                                            <div id="donation-card-errors" role="alert"></div>
+                                            <div class="text-center mt-3" id="cardTypes" style="margin:0 auto;">
+                                                <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
+                                                <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
+                                                <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
+                                            </div>
+                                            <div class="card-body" id="donation-payment-buttons">
+                                                <div class="form-group mb-0 text-right">
+                                                    <button id="donation-button" class="btn btn-success waves-effect waves-light">Donate</button>
+                                                </div>
                                             </div>
                                         </form>
-                                    </div>
-                                    <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
-<!--                                        <h5 class="mb-3">PAYMENT DETAILS</h5>-->
-                                        <!-- List style -->
-                                            <form id="donation-payment-form">
-                                                <label>Card Holders Name:</label>
-                                                <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
-                                                <!-- placeholder for Elements -->
-                                                <div id="donation-card-element"></div>
-                                                <!-- Used to display Element errors. -->
-                                                <div id="donation-card-errors" role="alert"></div>
-                                                <div class="text-center mt-3" id="cardTypes" style="margin:0 auto;">
-                                                    <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
-                                                    <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
-                                                    <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
-                                                </div>
-                                                <div class="card-body" id="donation-payment-buttons">
-                                                    <div class="form-group mb-0 text-right">
-                                                        <button id="donation-button" class="btn btn-success waves-effect waves-light">Donate</button>
-                                                    </div>
-                                                </div>
-                                            </form>
+                                        <div id="donationResult" class="d-none text-center">
+                                            <h2>Success!</h2>
+                                            <h6>Your donation was successful!</h6>
+                                            <p>Your selected organisation has been notified of your kind donation.
+                                            You should receive an email shortly confirming your donation.</p>
+
+                                            <a href="#" target="_blank" id="donationReceipt"><button type="button" id="donationReceiptBtn" class="btn btn-dark mb-2">View Receipt</button></a>
                                         </div>
                                     </div>
+                                </div>
                             </div>
                         </form>
                         </li>
@@ -304,18 +308,9 @@
 
                         <li class="nav-devider"></li>
                         <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">My Memberships</span></li>
-                        {% if member.membership.all %}
-                            {% for membership in member__membership.all %}
-                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'member_profile' membership.membership_package.organisation_name membership.id %}" aria-expanded="false"><i class="fad fa-user mr-1"></i><span class="hide-menu">
-                                    {{ membership.membership_package }}
-                                </span></a></li>
-                            {% endfor %}
-                        {% else %}
-                            <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="fad fa-user mr-1"></i><span class="hide-menu">
-                                No Membership
-                            </span></a></li>
-                        {% endif %}
-
+                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'member_profile' membership.id %}" aria-expanded="false"><i class="fad fa-user mr-1"></i><span class="hide-menu">
+                            My Profile
+                        </span></a></li>
                     </ul>
                 </nav>
                 <!-- End Sidebar navigation -->
@@ -442,6 +437,7 @@
         }
 
         $("#donation-button").click(function(e){
+            e.preventDefault();
             // Define organisation checks
             var isOrganisation = $('#organisation-donation').val() != "";
             var organisationExists = orgs.includes($('#organisation-donation').val());
@@ -465,43 +461,36 @@
                 });
             } else if (isOrganisation == false){
                 errorMsg("Please fill the organisation name!");
-                e.preventDefault();
             } else if (organisationExists == false){
                 errorMsg("Oganisation does not exist!");
-                e.preventDefault();
             }
 
             if(emailCheck == false){
                errorMsg("The Email is invalid!");
-               e.preventDefault();
             }
 
             if(amountCheck == false){
                errorMsg("The amount is invalid!");
-               e.preventDefault();
             }
         });
 
         function submitDonationForm() {
-
+            // submit donation form
             // Get form
             var form = $('#donationForm')[0];
-            console.log(form);
 
             // Create an FormData object
             var data = new FormData(form);
-            console.log(data);
 
             $.ajax({
                 url: '{% url 'donation_payment' %}',
-                enctype: 'multipart/form-data',
                 type: 'POST',
                 processData: false,
                 contentType: false,
                 cache: false,
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                data: $('#donationForm').serialize(),
+                data: data,
                 beforeSend: function() {
                 },
                 success: function(data) {
@@ -554,7 +543,7 @@
 
 
         card.addEventListener('change', function(event) {
-          var displayError = document.getElementById('card-errors');
+          var displayError = document.getElementById('donation-card-errors');
           if (event.error) {
             displayError.textContent = event.error.message;
           } else {
@@ -577,11 +566,10 @@
         }
 
         function donationStripeTokenHandler(token) {
-
             // Submit the token
             $.ajax({
                 url: '{% url 'donation_payment' %}',
-                type: 'post',
+                type: 'POST',
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
                 data: {
@@ -597,7 +585,6 @@
                         $('#donation-overlay-spinner').modal('hide');
                         $('#donation-card-errors').html(result.feedback);
                     } else {
-                        $('#existing-customer-details').addClass('d-none');
                         $('#donation-payment-form').addClass('d-none');
                         $('#donation-payment-buttons').addClass('d-none');
                         loadSuccessPage(result);
@@ -618,9 +605,8 @@
             $('#donation-overlay-spinner').modal('hide');
 
             //update layout
-            $('#result').removeClass('d-none');
-            $('#receipt').attr("href", result.receipt);
-            $('#goToMemberPageLink').attr("href", '/membership/member-profile/{{ package.organisation_name }}/{{ member.pk }}');
+            $('#donationResult').removeClass('d-none');
+            $('#donationReceipt').attr("href", result.receipt);
         }
     </script>
     <!--Page Messages -->

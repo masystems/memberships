@@ -69,7 +69,6 @@ class MemberSubscriptionForm(forms.ModelForm):
         widgets = {
             'record_type': forms.Select(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
-            'membership_number': forms.TextInput(attrs={'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'payment_type': forms.Select(attrs={'class': 'form-control'}),
             'billing_period': forms.Select(attrs={'class': 'form-control'}),

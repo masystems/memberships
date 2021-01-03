@@ -259,24 +259,42 @@
                         <div class="card-body">
                             <div class="row mt-4" id="existing-customer-details">
                                 <div class="col-6">
-                                    {% if subscription_details %}
-                                        <h5>Existing Subscription Details</h5>
-                                        <ul class="list-style-none">
-                                            <li><i class="fad fa-chevron-right"></i> Status: {% if subscription_details.items.data.0.plan.active == True %}<span class="text-success">Active</span>
-                                                {% else %}
-                                                <span class="text-danger">Inactive</span>{% endif %}
-                                            </li>
-                                            <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if subscription_details.items.data.0.plan.interval == 'month' %}Monthly
-                                                {% elif subscription.items.data.0.plan.interval == 'year' %}
-                                                Yearly{% endif %}
-                                            </li>
-                                        </ul>
-                                    {% else %}
-                                    Card will be charged £X.XX
-                                    {% endif %}
+                                    <!-- Iterate over all subscriptions attached to the member -->
+                                    {% for subscription in member.subscription.all %}
+                                        <!-- Validate request.user is owner/admin/ of subscription package
+                                         or is a superuser
+                                         or user and member are the same -->
+                                        {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member %}
+                                            <h3>{{ subscription.membership_package.organisation_name }}</h3>
+                                            <!-- Check if it is a strip subscription -->
+                                            {% if subscription.stripe_subscription_id %}
+                                                <!-- Iterate over all subscriptions -->
+                                                {% for id, details in subscriptions.items %}
+                                                    <!-- Check to see if the ID matches the top level loop -->
+                                                    {% if details.subscription.id == subscription.stripe_subscription_id %}
+                                                        <h5>Existing Subscription Details</h5>
+                                                        <ul class="list-style-none">
+                                                            <li><i class="fad fa-chevron-right"></i>
+                                                                Status: {% if details.subscription.plan.active == True %}
+                                                                    <span class="text-success">Active</span>
+                                                                {% else %}
+                                                                    <span class="text-danger">Inactive</span>
+                                                                {% endif %}
+                                                            </li>
+                                                            <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if details.subscription.plan.interval == 'month' %}Monthly
+                                                                {% elif details.subscription.plan.interval == 'year' %}
+                                                                Yearly{% endif %}
+                                                            </li>
+                                                        </ul>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
                                 <div class="col-6">
-                                    {% if customer %}
+                                    {% if False %}
+                                        <!-- section not visible right now -->
                                         <h5>Existing Card Details</h5>
                                         <ul class="list-style-none">
                                             <li><i class="fad fa-chevron-right"></i> Brand: {{ customer.sources.data.0.brand }}</li>
@@ -298,6 +316,18 @@
                             </div>
                             <div class="col-lg-6 offset-lg-3">
                                 <form id="payment-form">
+                                    <div class="input-group mb-3">
+                                        <div class="input-group-prepend">
+                                            <label class="input-group-text" for="orgPaymentSelection">Select Organisation</label>
+                                        </div>
+                                        <select class="custom-select" name="org_payment_selection" id="orgPaymentSelection">
+                                            {% for subscription in member.subscription.all %}
+                                                {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member %}
+                                                    <option value="{{ subscription }}">{{subscription}}</option>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
                                     <label>Card Holders Name:</label>
                                     <input id="cardholder-name" type="text" class="form-control" value="{{ user.get_full_name }}">
                                     <!-- placeholder for Elements -->
@@ -511,6 +541,7 @@
             stripe.createToken(card).then(function(result) {
                 if (result.error) {
                     // Inform the customer that there was an error.
+                    $('#overlay-spinner').modal('hide');
                     var errorElement = document.getElementById('card-errors');
                     errorElement.textContent = result.error.message;
                 } else {
@@ -521,12 +552,11 @@
         }
 
         function stripeTokenHandler(token) {
-            // need to capture what org to make a payment to!
             // url 'member_payment' package.organisation_name member.id
-
+            memberPaymentUrl = '/membership/member-payment/' + $("#orgPaymentSelection option:selected" ).text() + '/' + '{{ member.id }}';
             // Submit the token
             $.ajax({
-                url: $memberPaymentUrl,
+                url: memberPaymentUrl,
                 type: 'post',
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
