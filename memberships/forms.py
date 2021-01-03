@@ -13,7 +13,6 @@ class CustomSignupForm(SignupForm):
         user.last_name = self.cleaned_data['last_name']
         member = Member(user_account=user)
         member.save()
-        print(member)
         user.save()
         return user
 

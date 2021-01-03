@@ -48,7 +48,15 @@ class Membership(LoginRequiredMixin, MembershipBase):
 
 @login_required(login_url='/accounts/login/')
 def manage_admins(request, title):
+    # validate request user is owner or admin of org
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                        Q(admins=request.user),
+                                        organisation_name=title,
+                                        enabled=True).exists():
+        return redirect('dashboard')
+
     membership_package = MembershipPackage.objects.get(organisation_name=title)
+
     if request.method == "POST":
         if request.POST['type'] == "add_admin":
             # validate email address
@@ -72,6 +80,18 @@ def manage_admins(request, title):
                 user.first_name = request.POST['first_name']
                 user.last_name = request.POST['last_name']
                 user.save()
+                # create member object
+                member = Member(user_account=user)
+                member.save()
+                # send email to new user
+                body = f"""<p>You have been added as an admin to {membership_package.organisation_name}.</p>
+
+                        <p>To login to Cloud-Lines Memberships go to <a href="http://memberships.cloud-lines.com">http://memberships.cloud-lines.com</a> and select "forgot password" to reset your password</p>
+
+                        """
+                send_email(f"New Admin Account: {membership_package.organisation_name}",
+                           user.get_full_name(), body, send_to=user.email, reply_to=request.user.email)
+
             # add user admin of membership_package
             membership_package.admins.add(user)
             # send email to user

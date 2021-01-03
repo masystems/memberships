@@ -138,7 +138,7 @@ class Equine(models.Model):
     gdpr_phone = models.BooleanField(default=False)
 
     def __str__(self):
-        return str(self.member) if self.member else ''
+        return str(self.subscription)
 
 
 class Donation(models.Model):
