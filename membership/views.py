@@ -496,7 +496,7 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.member.contact_number = self.form.cleaned_data['contact_number']
         self.member.save()
 
-        if self.request.user == self.context['membership_package'].owner or self.request.user in self.context['membership_package'].admins:
+        if self.request.user == self.context['membership_package'].owner or self.request.user in self.context['membership_package'].admins.all():
             return redirect(f"member_sub_form", self.context['membership_package'].organisation_name, self.member.id)
         else:
             return super().form_valid(form)
@@ -712,7 +712,7 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         self.update_stripe_customer()
 
         if self.request.user == self.context['membership_package'].owner or self.request.user in self.context[
-            'membership_package'].admins:
+            'membership_package'].admins.all():
             return redirect(f"member_sub_form", self.context['membership_package'].organisation_name, self.member.id)
         else:
             return super().form_valid(form)
