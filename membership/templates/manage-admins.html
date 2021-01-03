@@ -1,7 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load widget_tweaks %}
-{% load custom_tags %}
 
 {% block header %}
 {% endblock %}
@@ -81,7 +79,7 @@
                                         <div class="form-group">
                                             <input type="hidden" name="type" value="remove_admin">
                                             <button class="btn btn-danger removeAdmin" value="removeAdminForm{{ forloop.counter }}" type="button">
-                                                <i class="fa fa-minus"></i>
+                                                <i class="fad fa-minus"></i>
                                             </button>
                                         </div>
                                     </div>
@@ -109,7 +107,7 @@
                             <div class="form-group">
                                 <input type="hidden" name="type" value="add_admin">
                                 <button class="btn btn-success addAdmin" value="addAdminForm" type="button">
-                                    <i class="fa fa-plus"></i>
+                                    <i class="fad fa-plus"></i>
                                 </button>
                             </div>
                         </div>
@@ -195,7 +193,7 @@
                                         <div class="form-group">\
                                             <input type="hidden" name="type" value="remove_admin">\
                                             <button class="btn btn-danger removeAdmin" type="button" value="removeAdminForm' + admin + '">\
-                                                <i class="fa fa-minus"></i>\
+                                                <i class="fad fa-minus"></i>\
                                             </button>\
                                         </div>\
                                     </div>\

@@ -107,11 +107,85 @@ def manage_admins(request, title):
             # return success
             return HttpResponse(dumps({'status': "success",
                                        'message': "User successfully removed"}), content_type='application/json')
-        return HttpResponse(dumps({'status': "success",
+        return HttpResponse(dumps({'status': "fail",
                                    'message': "Request not recognised"}), content_type='application/json')
     else:
         return render(request, 'manage-admins.html', {'membership_package': membership_package})
 
+
+def manage_membership_types(request, title):
+    # validate request user is owner or admin of org
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                        Q(admins=request.user),
+                                        organisation_name=title,
+                                        enabled=True).exists():
+        return redirect('dashboard')
+
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    # get strip secret key
+    stripe.api_key = get_stripe_secret_key(request)
+
+    if request.method == "POST":
+        # nickname validateion
+        if request.POST.get('nickname') in ("", None):
+            return HttpResponse(dumps({'status': "fail",
+                                       'message': "You must enter a valid Membership Name"}), content_type='application/json')
+
+        if request.POST.get('type_id'):
+            # edit
+            stripe.Price.modify(
+                request.POST.get('type_id'),
+                # recurring={"interval": request.POST.get('interval')},
+                nickname=request.POST.get('nickname'),
+                # unit_amount=int(float(request.POST.get('amount')) * 100),
+                stripe_account=membership_package.stripe_acct_id
+            )
+            return HttpResponse(dumps({'status': "success",
+                                       'message': "Price successfully updated"}), content_type='application/json')
+
+        else:
+            # new price object
+            try:
+                price_per_month = stripe.Price.create(
+                    request.POST.get('type_id'),
+                    product=membership_package.stripe_product_id,
+                    currency="gbp",
+                    recurring={"interval": request.POST.get('interval')},
+                    nickname=request.POST.get('nickname'),
+                    unit_amount=int(float(request.POST.get('amount')) * 100),
+                    stripe_account=membership_package.stripe_acct_id
+                )
+                return HttpResponse(dumps({'status': "success",
+                                           'message': "Price successfully updated"}), content_type='application/json')
+            except ValueError:
+                return HttpResponse(dumps({'status': "fail",
+                                           'message': "You must enter a valid amount"}), content_type='application/json')
+
+    else:
+        membership_types_list = stripe.Price.list(stripe_account=membership_package.stripe_acct_id)
+        return render(request, 'manage-membership-types.html', {'membership_package': membership_package,
+                                                                'membership_types_list': membership_types_list})
+
+
+    # if not membership_package.membership_price_per_month_id:
+    #     # create price(s)
+    #     price_per_month = stripe.Price.create(
+    #         unit_amount=int(membership_package.membership_price_per_month*100),
+    #         currency="gbp",
+    #         recurring={"interval": "month"},
+    #         product=product.id,
+    #         stripe_account=membership_package.stripe_acct_id
+    #     )
+    #     membership_package.membership_price_per_month_id = price_per_month.id
+    # if not membership_package.membership_price_per_year_id:
+    #     price_per_year = stripe.Price.create(
+    #         unit_amount=int(membership_package.membership_price_per_year*100),
+    #         currency="gbp",
+    #         recurring={"interval": "year"},
+    #         product=product.id,
+    #         stripe_account=membership_package.stripe_acct_id
+    #     )
+    #     membership_package.membership_price_per_year_id = price_per_year.id
 
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'select-membership-package.html'
@@ -304,26 +378,6 @@ def create_package_on_stripe(request):
         product = stripe.Product.create(name=membership_package.organisation_name,
                                         stripe_account=membership_package.stripe_acct_id)
         membership_package.stripe_product_id = product.id
-
-    if not membership_package.membership_price_per_month_id:
-        # create price(s)
-        price_per_month = stripe.Price.create(
-            unit_amount=int(membership_package.membership_price_per_month*100),
-            currency="gbp",
-            recurring={"interval": "month"},
-            product=product.id,
-            stripe_account=membership_package.stripe_acct_id
-        )
-        membership_package.membership_price_per_month_id = price_per_month.id
-    if not membership_package.membership_price_per_year_id:
-        price_per_year = stripe.Price.create(
-            unit_amount=int(membership_package.membership_price_per_year*100),
-            currency="gbp",
-            recurring={"interval": "year"},
-            product=product.id,
-            stripe_account=membership_package.stripe_acct_id
-        )
-        membership_package.membership_price_per_year_id = price_per_year.id
 
     membership_package.save()
 

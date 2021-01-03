@@ -98,11 +98,17 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         Manage Admins
                                     </button>
                                 </a>
+                                <a href="{% url 'manage_membership_types' membership_package.organisation_name %}">
+                                    <button type="button" class="btn btn-info-dark text-white ml-1">
+                                        Manage Membership Types
+                                    </button>
+                                </a>
                                 <a href="{% url 'members_detailed' membership_package.organisation_name %}">
                                     <button type="button" class="btn btn-info-dark text-white ml-1">
                                         Members Detailed
                                     </button>
                                 </a>
+
                             </div>
                         </div>
                     </div>
