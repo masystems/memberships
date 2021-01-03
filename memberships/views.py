@@ -1,81 +1,172 @@
-from django.shortcuts import render, redirect, HttpResponseRedirect, reverse
+from django.shortcuts import render, redirect, HttpResponseRedirect, reverse, HttpResponse
 from django.views.generic.base import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required
 from django.db.models import Q
-from membership.models import MembershipPackage
+from membership.models import MembershipPackage, Member, MembershipSubscription, Donation
+from .functions import *
+from json import dumps
+import stripe
 
 
+@login_required(login_url='/accounts/login/')
 def donation_payment(request):
-    if request.POST:
-        donation = Donation.objects.get(donator=request.user)
-        donation.organisation_name = request.POST.get('donate-organisation')
-        donation.full_name = request.POST.get('donator-full-name')
-        donation.email_address = request.POST.get('donator-email')
+    if request.POST and request.POST.get('membership_package'):
+        # create donation object
+        donation = Donation.objects.create(donator=request.user,
+                                           membership_package=MembershipPackage.objects.get(organisation_name=request.POST.get('membership_package')),
+                                           amount=request.POST.get('amount'),
+                                           full_name=request.POST.get('full_name'),
+                                           email_address=request.POST.get('email_address'),
+                                           message=request.POST.get('message'),)
+        result = {'result': 'success'}
+        return HttpResponse(dumps(result))
+
+    elif request.POST:
+        # get donation object
+        donation = Donation.objects.filter(donator=request.user,
+                                        validated=False).latest('id')
+        # check for existing membership
+        member = Member.objects.get(user_account=request.user)
+        try:
+            subscription = MembershipSubscription.objects.get(member=member, membership_package=donation.membership_package)
+        except MembershipSubscription.DoesNotExist:
+            subscription = False
 
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(request)
 
-        # create or get customer id
-        if not donation.stripe_owner_id:
+        # if subscription does not exist
+        # or does not hve a stripe id
+        # create customer on stripe org account
+        if not subscription or not subscription.stripe_id:
             # create stripe user
             customer = stripe.Customer.create(
                 name=request.user.get_full_name(),
-                email=request.user.email
+                email=request.user.email,
+                stripe_account=donation.membership_package.stripe_acct_id
             )
-            customer_id = customer['id']
-            donation.stripe_owner_id = customer_id
+            donation.stripe_id = customer['id']
             donation.save()
         else:
-            stripe.Customer.modify(
-                donation.stripe_owner_id,
-                name=request.user.get_full_name(),
-                email=request.user.email
-            )
+            # user has a current subscription, use same customer to pay donation
+            donation.stripe_id = subscription.stripe_id
+            donation.save()
 
-        # validate the card
-        result = validate_card(request, 'package')
-        if result['result'] == 'fail':
+        # validate the card and create payment
+        # add payment token to user
+        try:
+            payment_method = stripe.Customer.modify(
+                donation.stripe_id,
+                source=request.POST.get('token[id]'),
+                stripe_account=donation.membership_package.stripe_acct_id
+            )
+        except stripe.error.CardError as e:
+            # Since it's a decline, stripe.error.CardError will be caught
+            feedback = send_payment_error(e)
+            result = {'result': 'fail',
+                      'feedback': feedback}
             return HttpResponse(dumps(result))
 
-        subscription = stripe.Subscription.create(
-            customer=donation.stripe_owner_id,
-            items=[
-                {
-                    "plan": price_id,
-                },
-            ],
-        )
-        if subscription['status'] != 'active':
+        except stripe.error.RateLimitError as e:
+            # Too many requests made to the API too quickly
+            feedback = send_payment_error(e)
             result = {'result': 'fail',
-                      'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription['status']}</span>"}
+                      'feedback': feedback}
+            return HttpResponse(dumps(result))
+
+        except stripe.error.InvalidRequestError as e:
+            # Invalid parameters were supplied to Stripe's API
+            feedback = send_payment_error(e)
+            result = {'result': 'fail',
+                      'feedback': feedback}
+            return HttpResponse(dumps(result))
+
+        except stripe.error.AuthenticationError as e:
+            # Authentication with Stripe's API failed
+            # (maybe you changed API keys recently)
+            feedback = send_payment_error(e)
+            result = {'result': 'fail',
+                      'feedback': feedback}
+            return HttpResponse(dumps(result))
+
+        except stripe.error.APIConnectionError as e:
+            # Network communication with Stripe failed
+            feedback = send_payment_error(e)
+            result = {'result': 'fail',
+                      'feedback': feedback}
+            return HttpResponse(dumps(result))
+
+        except stripe.error.StripeError as e:
+            # Display a very generic error to the user, and maybe send
+            # yourself an email
+            feedback = send_payment_error(e)
+            result = {'result': 'fail',
+                      'feedback': feedback}
+            return HttpResponse(dumps(result))
+
+        except Exception as e:
+            # Something else happened, completely unrelated to Stripe
+            feedback = send_payment_error(e)
+            result = {'result': 'fail',
+                      'feedback': feedback}
+            return HttpResponse(dumps(result))
+
+        # make payment intent
+        payment_intenet = stripe.PaymentIntent.create(
+            customer=donation.stripe_id,
+            amount=int(donation.amount) * 100,
+            currency="gbp",
+            payment_method_types=["card"],
+            receipt_email=donation.email_address,
+            stripe_account=donation.membership_package.stripe_acct_id
+        )
+        # take payment
+        payment_confirm = stripe.PaymentIntent.confirm(
+            payment_intenet['id'],
+            payment_method=payment_method['default_source'],
+            stripe_account=donation.membership_package.stripe_acct_id
+        )
+        if not payment_confirm['status'] == "succeeded":
+            result = {'result': 'fail',
+                      'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{payment_confirm['status']}</span>"}
             return HttpResponse(dumps(result))
         else:
-            invoice = stripe.Invoice.list(customer=membership_package.stripe_owner_id, subscription=subscription.id, limit=1)
-            receipt = stripe.Charge.list(customer=membership_package.stripe_owner_id)
-
-            result = {'result': 'success',
-                      'invoice': invoice.data[0].invoice_pdf,
-                      'receipt': receipt.data[0].receipt_url}
-
-            membership_package.enabled = True
-            membership_package.save()
+            donation.validated = True
+            donation.stripe_payment_id = payment_confirm['id']
+            donation.save()
 
             # send confirmation email
             body = f"""<p>This is a confirmation email for your new donation.
 
                     <ul>
-                    <li>Donated to: {membership_package.organisation_name}</li>
+                    <li>Donated to: {donation.membership_package.organisation_name}</li>
+                    <li>Amount: £{donation.amount}</li>
+                    <li>receipt: {payment_confirm.charges.data[0].receipt_url}</li>
                     </ul>
-
-                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
-
                     """
-            send_email(f"Donation Confirmation: {membership_package.organisation_name}",
-                       request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
-            send_email(f"Donation Confirmation: {membership_package.organisation_name}",
-                       request.user.get_full_name(), body, reply_to=request.user.email)
+            # send to donator
+            send_email(f"Donation Confirmation: {donation.membership_package.organisation_name}",
+                       request.user.get_full_name(), body, send_to=donation.email_address)
+            # send to org owner
+            send_email(f"Donation Confirmation: {donation.membership_package.organisation_name}",
+                       request.user.get_full_name(), body, send_to=donation.membership_package.owner.email, reply_to=donation.email_address)
 
+            # send success result!
+            result = {'result': 'success',
+                      'receipt': payment_confirm.charges.data[0].receipt_url}
             return HttpResponse(dumps(result))
+
+
+def send_payment_error(error):
+    body = error.json_body
+    err = body.get('error', {})
+
+    feedback = "<strong>Status is:</strong> %s" % error.http_status
+    feedback += "<br><strong>Type is:</strong> %s" % err.get('type')
+    feedback += "<br><strong>Code is:</strong> %s" % err.get('code')
+    feedback += "<br><strong>Message is:</strong> <span class='text-danger'>%s</span>" % err.get('message')
+    return feedback
 
 
 class DashboardBase(TemplateView):

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import MembershipPackage, Member, MembershipSubscription, Equine
+from .models import MembershipPackage, Member, MembershipSubscription, Equine, Donation
 
 
 class MembershipPackagesAdmin(admin.ModelAdmin):
@@ -18,6 +18,7 @@ admin.site.register(MembershipPackage, MembershipPackagesAdmin)
 class MembershipSubInline(admin.StackedInline):
     model = MembershipSubscription
 
+
 class MembersAdmin(admin.ModelAdmin):
     # list_display = ('user_account', 'email', 'first_name', 'last_name')
     # list_filter = ('user_account', 'email', 'first_name', 'last_name')
@@ -28,8 +29,9 @@ class MembersAdmin(admin.ModelAdmin):
     save_on_top = True
     inlines = [MembershipSubInline]
 
+
 admin.site.register(Member, MembersAdmin)
-admin.site.register(MembershipSubscription)
+
 
 class EquestrianAdmin(admin.ModelAdmin):
     list_filter = ('membership_package',)
@@ -41,3 +43,6 @@ class EquestrianAdmin(admin.ModelAdmin):
 
 
 admin.site.register(Equine, EquestrianAdmin)
+
+admin.site.register(MembershipSubscription)
+admin.site.register(Donation)

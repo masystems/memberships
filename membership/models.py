@@ -2,17 +2,6 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-class Donation(models.Model):
-    donator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Donator',
-                              verbose_name="Donator")
-    organisation_name = models.CharField(max_length=50)
-    full_name = models.CharField(max_length=255)
-    email_address = models.CharField(max_length=255)
-    message = models.TextField(blank=True, null=True)
-    stripe_id = models.CharField(max_length=255, blank=True)
-    validated = models.BooleanField(default=False)
-
-
 class MembershipPackage(models.Model):
     organisation_name = models.CharField(max_length=50)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True, related_name='owner', verbose_name="Owner")
@@ -150,3 +139,17 @@ class Equine(models.Model):
 
     def __str__(self):
         return str(self.member) if self.member else ''
+
+
+class Donation(models.Model):
+    donator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='donaton',
+                              verbose_name="Donator")
+    membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='dmembership_package', verbose_name="Membership Package")
+    amount = models.CharField(max_length=255)
+    full_name = models.CharField(max_length=255)
+    email_address = models.CharField(max_length=255)
+    message = models.TextField(blank=True, null=True)
+    stripe_id = models.CharField(max_length=255, blank=True)
+    stripe_payment_id = models.CharField(max_length=255, blank=True)
+    validated = models.BooleanField(default=False)
+    created = models.DateTimeField(auto_now_add=True)

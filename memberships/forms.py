@@ -1,6 +1,6 @@
 from django import forms
 from allauth.account.forms import SignupForm
-from membership.models import Member
+from membership.models import Member, Donation
 
 
 class CustomSignupForm(SignupForm):
@@ -25,3 +25,10 @@ class RegisterForm(forms.Form):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Forename'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'class':'form-control','placeholder':'Surname'}))
     terms = forms.BooleanField(widget=forms.CheckboxInput(attrs={'class':'form-control'}))
+
+
+# class DonationForm(forms.ModelForm):
+#     class Meta:
+#         model = Donation
+#         fields = '__all__'
+#         exclude = ('donator', 'membership_package')
