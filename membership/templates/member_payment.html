@@ -122,7 +122,6 @@
             e.preventDefault();
             sleep(2000).then(() => {
                 update_membership_type()
-                $('#overlay-spinner').modal('hide');
             });
             
         });
@@ -141,6 +140,7 @@
                     var result = JSON.parse(data);
                     if (result['status'] == "fail") {
                         errorMsg(result['message']);
+                        $('#overlay-spinner').modal('hide');
                     } else {
                         generateCardToken();
                     }
@@ -182,6 +182,7 @@
           var displayError = document.getElementById('card-errors');
           if (event.error) {
             displayError.textContent = event.error.message;
+            $('#overlay-spinner').modal('hide');
           } else {
             displayError.textContent = '';
           }
