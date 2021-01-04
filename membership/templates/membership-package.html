@@ -93,6 +93,11 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         Add New Member
                                     </button>
                                 {% endif %}
+                                <a href="{% url 'manage_admins' membership_package.organisation_name %}">
+                                    <button type="button" class="btn btn-info-dark text-white ml-1">
+                                        Manage Admins
+                                    </button>
+                                </a>
                             </div>
                         </div>
                     </div>
