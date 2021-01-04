@@ -132,9 +132,15 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             </td>
                                             <td>{{ member.user_account.email }}</td>
                                             <td>
-                                                <span class="badge py-1 badge-info">
-                                                {{ membership.price.nickname }}
-                                                </span>
+                                                {% if membership.price.nickname %}
+                                                    <span class="badge py-1 badge-info">
+                                                        {{ membership.price.nickname }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge py-1 badge-danger">
+                                                        No membership selected
+                                                    </span>
+                                                {% endif %}
                                             </td>
                                             <td>
                                                 {% if membership.payment_type == 'card_payment' %}
