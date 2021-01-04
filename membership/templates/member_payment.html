@@ -122,8 +122,9 @@
             e.preventDefault();
             sleep(2000).then(() => {
                 update_membership_type()
+                $('#overlay-spinner').modal('hide');
             });
-
+            
         });
 
         function update_membership_type() {
@@ -141,7 +142,7 @@
                     if (result['status'] == "fail") {
                         errorMsg(result['message']);
                     } else {
-                        generateCardToken()
+                        generateCardToken();
                     }
                  },
                 error: function(jqXHR, textStatus, errorThrown){
