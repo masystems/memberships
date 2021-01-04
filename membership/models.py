@@ -25,12 +25,23 @@ class MembershipPackage(models.Model):
         return self.organisation_name
 
 
+class Price(models.Model):
+    membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='pmembership_package', verbose_name="Membership Package")
+    stripe_price_id = models.CharField(max_length=255, blank=True)
+    nickname = models.CharField(max_length=255, blank=True)
+    INTERVAL = (
+        ('month', 'Monthly'),
+        ('year', 'Yearly '),
+    )
+    interval = models.CharField(max_length=19, choices=INTERVAL, null=True, default='monthly',
+                                      help_text="Payment frequency")
+    amount = models.CharField(max_length=255, blank=True)
+    active = models.BooleanField(default=False)
+
+
 class Member(models.Model):
     user_account = models.OneToOneField(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
-    # email = models.EmailField(max_length=255)
-    # first_name = models.CharField(max_length=255)
-    # last_name = models.CharField(max_length=255)
     address_line_1 = models.CharField(max_length=255, blank=True)
     address_line_2 = models.CharField(max_length=255, blank=True)
     town = models.CharField(max_length=255, blank=True)
@@ -45,32 +56,10 @@ class Member(models.Model):
 class MembershipSubscription(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='subscription', verbose_name="Membership Subscription")
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='membership_package', verbose_name="Membership Package")
+    price = models.ForeignKey(Price, on_delete=models.CASCADE, blank=True, null=True, related_name='price', verbose_name="Price")
     stripe_id = models.CharField(max_length=255, blank=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
     validated = models.BooleanField(default=False)
-
-    RECORD_TYPE = (
-        ('member', 'Member'),
-        ('complimentry', 'Complimentry'),
-        ('donor', 'Donor')
-    )
-    record_type = models.CharField(max_length=12, choices=RECORD_TYPE, null=True, default='member',
-                                   help_text="Type of member")
-
-    CATEGORY = (
-        ('member', 'Member'),
-        ('joint_members', 'Joint Members'),
-        ('friend', 'Friend'),
-        ('joint_friend', 'Joint Friend'),
-        ('corporate', 'Corporate'),
-        ('life_member', 'Life Member'),
-        ('overseas_supplement', 'Overseas Supplement'),
-        ('junior', 'Junior'),
-        ('teen', 'Teen'),
-        ('governor', 'Governor')
-    )
-    category = models.CharField(max_length=19, choices=CATEGORY, null=True, default='member',
-                                help_text="Category of member")
 
     PAYMENT_TYPE = (
         ('card_payment', 'Card Payment'),
@@ -86,15 +75,6 @@ class MembershipSubscription(models.Model):
     )
     payment_type = models.CharField(max_length=19, choices=PAYMENT_TYPE, null=True, default='card_payment',
                                     help_text="Payment type used by member")
-
-    BILLING_PERIOD = (
-        ('monthly', 'Monthly'),
-        ('yearly', 'Yearly '),
-    )
-    billing_period = models.CharField(max_length=19, choices=BILLING_PERIOD, null=True, default='monthly',
-                                      help_text="Payment frequency")
-
-    # membership_price = models.DecimalField(blank=False, max_digits=5, decimal_places=2, help_text="Price in £ for requency given")
 
     comments = models.TextField(blank=True)
     created = models.DateTimeField(auto_now_add=True)

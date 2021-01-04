@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
 from memberships.functions import *
-from .models import MembershipPackage, Member, MembershipSubscription, Equine, Donation
+from .models import MembershipPackage, Price, Member, MembershipSubscription, Equine, Donation
 from .forms import MembershipPackageForm, MemberForm, MemberSubscriptionForm, EquineForm
 from json import dumps
 import stripe
@@ -126,27 +126,34 @@ def manage_membership_types(request, title):
     stripe.api_key = get_stripe_secret_key(request)
 
     if request.method == "POST":
-        # nickname validateion
+        # nickname validation
         if request.POST.get('nickname') in ("", None):
             return HttpResponse(dumps({'status': "fail",
                                        'message': "You must enter a valid Membership Name"}), content_type='application/json')
 
         if request.POST.get('type_id'):
             # edit
-            stripe.Price.modify(
-                request.POST.get('type_id'),
-                # recurring={"interval": request.POST.get('interval')},
-                nickname=request.POST.get('nickname'),
-                # unit_amount=int(float(request.POST.get('amount')) * 100),
-                stripe_account=membership_package.stripe_acct_id
-            )
-            return HttpResponse(dumps({'status': "success",
-                                       'message': "Price successfully updated"}), content_type='application/json')
+            if request.POST.get('type') == "delete":
+                # mark objects as active false
+                Price.objects.filter(stripe_price_id=request.POST.get('type_id')).update(active=False)
+                return HttpResponse(dumps({'status': "success",
+                                           'message': "Price Deleted"}), content_type='application/json')
+            else:
+                price = stripe.Price.modify(
+                    request.POST.get('type_id'),
+                    # recurring={"interval": request.POST.get('interval')},
+                    nickname=request.POST.get('nickname'),
+                    # unit_amount=int(float(request.POST.get('amount')) * 100),
+                    stripe_account=membership_package.stripe_acct_id
+                )
+                Price.objects.filter(stripe_price_id=request.POST.get('type_id')).update(nickname=price.nickname)
+                return HttpResponse(dumps({'status': "success",
+                                           'message': "Price successfully updated"}), content_type='application/json')
 
         else:
             # new price object
             try:
-                price_per_month = stripe.Price.create(
+                price = stripe.Price.create(
                     request.POST.get('type_id'),
                     product=membership_package.stripe_product_id,
                     currency="gbp",
@@ -155,6 +162,12 @@ def manage_membership_types(request, title):
                     unit_amount=int(float(request.POST.get('amount')) * 100),
                     stripe_account=membership_package.stripe_acct_id
                 )
+                Price.objects.create(membership_package=membership_package,
+                                     stripe_price_id=price.id,
+                                     nickname=price.nickname,
+                                     interval=price.recurring.interval,
+                                     amount=price.unit_amount,
+                                     active=True)
                 return HttpResponse(dumps({'status': "success",
                                            'message': "Price successfully updated"}), content_type='application/json')
             except ValueError:
@@ -162,30 +175,13 @@ def manage_membership_types(request, title):
                                            'message': "You must enter a valid amount"}), content_type='application/json')
 
     else:
-        membership_types_list = stripe.Price.list(stripe_account=membership_package.stripe_acct_id)
+        membership_types_list = []
+        for price in Price.objects.filter(membership_package=membership_package, active=True):
+            membership_types_list.append(stripe.Price.retrieve(price.stripe_price_id,
+                                                               stripe_account=membership_package.stripe_acct_id))
         return render(request, 'manage-membership-types.html', {'membership_package': membership_package,
                                                                 'membership_types_list': membership_types_list})
 
-
-    # if not membership_package.membership_price_per_month_id:
-    #     # create price(s)
-    #     price_per_month = stripe.Price.create(
-    #         unit_amount=int(membership_package.membership_price_per_month*100),
-    #         currency="gbp",
-    #         recurring={"interval": "month"},
-    #         product=product.id,
-    #         stripe_account=membership_package.stripe_acct_id
-    #     )
-    #     membership_package.membership_price_per_month_id = price_per_month.id
-    # if not membership_package.membership_price_per_year_id:
-    #     price_per_year = stripe.Price.create(
-    #         unit_amount=int(membership_package.membership_price_per_year*100),
-    #         currency="gbp",
-    #         recurring={"interval": "year"},
-    #         product=product.id,
-    #         stripe_account=membership_package.stripe_acct_id
-    #     )
-    #     membership_package.membership_price_per_year_id = price_per_year.id
 
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'select-membership-package.html'
@@ -550,10 +546,41 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.member.contact_number = self.form.cleaned_data['contact_number']
         self.member.save()
 
-        if self.request.user == self.context['membership_package'].owner or self.request.user in self.context['membership_package'].admins.all():
-            return redirect(f"member_sub_form", self.context['membership_package'].organisation_name, self.member.id)
+        # create subscription object
+        try:
+            subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
+        except MembershipSubscription.DoesNotExist:
+            subscription = MembershipSubscription.objects.create(member=self.member, membership_package=self.context['membership_package'])
+
+        subscription.membership_package = self.context['membership_package']
+        subscription.member = self.member
+
+        # create/ update stripe customer
+        stripe.api_key = get_stripe_secret_key(self.request)
+        if subscription.stripe_id:
+            # stripe user already exists
+            stripe_customer = stripe.Customer.modify(
+                subscription.stripe_id,
+                name=self.member.user_account.get_full_name(),
+                email=self.member.user_account.email,
+                stripe_account=self.context['membership_package'].stripe_acct_id
+            )
         else:
-            return super().form_valid(form)
+            stripe_customer = stripe.Customer.create(
+                name=self.member.user_account.get_full_name(),
+                email=self.member.user_account.email,
+                stripe_account=self.context['membership_package'].stripe_acct_id
+            )
+
+        subscription.stripe_id = stripe_customer.id
+        subscription.save()
+
+        if self.context['membership_package'].bolton != 'none':
+            return redirect(
+                f"member_bolton_form", self.context['membership_package'].organisation_name, self.member.id)
+        else:
+            return redirect(
+                f"member_payment", self.context['membership_package'].organisation_name, self.member.id)
 
     def get_or_create_user(self):
         """
@@ -566,89 +593,6 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.user.first_name = self.form.cleaned_data['first_name']
         self.user.last_name = self.form.cleaned_data['last_name']
         self.user.save()
-
-
-@login_required(login_url='/accounts/login/')
-def member_sub_form(request, title, pk):
-    # get page vars
-    membership_package = MembershipPackage.objects.get(organisation_name=title)
-    member = Member.objects.get(id=pk)
-
-    if request.method == "POST":
-        try:
-            subscription_existing = False
-            subscription_existing = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
-            form = MemberSubscriptionForm(request.POST, instance=subscription_existing)
-        except MembershipSubscription.DoesNotExist:
-            form = MemberSubscriptionForm(request.POST)
-        if form.is_valid():
-            subscription = form.save(commit=False)
-            subscription.membership_package = membership_package
-            subscription.member = member
-            # create/ update stripe customer
-            stripe.api_key = get_stripe_secret_key(request)
-
-            if subscription_existing and subscription_existing.stripe_id:
-                # stripe user already exists
-                stripe_customer = stripe.Customer.modify(
-                    subscription_existing.stripe_id,
-                    name=member.user_account.get_full_name(),
-                    email=member.user_account.email,
-                    stripe_account=membership_package.stripe_acct_id
-                )
-            else:
-                stripe_customer = stripe.Customer.create(
-                    name=member.user_account.get_full_name(),
-                    email=member.user_account.email,
-                    stripe_account=membership_package.stripe_acct_id
-                )
-
-                subscription.stripe_id = stripe_customer.id
-            subscription.save()
-
-            # send confirmation email
-            if not subscription_existing:
-                # not an existing member
-                body = f"""<p>This is a confirmation email for your new Membership to {membership_package.organisation_name}.</P
-                                    <ul>
-                                        <li>Membership Organisation: {membership_package.organisation_name}</li>
-                                        <li>Name: {member.user_account.get_full_name()}</li>
-                                        <li>Email: {member.user_account.email}</li>
-                                    </ul>
-        
-                                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
-        
-                                    """
-                send_email(f"Membership Confirmation: {membership_package.organisation_name}",
-                           member.user_account.get_full_name(),
-                           body, send_to=member.user_account.email)
-
-            if membership_package.bolton != 'none':
-                return redirect(
-                    f"member_bolton_form", membership_package.organisation_name, member.id)
-            elif subscription.payment_type == 'card_payment':
-                return redirect(
-                    f"member_payment", membership_package.organisation_name, member.id)
-            else:
-                return redirect(
-                    f"member_profile", member.id)
-        else:
-            # form not valid
-            return render(request, 'member_subscription_form_new.html', {'form': form,
-                                                               'membership_package': membership_package,
-                                                               'member': member})
-    else:
-        # get request
-        # check for existing object
-        if MembershipSubscription.objects.filter(membership_package=membership_package, member=member).exists():
-            form = MemberSubscriptionForm(
-                instance=MembershipSubscription.objects.get(membership_package=membership_package, member=member))
-        else:
-            form = MemberSubscriptionForm()
-        return render(request, 'member_subscription_form_new.html', {'form': form,
-                                                                     'membership_package': membership_package,
-                                                                     'member': member})
-
 
 
 @login_required(login_url='/accounts/login/')
@@ -765,11 +709,17 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         self.update_user()
         self.update_stripe_customer()
 
-        if self.request.user == self.context['membership_package'].owner or self.request.user in self.context[
-            'membership_package'].admins.all():
-            return redirect(f"member_sub_form", self.context['membership_package'].organisation_name, self.member.id)
+        if self.context['membership_package'].bolton != 'none':
+            return redirect(
+                f"member_bolton_form", self.context['membership_package'].organisation_name, self.member.id)
         else:
             return super().form_valid(form)
+
+        # if self.request.user == self.context['membership_package'].owner or self.request.user in self.context[
+        #     'membership_package'].admins.all():
+        #     return redirect(f"member_sub_form", self.context['membership_package'].organisation_name, self.member.id)
+        # else:
+        #     return super().form_valid(form)
 
     def update_user(self):
         """
@@ -828,13 +778,12 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         context['public_api_key'] = get_stripe_public_key(self.request)
         context['package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         context['member'] = Member.objects.get(id=self.kwargs['pk'])
-        context['subscription'] = MembershipSubscription.objects.get(member=context['member'], membership_package=context['package'])
-        if context['subscription'].stripe_subscription_id:
-            stripe.api_key = get_stripe_secret_key(self.request)
-            context['subscription_details'] = stripe.Subscription.retrieve(context['subscription'].stripe_subscription_id,
-                                                                   stripe_account=context['subscription'].stripe_acct_id)
-            context['customer'] = stripe.Customer.retrieve(context['subscription'].stripe_id,
-                                                           stripe_account=context['subscription'].stripe_acct_id)
+        context['membership_types_list'] = []
+        # get strip secret key
+        stripe.api_key = get_stripe_secret_key(self.request)
+        for price in Price.objects.filter(membership_package=context['package'], active=True):
+            context['membership_types_list'].append(stripe.Price.retrieve(price.stripe_price_id,
+                                                   stripe_account=context['package'].stripe_acct_id))
         return context
 
     def post(self, request, *args, **kwargs):
@@ -846,28 +795,22 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         if result['result'] == 'fail':
             return HttpResponse(dumps(result))
 
-        if subscription.billing_period == "monthly":
-            price_id = package.membership_price_per_month_id
-        else:
-            price_id = package.membership_price_per_year_id
-
-        if not subscription.stripe_subscription_id:
-            # new subscription
-            subscription_details = stripe.Subscription.create(
-                customer=subscription.stripe_id,
-                items=[
-                    {
-                        "plan": price_id,
-                    },
-                ],
-                stripe_account=package.stripe_acct_id,
-            )
-            subscription.stripe_subscription_id = subscription_details.id
-            subscription.save()
-            if subscription_details['status'] != 'active':
-                result = {'result': 'fail',
-                          'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
-                return HttpResponse(dumps(result))
+        # new subscription
+        subscription_details = stripe.Subscription.create(
+            customer=subscription.stripe_id,
+            items=[
+                {
+                    "plan": subscription.price.stripe_price_id,
+                },
+            ],
+            stripe_account=package.stripe_acct_id,
+        )
+        subscription.stripe_subscription_id = subscription_details.id
+        subscription.save()
+        if subscription_details['status'] != 'active':
+            result = {'result': 'fail',
+                      'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
+            return HttpResponse(dumps(result))
 
         invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription.stripe_subscription_id,
                                       limit=1, stripe_account=package.stripe_acct_id,)
@@ -877,6 +820,18 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                   'receipt': receipt.data[0].receipt_url
                   }
         return HttpResponse(dumps(result))
+
+
+def update_membership_type(request, title, pk):
+    if request.method == 'POST':
+        if not request.POST.get('payment_type'):
+            return HttpResponse(dumps({'status': "fail",
+                                       'message': "You must enter a valid Membership Type"}), content_type='application/json')
+
+        package = MembershipPackage.objects.get(organisation_name=title)
+        member = Member.objects.get(id=pk)
+        MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=Price.objects.get(stripe_price_id=request.POST.get('payment_type')))
+        return HttpResponse(dumps({'status': "success"}), content_type='application/json')
 
 
 class MemberProfileView(MembershipBase):
