@@ -1002,10 +1002,13 @@ def remove_member(request, title, pk):
     :return:
     """
     try:
-        membership_package = MembershipPackage.objects.get(Q(owner=request.user) |
-                                                           Q(admins=request.user),
-                                                           organisation_name=title,
-                                                           enabled=True)
+        membership_package = MembershipPackage.objects.filter(Q(owner=request.user) |
+                                                               Q(admins=request.user),
+                                                               organisation_name=title,
+                                                               enabled=True).distinct()
+        # sigh
+        membership_package = membership_package[0]
+
     except MembershipPackage.DoesNotExist:
         # disallow access to page
         # return to previous page
