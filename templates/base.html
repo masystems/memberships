@@ -544,18 +544,18 @@
         };
 
         // Create an instance of the card Element.
-        var card = elements.create('card', {style: style});
+        var donationCard = elements.create('card', {style: style});
 
         // Add an instance of the card Element into the `card-element` <div>.
-        card.mount('#donation-card-element');
+        donationCard.mount('#donation-card-element');
 
 
-        card.addEventListener('change', function(event) {
-          var displayError = document.getElementById('card-errors');
+        donationCard.addEventListener('change', function(event) {
+          var donationDisplayError = document.getElementById('donation-card-errors');
           if (event.error) {
-            displayError.textContent = event.error.message;
+            donationDisplayError.textContent = event.error.message;
           } else {
-            displayError.textContent = '';
+            donationDisplayError.textContent = '';
           }
         });
 
@@ -564,8 +564,8 @@
             stripe.createToken(card).then(function(result) {
                 if (result.error) {
                     // Inform the customer that there was an error.
-                    var errorElement = document.getElementById('donation-card-errors');
-                    errorElement.textContent = result.error.message;
+                    var donationErrorElement = document.getElementById('donation-card-errors');
+                    donationErrorElement.textContent = result.error.message;
                 } else {
                     // Send the token to your server.
                     donationStripeTokenHandler(result.token);
@@ -585,19 +585,19 @@
                     'token': token,
                     },
                 beforeSend: function() {
-                    $('#paymentSuccess').addClass('d-none');
-                    $('#paymentFail').addClass('d-none');
+                    $('#donationPaymentSuccess').addClass('d-none'); // Not implemented in HTML
+                    $('#donationPaymentSuccess').addClass('d-none'); // Not implemented in HTML
                 },
                 success: function(data) {
-                    var result = JSON.parse(data);
-                    if (result.result == 'fail') {
+                    var donationResult = JSON.parse(data);
+                    if (donationResult.result == 'fail') {
                         $('#donation-overlay-spinner').modal('hide');
-                        $('#donation-card-errors').html(result.feedback);
+                        $('#donation-card-errors').html(donationResult.feedback);
                     } else {
-                        $('#existing-customer-details').addClass('d-none');
+
                         $('#donation-payment-form').addClass('d-none');
                         $('#donation-payment-buttons').addClass('d-none');
-                        loadSuccessPage(result);
+                        loadSuccessPage();
                     }
                  },
                 error: function(jqXHR, textStatus, errorThrown){
@@ -611,13 +611,8 @@
             });
         }
 
-        function loadSuccessPage(result) {
+        function loadSuccessPage() {
             $('#donation-overlay-spinner').modal('hide');
-
-            //update layout
-            $('#result').removeClass('d-none');
-            $('#receipt').attr("href", result.receipt);
-            $('#goToMemberPageLink').attr("href", '/membership/member-profile/{{ package.organisation_name }}/{{ member.pk }}');
         }
     </script>
     <!--Page Messages -->
