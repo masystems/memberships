@@ -119,8 +119,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Category</th>
+                                    <th>Membership Type</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -134,12 +133,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             <td>{{ member.user_account.email }}</td>
                                             <td>
                                                 <span class="badge py-1 badge-info">
-                                                {{ membership.record_type|title }}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="badge py-1 badge-info">
-                                                {{ membership.category|choicefieldformat }}
+                                                {{ membership.price.nickname }}
                                                 </span>
                                             </td>
                                             <td>

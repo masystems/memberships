@@ -68,10 +68,9 @@
                                     <th>Email</th>
                                     <th>Address</th>
                                     <th>Contact</th>
-                                    <th>Record Type</th>
-                                    <th>Category</th>
+                                    <th>Membership Type</th>
                                     <th>Payment Type</th>
-                                    <th>Billing Period</th>
+                                    <th>Billing Interval</th>
                                     <th>Comments</th>
                                     <th>Date Created</th>
                                 </tr>
@@ -89,9 +88,8 @@
                                         </td>
                                         <td>{{ member.contact_number }}</td>
                                         <td>{{ member.subscription.all.0.record_type|choicefieldformat }}</td>
-                                        <td>{{ member.subscription.all.0.category|choicefieldformat }}</td>
-                                        <td>{{ member.subscription.all.0.payment_type|choicefieldformat }}</td>
-                                        <td>{{ member.subscription.all.0.billing_period|choicefieldformat }}</td>
+                                        <td>{{ member.subscription.all.0.price.nickname }}</td>
+                                        <td>{{ member.subscription.all.0.price.interval|choicefieldformat }}ly</td>
                                         <td>{{ member.subscription.all.0.comments }}</td>
                                         <td>{{ member.subscription.all.0.created }}</td>
                                     </tr>
@@ -103,10 +101,9 @@
                                     <th>Email</th>
                                     <th>Address</th>
                                     <th>Contact</th>
-                                    <th>Record Type</th>
-                                    <th>Category</th>
+                                    <th>Membership Type</th>
                                     <th>Payment Type</th>
-                                    <th>Billing Period</th>
+                                    <th>Billing Interval</th>
                                     <th>Comments</th>
                                     <th>Date Created</th>
                                 </tr>
