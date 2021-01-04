@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">Manage Membership Types</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active" aria-current="page">Manage Membership Types</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
+
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <!-- Column -->
+        <div class="col-lg-4 col-xlg-3 col-md-5">
+            <div class="card">
+                <div class="card-body">
+                    <center class="mt-4">
+                        <h4 class="card-title mt-2">{{ membership_package.organisation_name }}</h4>
+                        <h6 class="card-title mt-2">Owner: {{ membership_package.owner.get_full_name }}</h6>
+                    </center>
+                </div>
+                <hr>
+                <div class="card-body">
+<!--                    list of existing admins-->
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+        <!-- Column -->
+        <div class="col-lg-8 col-xlg-9 col-md-7">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Add/Remove Membership Types</h4>
+                    <div id="adminFields" class=" m-t-20">
+                        {% for type in membership_types_list %}
+                            <div class="form-group removeType{{ forloop.counter }}">
+                                <form id="editTypeForm{{ forloop.counter }}" class="row">
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" id="nickname{{ forloop.counter }}" name="nickname" value="{{ type.nickname }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="form-group">
+                                            <select class="custom-select" id="interval{{ forloop.counter }}" name="interval" disabled>
+                                                <option {% if type.recurring.interval == 'month' %}selected{% endif %}>month</option>
+                                                <option {% if type.recurring.interval == 'year' %}selected{% endif %}>year</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="form-group">
+                                            <div class="input-group mb-3">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
+                                                </div>
+                                                <input type="text" class="form-control" id="amount{{ forloop.counter }}" name="amount" value="{{ type.unit_amount|price }}" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="form-group">
+                                            <input type="hidden" id="price_id{{ forloop.counter }}" name="type_id" value="{{ type.id }}">
+                                            <input type="hidden" id="type{{ forloop.counter }}" name="type" value="edit">
+                                            <button class="btn btn-success d-none" id="saveTypeForm{{ forloop.counter }}" type="button">
+                                                <i class="fad fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-danger" id="delTypeForm{{ forloop.counter }}" type="button">
+                                                <i class="fad fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <script>
+                                $('#nickname{{ forloop.counter }}').on('input',function(e){
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                });
+                                $( "#interval{{ forloop.counter }}" ).change(function() {
+                                  $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                });
+                                $('#amount{{ forloop.counter }}').on('input',function(e){
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                });
+                                $("#saveTypeForm{{ forloop.counter }}").click(function(){
+                                    $.ajax({
+                                        url: '{% url 'manage_membership_types' membership_package.organisation_name %}',
+                                        enctype: 'multipart/form-data',
+                                        type: 'POST',
+                                        dataType: 'text',
+                                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                                        data: $('#editTypeForm{{ forloop.counter }}').serialize(),
+                                        beforeSend: function() {
+                                        },
+                                        success: function(data) {
+                                            var result = JSON.parse(data);
+                                            if (result['status'] == "fail") {
+                                                errorMsg(result['message']);
+                                            } else {
+                                                $('#saveTypeForm{{ forloop.counter }}').addClass('d-none')
+                                                infoMsg(result.message);
+                                            }
+                                         },
+                                        error: function(jqXHR, textStatus, errorThrown){
+                                        }
+                                    });
+                                });
+                                $("#delTypeForm{{ forloop.counter }}").click(function(){
+                                    $("#type{{ forloop.counter }}").val('delete')
+                                    $.ajax({
+                                        url: '{% url 'manage_membership_types' membership_package.organisation_name %}',
+                                        enctype: 'multipart/form-data',
+                                        type: 'POST',
+                                        dataType: 'text',
+                                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                                        data: $('#editTypeForm{{ forloop.counter }}').serialize(),
+                                        beforeSend: function() {
+                                        },
+                                        success: function(data) {
+                                            var result = JSON.parse(data);
+                                            if (result['status'] == "fail") {
+                                                errorMsg(result['message']);
+                                            } else {
+                                                $('#editTypeForm{{ forloop.counter }}').addClass('d-none')
+                                                infoMsg(result.message);
+                                            }
+                                         },
+                                        error: function(jqXHR, textStatus, errorThrown){
+                                        }
+                                    });
+                                });
+                            </script>
+                        {% endfor %}
+                    </div>
+                    <form id="addMembershipTypeForm" class="row">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="nickname" name="nickname" placeholder="Membership type name">
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <select class="custom-select" id="interval" name="interval">
+                                    <option selected>month</option>
+                                    <option>year</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
+                                    </div>
+                                    <input type="text" class="form-control" id="amount" name="amount" placeholder="Price per year/month">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <button class="btn btn-success" id="saveTypeForm" type="button">
+                                    <i class="fad fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+    </div>
+    <!-- Row -->
+
+</div>
+
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}
+
+{% block footer %}
+    <script>
+        $("#saveTypeForm").click(function(){
+            $.ajax({
+                url: '{% url 'manage_membership_types' membership_package.organisation_name %}',
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#addMembershipTypeForm').serialize(),
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        infoMsg(result.message);
+                        location.reload();
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                    console.log('jqXHR:');
+                    console.log(jqXHR);
+                    console.log('textStatus:');
+                    console.log(textStatus);
+                    console.log('errorThrown:');
+                    console.log(errorThrown);
+                }
+            });
+        });
+    </script>
+{% endblock %}

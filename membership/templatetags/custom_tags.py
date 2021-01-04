@@ -11,7 +11,7 @@ def timestamp(value):
 
 @register.filter
 def price(value):
-    return value / 100
+    return int(value) / 100
 
 
 @register.filter

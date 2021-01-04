@@ -13,8 +13,6 @@ class MembershipPackageForm(forms.ModelForm):
                    'stripe_acct_id',
                    'stripe_owner_id',
                    'stripe_product_id',
-                   'membership_price_per_month_id',
-                   'membership_price_per_year_id',
                    'cloud_lines_account',
                    'enabled')
         help_texts = {
@@ -22,9 +20,7 @@ class MembershipPackageForm(forms.ModelForm):
         }
         widgets = {
             'organisation_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'bolton': forms.Select(attrs={'class': 'form-control'}),
-            'membership_price_per_month': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '£'}),
-            'membership_price_per_year': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '£'}),
+            'bolton': forms.Select(attrs={'class': 'form-control'})
         }
 
 
