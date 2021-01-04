@@ -151,56 +151,19 @@
                         errorMsg(result['message']);
                     } else {
                         if (type == "add_admin") {
-                            infoMsg('New admin added');
-                            submitNewAdmin()
+                            document.location.href = "{% url 'manage_admins' membership_package.organisation_name %}";
                         } else if (type == "remove_admin") {
                             console.log(formId)
                             removeAdmin(formId.substr(formId.length - 1))
                         }
 
                     }
+
                  },
                 error: function(jqXHR, textStatus, errorThrown){
-                    console.log('jqXHR:');
-                    console.log(jqXHR);
-                    console.log('textStatus:');
-                    console.log(textStatus);
-                    console.log('errorThrown:');
-                    console.log(errorThrown);
                 }
             });
         });
-
-        function submitNewAdmin() {
-            admin++;
-            var objTo = document.getElementById('adminFields')
-            var divtest = document.createElement("div");
-            divtest.setAttribute("class", "form-group removeclass" + admin);
-            var rdiv = 'removeclass' + admin;
-            divtest.innerHTML = '<form id="removeAdminForm' + admin + '" class="row">\
-                                    <div class="col-sm-3">\
-                                        <div class="form-group">\
-                                            <input type="text" class="form-control" id="email" name="email" value="' + $('#email_new').val() + '" readonly>\
-                                        </div></div><div class="col-sm-2">\
-                                        <div class="form-group">\
-                                            <input type="text" class="form-control" id="first_name" name="first_name" value="' + $('#first_name_new').val() + '" readonly>\
-                                        </div></div><div class="col-sm-2">\
-                                        <div class="form-group">\
-                                            <input type="text" class="form-control" id="last_name" name="last_name" value="' + $('#last_name_new').val() + '" readonly>\
-                                        </div>\
-                                    </div>\
-                                    <div class="col-sm-2">\
-                                        <div class="form-group">\
-                                            <input type="hidden" name="type" value="remove_admin">\
-                                            <button class="btn btn-danger removeAdmin" type="button" value="removeAdminForm' + admin + '">\
-                                                <i class="fad fa-minus"></i>\
-                                            </button>\
-                                        </div>\
-                                    </div>\
-                                </form>';
-
-            objTo.appendChild(divtest)
-        }
 
         function removeAdmin(rid) {
             // show pop up to confirm removal

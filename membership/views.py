@@ -94,6 +94,8 @@ def manage_admins(request, title):
 
             # add user admin of membership_package
             membership_package.admins.add(user)
+            return HttpResponse(dumps({'status': "success",
+                                       'message': "Member assigned successfully!"}), content_type='application/json')
             # send email to user
         elif request.POST['type'] == "remove_admin":
             # get user
