@@ -108,7 +108,7 @@
                                  or is a superuser
                                  or user and member are the same -->
                                 {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member.user_account %}
-                                    <h3>{{ subscription.membership_package.organisation_name }}</h3>
+                                    <h3>{{ subscription.membership_package.organisation_name }} <small> - {{ subscription.price.nickname }}</small></h3>
                                     <!-- Check if it is a strip subscription -->
                                     {% if subscription.stripe_subscription_id %}
                                         <!-- Iterate over all subscriptions -->
@@ -220,6 +220,7 @@
                                     style="width:100%">
                                     <thead>
                                         <tr>
+                                            <th scope="col">Organisation</th>
                                             <th scope="col">ID</th>
                                             <th scope="col">Amount</th>
                                             <th scope="col">Created</th>
@@ -241,7 +242,8 @@
                                                         <!-- Check to see if the ID matches the top level loop -->
                                                         {% if payment.customer == subscription.stripe_id %}
                                                             <tr>
-                                                                <td scope="row"><p data-toggle="tooltip" data-placement="top" title="{{ charge.id }}">{{ payment.id|slice:"-6:" }}</p></td>
+                                                                <td scope="row">{{ subscription }}</td>
+                                                                <td>{{ payment.id|slice:"-6:" }}</td>
                                                                 <td>{{ payment.amount|price }} {{ payment.currency|upper}}</td>
                                                                 <td>{{ payment.created|parsetimestamp }}</td>
                                                                 <td><span class="label {% if payment.paid %}label-light-success{% else %}label-light-danger{% endif %}"> {% if payment.paid %}Yes{% else %}No{% endif %} </span></td>
