@@ -133,19 +133,75 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             <td>{{ member.user_account.email }}</td>
                                             <td>
                                                 <span class="badge py-1 badge-info">
-                                                {{ membership.price.nickname }}
+                                                    {{ membership.price.nickname }}
                                                 </span>
                                             </td>
                                             <td>
                                                 {% if membership.payment_type == 'card_payment' %}
                                                     {% if membership.stripe_subscription_id %}
-                                                        <a href="{% url 'member_profile' member.id %}#card-details">
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
                                                             <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
                                                                 <i class="fad fa-credit-card-front text-success"></i>
                                                             </button>
                                                         </a>
                                                     {% else %}
-                                                        <a href="{% url 'member_profile' member.id %}#card-details">
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% endif %}
+                                                {% endif %}
+                                                <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
+                                                <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <hr>
+                    <h3 class="text-danger">Incomplete Membership Applications</h3>
+                    <div class="table-responsive">
+                        <table class="table table-bordered nowrap display">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Membership Type</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in incomplete_members.all %}
+                                    {% for membership in member.subscription.all %}
+                                        <tr>
+                                            <td>
+                                                <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
+                                            </td>
+                                            <td>{{ member.user_account.email }}</td>
+                                            <td>
+                                                {% if membership.price.nickname %}
+                                                    <span class="badge py-1 badge-info">
+                                                        {{ membership.price.nickname }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="badge py-1 badge-danger">
+                                                        No membership selected
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if membership.payment_type == 'card_payment' %}
+                                                    {% if membership.stripe_subscription_id %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                                <i class="fad fa-credit-card-front text-success"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% else %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
                                                             <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
                                                                 <i class="fad fa-credit-card-front text-danger"></i>
                                                             </button>

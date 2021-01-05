@@ -94,6 +94,8 @@ def manage_admins(request, title):
 
             # add user admin of membership_package
             membership_package.admins.add(user)
+            return HttpResponse(dumps({'status': "success",
+                                       'message': "Member assigned successfully!"}), content_type='application/json')
             # send email to user
         elif request.POST['type'] == "remove_admin":
             # get user
@@ -237,7 +239,9 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # sigh
         context['membership_package'] = context['membership_package'][0]
 
-        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'])
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False)
+        context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
+
 
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
@@ -322,6 +326,7 @@ def delete_membership_package(request, title):
     try:
         account = stripe.Account.delete(membership_package.stripe_acct_id)
     except Account.DoesNotExist:
+        # THIS EXCEPTION DOESNT LOOK RIGHT
         # account does not exist
         return redirect('membership_package', membership_package.organisation_name)
 
@@ -489,13 +494,14 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         # disallow access to page
         return HttpResponseRedirect('/')
 
-
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
-        if self.context['membership_package'].bolton != "none":
-            self.context['bolton'] = True
+
+        if self.context['membership_package'].bolton == "equine":
+            self.context['bolton_columns'] = Equine._meta.get_fields(include_parents=False, include_hidden=False)
+            self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package'])
         return self.context
 
 
@@ -532,6 +538,17 @@ class MemberRegForm(LoginRequiredMixin, FormView):
 
     def form_valid(self, form, **kwargs):
         self.context = self.get_context_data(**kwargs)
+        # validate user not already a member of package
+        try:
+            if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email'])),
+                                                     membership_package=self.context['membership_package']).exists():
+                form.add_error('email', f"This email address is already in use for {self.context['membership_package'].organisation_name}.")
+                return super(MemberRegForm, self).form_invalid(form)
+        except Member.DoesNotExist:
+            pass
+        except User.DoesNotExist:
+            pass
+
         self.form = form
         self.get_or_create_user()
 
@@ -1003,9 +1020,9 @@ def remove_member(request, title, pk):
     """
     try:
         membership_package = MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                               Q(admins=request.user),
-                                                               organisation_name=title,
-                                                               enabled=True).distinct()
+                                                              Q(admins=request.user),
+                                                              organisation_name=title,
+                                                              enabled=True).distinct()
         # sigh
         membership_package = membership_package[0]
 
