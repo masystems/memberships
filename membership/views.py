@@ -872,6 +872,8 @@ class MemberProfileView(MembershipBase):
         # OR
         # if page is members own profile
         member = Member.objects.get(id=self.kwargs['pk'])
+        if request.user == member.user_account:
+            return super().dispatch(request, *args, **kwargs)
         for subscription in member.subscription.all():
             if self.request.user == subscription.membership_package.owner or \
                     self.request.user in subscription.membership_package.admins.all():

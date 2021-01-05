@@ -119,21 +119,20 @@
                                         <div class="p-2 align-self-center">
                                             <h4 class="mb-0 text-white">{{ subscription.membership_package.organisation_name }}</h4>
                                             <span>
-                                                {% if membership_type %}
+                                                {% if subscription.price %}
                                                     Membership Type: <span class="badge py-1 badge-success">
-                                                        {{ membership_type }}
-                                                    </span>
+                                                                        {{ subscription.price.nickname }}
+                                                                     </span>
                                                 {% else %}
-                                                Membership Type: <span class="badge py-1 badge-danger">
-                                                        No membership selected
-                                                    </span>
-                                                {% for member in incomplete_members.all %}
-                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                                <i class="fad fa-credit-card-front text-danger"></i>
-                                                            </button>
-                                                    </a>
-                                                {% endfor %}
+                                                    Membership Type: <span class="badge py-1 badge-danger">
+                                                                        No membership selected
+                                                                     </span>
+
+                                                                     <a href="{% url 'member_payment' subscription.membership_package.organisation_name subscription.member.id %}">
+                                                                         <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                            <i class="fad fa-credit-card-front text-danger"></i>
+                                                                         </button>
+                                                                     </a>
                                                 {% endif %}
                                             </span>
                                         </div>
