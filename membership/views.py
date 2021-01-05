@@ -776,12 +776,13 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         """
         # allow access if requesting user is an owner or admin or if page belongs to the member
         if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                Q(admins=self.request.user),
-                                                  organisation_name=kwargs['title']).exists() \
-                or Member.objects.filter(id=self.kwargs['pk'],
-                                         membership_package=MembershipPackage.objects.get(
-                                             organisation_name=kwargs['title']),
-                                         user_account=self.request.user).exists():
+                                            Q(admins=self.request.user),
+                                              organisation_name=kwargs['title']).exists() \
+                                              or Member.objects.filter(id=self.kwargs['pk'],
+                                                                       subscription=MembershipSubscription.objects.get(member=Member.objects.get(id=self.kwargs['pk']),
+                                                                                                                       membership_package=MembershipPackage.objects.get(organisation_name=kwargs['title'])),
+                                                                       user_account=self.request.user).exists():
+
             # kwargs.update({'foo': 'bar'})  # inject the foo value
             # now process dispatch as it otherwise normally would
             return super().dispatch(request, *args, **kwargs)
