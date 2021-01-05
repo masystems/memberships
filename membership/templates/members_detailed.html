@@ -120,7 +120,11 @@
                             <thead>
                                 <tr>
                                     {% for col in bolton_columns %}
-                                        <th>{{ col.verbose_name|title }}</th>
+                                        {% if forloop.first %}
+                                            <th>Member Name</th>
+                                        {% else %}
+                                            <th>{{ col.verbose_name|title }}</th>
+                                        {% endif %}
                                     {% endfor %}
                                 </tr>
                             </thead>
@@ -129,6 +133,7 @@
                                     <tr>
                                         {% for item, value in member.attrs %}
                                             {% if forloop.first %}
+                                                <td>{{ member.subscription.member.user_account.get_full_name }}</td>
                                             {% else %}
                                                 <td>{{ value }}</td>
                                             {% endif %}
@@ -139,7 +144,11 @@
                             <tfoot>
                                 <tr>
                                     {% for col in bolton_columns %}
-                                        <th>{{ col.verbose_name|title }}</th>
+                                        {% if forloop.first %}
+                                            <th>Member Name</th>
+                                        {% else %}
+                                            <th>{{ col.verbose_name|title }}</th>
+                                        {% endif %}
                                     {% endfor %}
                                 </tr>
                             </tfoot>

@@ -645,6 +645,7 @@ def member_bolton_form(request, title, pk):
             # attach form to package and member
             bolton_form.membership_package = membership_package
             bolton_form.member = member
+            bolton_form.member = subscription
             bolton_form.save()
 
             # redirect to payment form IF card payment selected
