@@ -16,6 +16,13 @@ class MembershipPackage(models.Model):
     )
     bolton = models.CharField(max_length=12, choices=BOLTONS, null=True, default='none',
                               help_text="Boltons add additional fields to your member form.")
+    BUSINESS_TYPE = (
+        ('individual', 'Individual'),
+        ('company', 'Company '),
+        ('non_profit', 'Non Profit '),
+    )
+    business_type = models.CharField(max_length=19, choices=BUSINESS_TYPE, default='individual',
+                                help_text="Select your business type")
     cloud_lines_account = models.CharField(max_length=100, blank=True,
                                            help_text="Link your membership account to your cloud-lines account")
     enabled = models.BooleanField(default=False)
@@ -37,6 +44,9 @@ class Price(models.Model):
                                       help_text="Payment frequency")
     amount = models.CharField(max_length=255, blank=True)
     active = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.membership_package.organisation_name} - {self.nickname}"
 
 
 class Member(models.Model):

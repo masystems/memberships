@@ -364,7 +364,7 @@ def create_package_on_stripe(request):
                 "card_payments": {"requested": True},
                 "transfers": {"requested": True},
             },
-            business_type="company",
+            business_type=membership_package.business_type,
             company={
                 'name': membership_package.organisation_name,
                 "directors_provided": True,
@@ -825,6 +825,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             stripe_account=package.stripe_acct_id,
         )
         subscription.stripe_subscription_id = subscription_details.id
+        subscription.active = True
         subscription.save()
         if subscription_details['status'] != 'active':
             result = {'result': 'fail',
@@ -834,8 +835,6 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription.stripe_subscription_id,
                                       limit=1, stripe_account=package.stripe_acct_id,)
         receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
-        subscription.active = True
-        subscription.save()
 
         result = {'result': 'success',
                   'invoice': invoice.data[0].invoice_pdf,
