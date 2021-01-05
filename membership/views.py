@@ -239,7 +239,8 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # sigh
         context['membership_package'] = context['membership_package'][0]
 
-        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False)
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False).distinct()
+
         context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
 
 
@@ -363,7 +364,7 @@ def create_package_on_stripe(request):
                 "card_payments": {"requested": True},
                 "transfers": {"requested": True},
             },
-            business_type="company",
+            business_type=membership_package.business_type,
             company={
                 'name': membership_package.organisation_name,
                 "directors_provided": True,
@@ -644,6 +645,7 @@ def member_bolton_form(request, title, pk):
             # attach form to package and member
             bolton_form.membership_package = membership_package
             bolton_form.member = member
+            bolton_form.member = subscription
             bolton_form.save()
 
             # redirect to payment form IF card payment selected
@@ -824,6 +826,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             stripe_account=package.stripe_acct_id,
         )
         subscription.stripe_subscription_id = subscription_details.id
+        subscription.active = True
         subscription.save()
         if subscription_details['status'] != 'active':
             result = {'result': 'fail',
@@ -833,6 +836,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription.stripe_subscription_id,
                                       limit=1, stripe_account=package.stripe_acct_id,)
         receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+
         result = {'result': 'success',
                   'invoice': invoice.data[0].invoice_pdf,
                   'receipt': receipt.data[0].receipt_url
@@ -868,6 +872,8 @@ class MemberProfileView(MembershipBase):
         # OR
         # if page is members own profile
         member = Member.objects.get(id=self.kwargs['pk'])
+        if request.user == member.user_account:
+            return super().dispatch(request, *args, **kwargs)
         for subscription in member.subscription.all():
             if self.request.user == subscription.membership_package.owner or \
                     self.request.user in subscription.membership_package.admins.all():

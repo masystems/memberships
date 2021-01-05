@@ -20,7 +20,8 @@ class MembershipPackageForm(forms.ModelForm):
         }
         widgets = {
             'organisation_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'bolton': forms.Select(attrs={'class': 'form-control'})
+            'bolton': forms.Select(attrs={'class': 'form-control'}),
+            'business_type': forms.Select(attrs={'class': 'form-control'})
         }
 
 

@@ -183,6 +183,9 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
         context = super().get_context_data(**kwargs)
         try:
             context['membership_package'] = MembershipPackage.objects.get(owner=self.request.user)
+            context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'],
+                                                       subscription__price__isnull=False)
         except MembershipPackage.DoesNotExist:
             pass
+
         return context
