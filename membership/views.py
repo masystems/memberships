@@ -239,7 +239,9 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # sigh
         context['membership_package'] = context['membership_package'][0]
 
-        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'])
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False)
+        context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
+
 
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
@@ -1017,9 +1019,9 @@ def remove_member(request, title, pk):
     """
     try:
         membership_package = MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                               Q(admins=request.user),
-                                                               organisation_name=title,
-                                                               enabled=True).distinct()
+                                                              Q(admins=request.user),
+                                                              organisation_name=title,
+                                                              enabled=True).distinct()
         # sigh
         membership_package = membership_package[0]
 

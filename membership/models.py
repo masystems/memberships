@@ -77,7 +77,8 @@ class MembershipSubscription(models.Model):
                                     help_text="Payment type used by member")
 
     comments = models.TextField(blank=True)
-    created = models.DateTimeField(auto_now_add=True)
+    membership_start = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=False)
 
     def __str__(self):
         return self.membership_package.organisation_name

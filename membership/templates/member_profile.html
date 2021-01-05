@@ -91,11 +91,9 @@
                     <li class="nav-item">
                         <a class="nav-link nav-0" id="pills-payments-tab" data-toggle="pill" href="#payments" role="tab" aria-controls="pills-payments" aria-selected="false">Payments</a>
                     </li>
-                    {% if subscriptions %}
-                        <li class="nav-item">
-                            <a class="nav-link nav-0" id="pills-card-tab" data-toggle="pill" href="#card-details" role="tab" aria-controls="pills-card" aria-selected="false">Card Details</a>
-                        </li>
-                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link nav-0" id="pills-card-tab" data-toggle="pill" href="#card-details" role="tab" aria-controls="pills-card" aria-selected="false">Card Details</a>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link nav-0" id="pills-setting-tab" data-toggle="pill" href="#settings" role="tab" aria-controls="pills-setting" aria-selected="false">Settings</a>
                     </li>
@@ -169,13 +167,17 @@
                                             <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Status</strong>
                                                 <br>
                                                 <p class="text-muted">
+                                                    {% if subscription.active %}
                                                         <span class="text-success">Active</span>
+                                                    {% else %}
+                                                        <span class="text-danger">Inactive</span>
+                                                    {% endif %}
                                                 </p>
                                             </div>
                                             <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Start</strong>
                                                 <br>
                                                 <p class="text-muted">
-                                                    {{ subscription.created }}
+                                                    {{ subscription.membership_start }}
                                                 </p>
                                             </div>
                                             <div class="col-md-3 col-xs-6 b-r"> <strong>Payment Interval</strong>
@@ -348,6 +350,10 @@
                                 </div>
                             </div>
                         </div>
+                        <script>
+                            <!-- show/hide the payment form -->
+
+                        </script>
                     </div>
                     <div class="tab-pane" id="settings" role="tabpanel">
                         <div class="card-body">

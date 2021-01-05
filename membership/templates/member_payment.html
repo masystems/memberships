@@ -53,7 +53,7 @@
                             <form id="membershipTypeForm">
                                 {% for type in membership_types_list %}
                                     <div class="custom-control custom-radio">
-                                        <input type="radio" id="{{ type.id }}" name="payment_type" class="custom-control-input" value="{{ type.id }}">
+                                        <input type="radio" id="{{ type.id }}" name="payment_type" class="custom-control-input" value="{{ type.id }}"{% if member.subscription.all.0.price.stripe_price_id == type.id %}checked{% endif %}>
                                         <label class="custom-control-label" for="{{ type.id }}">{{ type.nickname }} - {{ type.recurring.interval|title }}ly - <span class="text-info">£{{ type.unit_amount|price }}</span></label>
                                     </div>
                                 {% endfor %}
