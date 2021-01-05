@@ -194,6 +194,7 @@
                 if (result.error) {
                     // Inform the customer that there was an error.
                     var errorElement = document.getElementById('card-errors');
+                    $('#overlay-spinner').modal('hide');
                     errorElement.textContent = result.error.message;
                 } else {
                     // Send the token to your server.
