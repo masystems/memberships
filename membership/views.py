@@ -494,13 +494,14 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         # disallow access to page
         return HttpResponseRedirect('/')
 
-
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
-        if self.context['membership_package'].bolton != "none":
-            self.context['bolton'] = True
+
+        if self.context['membership_package'].bolton == "equine":
+            self.context['bolton_columns'] = Equine._meta.get_fields(include_parents=False, include_hidden=False)
+            self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package'])
         return self.context
 
 

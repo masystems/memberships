@@ -107,6 +107,10 @@ class Equine(models.Model):
     def __str__(self):
         return str(self.subscription)
 
+    def attrs(self):
+        for attr, value in self.__dict__.items():
+            yield attr, value
+
 
 class Donation(models.Model):
     donator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='donaton',
