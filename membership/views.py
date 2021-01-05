@@ -239,7 +239,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # sigh
         context['membership_package'] = context['membership_package'][0]
 
-        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False)
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False).distinct()
 
         context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
 
