@@ -120,7 +120,7 @@
                             <thead>
                                 <tr>
                                     {% for col in bolton_columns %}
-                                        <th>{{ col.verbose_name }}</th>
+                                        <th>{{ col.verbose_name|title }}</th>
                                     {% endfor %}
                                 </tr>
                             </thead>
@@ -139,7 +139,7 @@
                             <tfoot>
                                 <tr>
                                     {% for col in bolton_columns %}
-                                        <th>{{ col.verbose_name }}</th>
+                                        <th>{{ col.verbose_name|title }}</th>
                                     {% endfor %}
                                 </tr>
                             </tfoot>

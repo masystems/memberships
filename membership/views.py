@@ -240,6 +240,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         context['membership_package'] = context['membership_package'][0]
 
         context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False)
+
         context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
 
 
@@ -833,6 +834,9 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription.stripe_subscription_id,
                                       limit=1, stripe_account=package.stripe_acct_id,)
         receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+        subscription.active = True
+        subscription.save()
+
         result = {'result': 'success',
                   'invoice': invoice.data[0].invoice_pdf,
                   'receipt': receipt.data[0].receipt_url

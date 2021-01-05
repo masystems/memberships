@@ -101,7 +101,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-md-flex align-items-center no-block">
-                        <h4 class="card-title">My Accounts</h4>
+                        <h4 class="card-title">My Subscriptions</h4>
                         <div class="ml-auto">
 <!--                            <select class="custom-select">-->
 <!--                                <option selected>Today</option>-->
@@ -109,9 +109,8 @@
 <!--                            </select>-->
                         </div>
                     </div>
-                    <p>You can be a member of a Membership organisation and manage all of your own information.</p>
+                    <p>You can be a member of multiple Membership Organisations and manage all of your own information.</p>
                     <hr>
-                    {% if membership.subscription.all %}
                         {% for subscription in membership.subscription.all %}
                             <div class="card bg-info">
                                 <div class="card-body text-white">
@@ -120,7 +119,22 @@
                                         <div class="p-2 align-self-center">
                                             <h4 class="mb-0 text-white">{{ subscription.membership_package.organisation_name }}</h4>
                                             <span>
-                                                Role: {{ subscription.record_type|choicefieldformat }}
+                                                {% if membership_type %}
+                                                    Membership Type: <span class="badge py-1 badge-success">
+                                                        {{ membership_type }}
+                                                    </span>
+                                                {% else %}
+                                                Membership Type: <span class="badge py-1 badge-danger">
+                                                        No membership selected
+                                                    </span>
+                                                {% for member in incomplete_members.all %}
+                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                            </button>
+                                                    </a>
+                                                {% endfor %}
+                                                {% endif %}
                                             </span>
                                         </div>
                                         <div class="ml-auto align-self-center">
@@ -130,7 +144,6 @@
                                 </div>
                             </div>
                         {% endfor %}
-                    {% endif %}
                     <p>Use the field below to find the organisation you'd like to join.</p>
                     <div class="input-group d-flex">
                         <div id="orgs">
