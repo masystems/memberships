@@ -183,6 +183,14 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
         context = super().get_context_data(**kwargs)
         try:
             context['membership_package'] = MembershipPackage.objects.get(owner=self.request.user)
+            context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'],
+                                                       subscription__price__isnull=False)
+            context['incomplete_members'] = Member.objects.filter(user_account=self.request.user,
+                    subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
+            for member in context['members']:
+                for subscriber in member.subscription.all():
+                    context['membership_type'] = subscriber.price.nickname
+
         except MembershipPackage.DoesNotExist:
             pass
         return context
