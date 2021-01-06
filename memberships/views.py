@@ -136,21 +136,42 @@ def donation_payment(request):
             donation.stripe_payment_id = payment_confirm['id']
             donation.save()
 
-            # send confirmation email
-            body = f"""<p>This is a confirmation email for your new donation.
+            # temporary variable to hold name of donator, or 'Anonymous'
+            temp_donator_name = donation.full_name
+            if len(donation.full_name) == 0:
+                temp_donator_name = 'Anonymous'
+            # temporary variable to hold message from donator, or 'No message sent'
+            temp_donation_message = donation.message
+            if len(donation.message) == 0:
+                temp_donator_message = 'No message sent'
 
+            # send confirmation email
+            donator_body = f"""<p>Congratulations! You just made a new donation.
+                    <p>Donation details:</p>
                     <ul>
                     <li>Donated to: {donation.membership_package.organisation_name}</li>
+                    <li>Donated by: {temp_donator_name}</li>
                     <li>Amount: £{donation.amount}</li>
-                    <li>receipt: {payment_confirm.charges.data[0].receipt_url}</li>
+                    <li>Receipt: {payment_confirm.charges.data[0].receipt_url}</li>
                     </ul>
                     """
+            owner_body = f"""<p>Congratulations! You just received a new donation.</p>
+                    <p>Donation details:</p>
+                    <ul>
+                    <li>Donated to: {donation.membership_package.organisation_name}</li>
+                    <li>Donated by: {temp_donator_name}</li>
+                    <li>Amount: £{donation.amount}</li>
+                    <li>Receipt: {payment_confirm.charges.data[0].receipt_url}</li>
+                    <li>Message from donator: {donation.message}</li>
+                    </ul>
+                    """
+
             # send to donator
             send_email(f"Donation Confirmation: {donation.membership_package.organisation_name}",
-                       request.user.get_full_name(), body, send_to=donation.email_address)
+                       request.user.get_full_name(), donator_body, send_to=donation.email_address)
             # send to org owner
             send_email(f"Donation Confirmation: {donation.membership_package.organisation_name}",
-                       request.user.get_full_name(), body, send_to=donation.membership_package.owner.email, reply_to=donation.email_address)
+                       request.user.get_full_name(), owner_body, send_to=donation.membership_package.owner.email, reply_to=donation.email_address)
 
             # send success result!
             result = {'result': 'success',
