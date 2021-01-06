@@ -465,8 +465,8 @@ def organisation_payment(request):
 def get_account_link(membership):
     account_link = stripe.AccountLink.create(
         account=membership.stripe_acct_id,
-        refresh_url=f'https://{settings.SITE_NAME}/membership',
-        return_url=f'https://{settings.SITE_NAME}/membership',
+        refresh_url=f'{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/membership',
+        return_url=f'{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/membership',
         type='account_onboarding',
     )
     return account_link
