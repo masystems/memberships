@@ -9,4 +9,5 @@ urlpatterns = [
     path('donation-payment', views.donation_payment, name='donation_payment'),
     path('membership/', include('membership.urls')),
     path('accounts/', include('allauth.urls')),
+    path('account_settings/<int:pk>', views.account_settings, name='account_settings'),
 ]

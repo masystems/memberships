@@ -157,6 +157,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             {% endfor %}
                                             <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                                    <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnCom" value="{{ member.user_account.email }}"><i class="fad fa-user-slash text-success"></i></button>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -207,6 +208,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             {% endfor %}
                                             <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}"><i class="fad fa-user-slash text-success"></i></button>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -372,5 +374,25 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
             $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + $(this).attr("value"))
             $('#remove-member-modal').modal('show');
         });
+
+        $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
+            console.log($(this).attr("value"));
+            $.ajax({
+                url:"{% url 'account_reset_password' %}",
+                type:"POST",
+                data: {
+                    "email": $(this).attr("value"),
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                },
+               success: function (){
+                    infoMsg("Reset email sent successfully!");
+               },
+                error:function (er) {
+                    errorMsg("Password reset failed!",er);
+                }
+            });
+        });
+
+
     </script>
 {% endblock %}
