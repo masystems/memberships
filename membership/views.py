@@ -534,6 +534,31 @@ class MemberRegForm(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
+        
+        # check to see if membership type exists
+        self.context['is_price'] = False
+        prices = None
+        try:
+            prices = Price.objects.filter(membership_package=self.context['membership_package'])
+        except Price.DoesNotExist:
+            pass
+        for price in prices:
+            if price.active:
+                self.context['is_price'] = True
+
+        # check to see if stripe has been set up
+        stripe.api_key = get_stripe_secret_key(self.request)
+        self.context['is_stripe'] = False
+        if self.context['membership_package'].stripe_acct_id:
+            try:
+                stripe.Account.create_login_link(self.context['membership_package'].stripe_acct_id)
+                self.context['is_stripe'] = True
+            except stripe.error.InvalidRequestError:
+                # stripe account created but not setup
+                pass
+        else:
+            # stripe account not setup
+            pass
 
         return self.context
 
