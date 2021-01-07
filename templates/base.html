@@ -255,7 +255,7 @@
 <!--                                        <a href="profile.html" class="btn btn-rounded btn-danger btn-sm">View Profile</a>-->
                                     </div>
                                 </div>
-                                <a class="dropdown-item" href="{% url 'account_settings' user.id %}"><i class="ti-settings mr-1 ml-1"></i> Account Settings</a>
+                                <a class="dropdown-item" href="{% url 'member_profile' user.id %}#settings"><i class="ti-settings mr-1 ml-1"></i> Account Settings</a>
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="{% url 'account_logout' %}"><i class="fa fa-power-off mr-1 ml-1"></i> Logout</a>
                             </div>

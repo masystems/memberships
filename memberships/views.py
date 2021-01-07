@@ -189,29 +189,3 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
             pass
 
         return context
-
-
-@login_required(login_url="/accounts/login")
-def account_settings(request, pk):
-    member = Member.objects.get(id=pk)
-    if request.method == 'POST':
-        # update user and get user object
-        member.user_account.first_name = request.POST.get('user-settings-first-name')
-        member.user_account.last_name = request.POST.get('user-settings-last-name')
-        member.user_account.email = request.POST.get('user-settings-email')
-        member.title = request.POST.get('user-settings-title')
-        member.first_name = request.POST.get('user-settings-first-name')
-        member.last_name = request.POST.get('user-settings-last-name')
-        member.email = request.POST.get('user-settings-email')
-        member.address_line_1 = request.POST.get('user-settings-address1')
-        member.address_line_2 = request.POST.get('user-settings-address2')
-        member.town = request.POST.get('user-settings-town')
-        member.county = request.POST.get('user-settings-county')
-        member.postcode = request.POST.get('user-settings-postcode')
-        member.contact_number = request.POST.get('user-settings-phone')
-        member.user_account.save()
-        member.save()
-
-        return HttpResponse(True)
-
-    return render(request, 'account_settings.html', {'data': False, 'member': member})
