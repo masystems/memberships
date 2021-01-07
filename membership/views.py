@@ -502,9 +502,11 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
 
+        hidden_bolon_fields = ['id', 'membership_package', 'subscription']
         if self.context['membership_package'].bolton == "equine":
-            self.context['bolton_columns'] = Equine._meta.get_fields(include_parents=False, include_hidden=False)
-            self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package'])
+
+            self.context['bolton_columns'] = [field for field in Equine._meta.get_fields(include_parents=False, include_hidden=False) if field.name not in hidden_bolon_fields]
+            self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package']).defer('id', 'membership_package', 'subscription', 'subscription_id')
         return self.context
 
 
