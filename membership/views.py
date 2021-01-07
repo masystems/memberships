@@ -20,6 +20,7 @@ def generate_site_vars(request):
     if request.user.is_authenticated:
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=request.user) |
                                                                           Q(admins=request.user), enabled=True).distinct()
+                                                                          #, pmembership_package__stripe__price_id__isnull=False
         context['membership'] = Member.objects.get(user_account=request.user)
 
         context['public_api_key'] = get_stripe_public_key(request)
@@ -84,11 +85,12 @@ def manage_admins(request, title):
                 member = Member(user_account=user)
                 member.save()
                 # send email to new user
-                body = f"""<p>You have been added as an admin to {membership_package.organisation_name}.</p>
+                body = f"""<p>You have been added as an admin to the {membership_package.organisation_name} Cloud-Lines Memberships subscription.</p>
 
-                        <p>To login to Cloud-Lines Memberships go to <a href="http://memberships.cloud-lines.com">http://memberships.cloud-lines.com</a> and select "forgot password" to reset your password</p>
+                        <p>To login to Cloud-Lines Memberships go to <a href="http://memberships.cloud-lines.com">http://memberships.cloud-lines.com</a> and select "forgot password" to reset your password.</p>
 
                         """
+
                 send_email(f"New Admin Account: {membership_package.organisation_name}",
                            user.get_full_name(), body, send_to=user.email, reply_to=request.user.email)
 
@@ -335,13 +337,13 @@ def delete_membership_package(request, title):
     membership_package.delete()
 
     # send email confirmation
-    body = f"""<p>This is an email confirming the deletion of your Membership Organisation package.
+    body = f"""<p>This is an email confirming the deletion of your Membership Organisation package.</p>
 
                     <ul>
                     <li>Membership Organisation: {membership_package.organisation_name}</li>
                     </ul>
 
-                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+                    <p>Thank you for choosing Cloud-Lines Memberships. Please contact us if we can help in the future - contact@masys.co.uk</p>
 
                     """
     send_email(f"Organisation Deletion Confirmation: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
@@ -445,19 +447,19 @@ def organisation_payment(request):
             membership_package.save()
 
             # send confirmation email
-            body = f"""<p>This is a confirmation email for your new Membership Organisation package.
+            body = f"""<p>This email confirms the successful creation of your new Cloud-Lines Memberships package.
 
                     <ul>
                     <li>Membership Organisation: {membership_package.organisation_name}</li>
                     </ul>
 
-                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+                    <p>Thank you for choosing Cloud-Lines Memberships. Please contact us if you need anything - contact@masys.co.uk</p>
 
                     """
-            send_email(f"Organisation Confirmation: {membership_package.organisation_name}",
-                       request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
-            send_email(f"Organisation Confirmation: {membership_package.organisation_name}",
-                       request.user.get_full_name(), body, reply_to=request.user.email)
+            send_email(f"New Organisation Created: {membership_package.organisation_name}",
+                       request.user.get_full_name(), body, send_to=request.user.email)#, reply_to=request.user.email)
+            #send_email(f"Organisation Confirmation: {membership_package.organisation_name}",
+                       #request.user.get_full_name(), body, reply_to=request.user.email)
 
             return HttpResponse(dumps(result))
 
@@ -500,9 +502,11 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
 
+        hidden_bolon_fields = ['id', 'membership_package', 'subscription']
         if self.context['membership_package'].bolton == "equine":
-            self.context['bolton_columns'] = Equine._meta.get_fields(include_parents=False, include_hidden=False)
-            self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package'])
+
+            self.context['bolton_columns'] = [field for field in Equine._meta.get_fields(include_parents=False, include_hidden=False) if field.name not in hidden_bolon_fields]
+            self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package']).defer('id', 'membership_package', 'subscription', 'subscription_id')
         return self.context
 
 
@@ -534,6 +538,31 @@ class MemberRegForm(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
+        
+        # check to see if membership type exists
+        self.context['is_price'] = False
+        prices = None
+        try:
+            prices = Price.objects.filter(membership_package=self.context['membership_package'])
+        except Price.DoesNotExist:
+            pass
+        for price in prices:
+            if price.active:
+                self.context['is_price'] = True
+
+        # check to see if stripe has been set up
+        stripe.api_key = get_stripe_secret_key(self.request)
+        self.context['is_stripe'] = False
+        if self.context['membership_package'].stripe_acct_id:
+            try:
+                stripe.Account.create_login_link(self.context['membership_package'].stripe_acct_id)
+                self.context['is_stripe'] = True
+            except stripe.error.InvalidRequestError:
+                # stripe account created but not setup
+                pass
+        else:
+            # stripe account not setup
+            pass
 
         return self.context
 
@@ -636,7 +665,7 @@ def member_bolton_form(request, title, pk):
     subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
     # access permissions
     if MembershipPackage.objects.filter(Q(owner=request.user) |
-                                            Q(admins=request.user), organisation_name=title).exists() or \
+                                        Q(admins=request.user), organisation_name=title).exists() or \
             request.user == member.user_account:
         # allow access to page
         pass
@@ -660,7 +689,7 @@ def member_bolton_form(request, title, pk):
             # attach form to package and member
             bolton_form.membership_package = membership_package
             bolton_form.member = member
-            bolton_form.member = subscription
+            bolton_form.subscription = subscription
             bolton_form.save()
 
             # redirect to payment form IF card payment selected

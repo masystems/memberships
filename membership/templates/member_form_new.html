@@ -5,9 +5,8 @@
 {% block header %}
 
 {% endblock %}
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+        <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
 {% block content %}
-
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
@@ -28,7 +27,6 @@
             </div>
         </div>
         <div class="col-md-7 align-self-center d-none d-md-block">
-
         </div>
     </div>
 </div>
@@ -43,26 +41,57 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">Member Form</h4>
-                    <h6 class="card-subtitle">Fill out the form below to add a new member to your organisation.</h6>
-                </div>
-                <hr>
+                <!-- Validate that membership package has been set up with stripe and has at least one membership type -->
+                {% if is_stripe and is_price %}
+                    <div class="card-body">
+                        <h4 class="card-title">Member Form</h4>
+                        <h6 class="card-subtitle">Fill out the form below to add a new member to your organisation.</h6>
+                    </div>
+                    <hr>
 
-                <form id="memberForm" class="form-horizontal" action="{% url 'member_form' membership_package.organisation_name %}" method="POST">
-                    {% include 'member_form.html' %}
-                </form>
+                    <form id="memberForm" class="form-horizontal" action="{% url 'member_form' membership_package.organisation_name %}" method="POST">
+                            {% include 'member_form.html' %}
+                    </form>
+                {% else %}
+                    <!-- Validate that request.user is owner/admin/ of subscription package -->
+                    {% if request.user == membership_package.owner or request.user in membership_package.admins.all %}
+                        <!-- membership types not set up -->
+                        {% if is_stripe %}
+                            <div class="card-body">
+                                <h4 class="card-title">Membership Package Not Ready</h4>
+                                <p>This membership package does not have any membership types, meaning members cannot be added.</p>
+                                <p>To allow members to be added, you can manage membership types from the <a href="{% url 'membership_package' membership_package.organisation_name %}">Membership</a> page.</p>
+                            </div>
+                        <!-- stripe not set up -->
+                        {% elif is_price %}
+                            <div class="card-body">
+                                <h4 class="card-title">Membership Package Not Ready</h4>
+                                <p>This membership package does not have stripe set up.</p>
+                                <p>To allow members to be added, you can set up stripe from the <a href="{% url 'membership_package' membership_package.organisation_name %}">Membership</a> page.</p>
+                            </div>
+                        <!-- neither set up -->
+                        {% else %}
+                            <div class="card-body">
+                                <h4 class="card-title">Membership Package Not Ready</h4>
+                                <p>This membership package does not have stripe set up and it does not have any membership types.</p>
+                                <p>To allow members to be added, you can manage membership types and set up stripe from the <a href="{% url 'membership_package' membership_package.organisation_name %}">Membership</a> page.</p>
+                            </div>
+                        {% endif %}
+                    <!-- user is not owner/admin -->
+                    {% else %}
+                        <div class="card-body">
+                            <h4 class="card-title">Membership Package Not Ready</h4>
+                            <p>Unfortuntely, the organisation you wish to join has not yet been completely set up, and so you can't yet become a member of it.</p>
+                            <p>You can, however, join other organisations or create your own from the <a href="{% url 'dashboard' %}">Home</a> page.</p>
+                        </div>
+                    {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>
     <!-- End Row -->
-
 </div>
-<!-- ============================================================== -->
-<!-- End Container fluid  -->
-<!-- ============================================================== -->
 {% endblock %}
-
 {% block footer %}
     <script src="{% static 'assets/libs/moment/moment.js' %}"></script>
     <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>

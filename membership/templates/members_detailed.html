@@ -87,8 +87,8 @@
                                         </td>
                                         <td>{{ member.contact_number }}</td>
                                         <td>{{ member.subscription.all.0.price.nickname }}</td>
-                                        <td>{{ member.subscription.all.0.payment_type }}</td>
-                                        <td>{{ member.subscription.all.0.price.interval|choicefieldformat }}ly</td>
+                                        <td>{{ member.subscription.all.0.payment_type|choicefieldformat }}</td>
+                                        <td>{{ member.subscription.all.0.price.interval|choicefieldformat }}</td>
                                         <td>{{ member.subscription.all.0.comments }}</td>
                                         <td>{{ member.subscription.all.0.membership_start }}</td>
                                     </tr>
@@ -118,23 +118,30 @@
                             style="width:100%">
                             <thead>
                                 <tr>
+                                    <th>Member Name</th>
                                     {% for col in bolton_columns %}
-                                        {% if forloop.first %}
-                                            <th>Member Name</th>
-                                        {% else %}
-                                            <th>{{ col.verbose_name|title }}</th>
-                                        {% endif %}
+                                        <th>{{ col.verbose_name|title }}</th>
                                     {% endfor %}
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for member in bolton %}
                                     <tr>
+                                        <td>{{ member.subscription.member.user_account.get_full_name }}</td>
                                         {% for item, value in member.attrs %}
-                                            {% if forloop.first %}
-                                                <td>{{ member.subscription.member.user_account.get_full_name }}</td>
+                                            {% if forloop.first or item == 'id' or item == 'subscription_id' %}
                                             {% else %}
-                                                <td>{{ value }}</td>
+                                                <td>
+                                                    {% if value == True %}
+                                                        <i class="fad fa-check text-success"></i>
+                                                    {% elif value == False %}
+                                                        <i class="fad fa-times text-danger"></i>
+                                                    {% elif value == None %}
+                                                        <!-- Blank -->
+                                                    {% else %}
+                                                        {{ value }}
+                                                    {% endif %}
+                                                </td>
                                             {% endif %}
                                         {% endfor %}
                                     </tr>
@@ -142,12 +149,9 @@
                             </tbody>
                             <tfoot>
                                 <tr>
+                                    <th>Member Name</th>
                                     {% for col in bolton_columns %}
-                                        {% if forloop.first %}
-                                            <th>Member Name</th>
-                                        {% else %}
-                                            <th>{{ col.verbose_name|title }}</th>
-                                        {% endif %}
+                                        <th>{{ col.verbose_name|title }}</th>
                                     {% endfor %}
                                 </tr>
                             </tfoot>
@@ -169,6 +173,9 @@
     <script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
     <script>
+        var table = $('#show_hide_col').DataTable({
+            "paging": true
+        });
         $('a.toggle-vis').on('click', function(e) {
             e.preventDefault();
 
