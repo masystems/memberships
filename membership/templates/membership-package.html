@@ -176,8 +176,8 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for member in incomplete_members.all %}
                                     <tr>
+                                {% for member in incomplete_members.all %}
                                         <td>
                                             <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
                                         </td>
@@ -206,8 +206,10 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
-                                    </tr>
+                                {% empty %}
+                                        <td colspan="4">No data available in table</td>
                                 {% endfor %}
+                                    </tr>
                             </tbody>
                         </table>
                     </div>
