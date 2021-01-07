@@ -648,7 +648,7 @@ def member_bolton_form(request, title, pk):
     subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
     # access permissions
     if MembershipPackage.objects.filter(Q(owner=request.user) |
-                                            Q(admins=request.user), organisation_name=title).exists() or \
+                                        Q(admins=request.user), organisation_name=title).exists() or \
             request.user == member.user_account:
         # allow access to page
         pass
@@ -672,7 +672,7 @@ def member_bolton_form(request, title, pk):
             # attach form to package and member
             bolton_form.membership_package = membership_package
             bolton_form.member = member
-            bolton_form.member = subscription
+            bolton_form.subscription = subscription
             bolton_form.save()
 
             # redirect to payment form IF card payment selected
