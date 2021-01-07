@@ -593,6 +593,7 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.member.contact_number = self.form.cleaned_data['contact_number']
         self.member.save()
 
+
         # create subscription object
         try:
             subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
@@ -640,6 +641,20 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.user.first_name = self.form.cleaned_data['first_name']
         self.user.last_name = self.form.cleaned_data['last_name']
         self.user.save()
+
+        # send confirmation email
+        body = f"""<p>This is a confirmation email for your new Organisation Subscription.
+
+                                       <ul>
+                                       <li>Congratulations, you are now a member of {self.context['membership_package']} Organisation.</li>
+                                       </ul>
+
+                                       <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+
+                                       """
+        send_email(f"Organisation Confirmation: {self.context['membership_package']}",
+                   self.user.get_full_name(), body, send_to=self.user.email, reply_to=self.user.email)
+
 
 
 @login_required(login_url='/accounts/login/')
@@ -990,32 +1005,32 @@ def validate_card(request, type, pk=0):
         # Since it's a decline, stripe.error.CardError will be caught
         feedback = send_payment_error(e)
         return {'result': 'fail',
-                  'feedback': feedback}
+                'feedback': feedback}
 
     except stripe.error.RateLimitError as e:
         # Too many requests made to the API too quickly
         feedback = send_payment_error(e)
         return {'result': 'fail',
-                  'feedback': feedback}
+                'feedback': feedback}
 
     except stripe.error.InvalidRequestError as e:
         # Invalid parameters were supplied to Stripe's API
         feedback = send_payment_error(e)
         return {'result': 'fail',
-                  'feedback': feedback}
+                'feedback': feedback}
 
     except stripe.error.AuthenticationError as e:
         # Authentication with Stripe's API failed
         # (maybe you changed API keys recently)
         feedback = send_payment_error(e)
         return {'result': 'fail',
-                  'feedback': feedback}
+                'feedback': feedback}
 
     except stripe.error.APIConnectionError as e:
         # Network communication with Stripe failed
         feedback = send_payment_error(e)
         return {'result': 'fail',
-                  'feedback': feedback}
+                'feedback': feedback}
 
     except stripe.error.StripeError as e:
         # Display a very generic error to the user, and maybe send
