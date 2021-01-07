@@ -87,7 +87,7 @@
                                         </td>
                                         <td>{{ member.contact_number }}</td>
                                         <td>{{ member.subscription.all.0.price.nickname }}</td>
-                                        <td>{{ member.subscription.all.0.payment_type }}</td>
+                                        <td>{{ member.subscription.all.0.payment_type|choicefieldformat }}</td>
                                         <td>{{ member.subscription.all.0.price.interval|choicefieldformat }}</td>
                                         <td>{{ member.subscription.all.0.comments }}</td>
                                         <td>{{ member.subscription.all.0.membership_start }}</td>
@@ -139,7 +139,7 @@
                                                     {% elif value == None %}
                                                         <!-- Blank -->
                                                     {% else %}
-                                                        {{ item}}{{ value }}
+                                                        {{ value }}
                                                     {% endif %}
                                                 </td>
                                             {% endif %}
@@ -173,6 +173,9 @@
     <script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
     <script>
+        var table = $('#show_hide_col').DataTable({
+            "paging": true
+        });
         $('a.toggle-vis').on('click', function(e) {
             e.preventDefault();
 
