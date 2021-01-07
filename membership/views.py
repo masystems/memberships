@@ -20,6 +20,7 @@ def generate_site_vars(request):
     if request.user.is_authenticated:
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=request.user) |
                                                                           Q(admins=request.user), enabled=True).distinct()
+                                                                          #, pmembership_package__stripe__price_id__isnull=False
         context['membership'] = Member.objects.get(user_account=request.user)
 
         context['public_api_key'] = get_stripe_public_key(request)
@@ -84,11 +85,12 @@ def manage_admins(request, title):
                 member = Member(user_account=user)
                 member.save()
                 # send email to new user
-                body = f"""<p>You have been added as an admin to {membership_package.organisation_name}.</p>
+                body = f"""<p>You have been added as an admin to the {membership_package.organisation_name} Cloud-Lines Memberships subscription.</p>
 
-                        <p>To login to Cloud-Lines Memberships go to <a href="http://memberships.cloud-lines.com">http://memberships.cloud-lines.com</a> and select "forgot password" to reset your password</p>
+                        <p>To login to Cloud-Lines Memberships go to <a href="http://memberships.cloud-lines.com">http://memberships.cloud-lines.com</a> and select "forgot password" to reset your password.</p>
 
                         """
+
                 send_email(f"New Admin Account: {membership_package.organisation_name}",
                            user.get_full_name(), body, send_to=user.email, reply_to=request.user.email)
 
@@ -335,13 +337,13 @@ def delete_membership_package(request, title):
     membership_package.delete()
 
     # send email confirmation
-    body = f"""<p>This is an email confirming the deletion of your Membership Organisation package.
+    body = f"""<p>This is an email confirming the deletion of your Membership Organisation package.</p>
 
                     <ul>
                     <li>Membership Organisation: {membership_package.organisation_name}</li>
                     </ul>
 
-                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+                    <p>Thank you for choosing Cloud-Lines Memberships. Please contact us if we can help in the future - contact@masys.co.uk</p>
 
                     """
     send_email(f"Organisation Deletion Confirmation: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
@@ -445,19 +447,19 @@ def organisation_payment(request):
             membership_package.save()
 
             # send confirmation email
-            body = f"""<p>This is a confirmation email for your new Membership Organisation package.
+            body = f"""<p>This email confirms the successful creation of your new Cloud-Lines Memberships package.
 
                     <ul>
                     <li>Membership Organisation: {membership_package.organisation_name}</li>
                     </ul>
 
-                    <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+                    <p>Thank you for choosing Cloud-Lines Memberships. Please contact us if you need anything - contact@masys.co.uk</p>
 
                     """
-            send_email(f"Organisation Confirmation: {membership_package.organisation_name}",
-                       request.user.get_full_name(), body, send_to=request.user.email, reply_to=request.user.email)
-            send_email(f"Organisation Confirmation: {membership_package.organisation_name}",
-                       request.user.get_full_name(), body, reply_to=request.user.email)
+            send_email(f"New Organisation Created: {membership_package.organisation_name}",
+                       request.user.get_full_name(), body, send_to=request.user.email)#, reply_to=request.user.email)
+            #send_email(f"Organisation Confirmation: {membership_package.organisation_name}",
+                       #request.user.get_full_name(), body, reply_to=request.user.email)
 
             return HttpResponse(dumps(result))
 
