@@ -888,6 +888,7 @@ class MemberProfileView(MembershipBase):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['members'] = Member.objects.all()
         context['member'] = Member.objects.get(id=self.kwargs['pk'])
         context['public_api_key'] = get_stripe_public_key(self.request)
 
