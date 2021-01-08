@@ -92,10 +92,10 @@
                                         <div class="form-group">
                                             <input type="hidden" id="price_id{{ forloop.counter }}" name="type_id" value="{{ type.id }}">
                                             <input type="hidden" id="type{{ forloop.counter }}" name="type" value="edit">
-                                            <button class="btn btn-success d-none" id="saveTypeForm{{ forloop.counter }}" type="button">
+                                            <button class="btn btn-success d-none" data-toggle="tooltip" id="saveTypeForm{{ forloop.counter }}" type="button">
                                                 <i class="fad fa-check"></i>
                                             </button>
-                                            <button class="btn btn-danger" id="delTypeForm{{ forloop.counter }}" type="button">
+                                            <button class="btn btn-danger" data-toggle="tooltip" id="delTypeForm{{ forloop.counter }}" type="button">
                                                 <i class="fad fa-times"></i>
                                             </button>
                                         </div>
@@ -188,7 +188,7 @@
                         </div>
                         <div class="col-sm-2">
                             <div class="form-group">
-                                <button class="btn btn-success" id="saveTypeForm" type="button">
+                                <button class="btn btn-success" data-toggle="tooltip" id="saveTypeForm" type="button">
                                     <i class="fad fa-check"></i>
                                 </button>
                             </div>
