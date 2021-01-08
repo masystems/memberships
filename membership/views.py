@@ -315,8 +315,8 @@ def delete_membership_package(request, title):
         # disallow access to page
         # return to previous page
         return redirect('membership_package', membership_package.organisation_name)
-    # validate that there are no existing members
-    if Member.objects.filter(membership_package=membership_package).exists():
+    # validate that there are no existing subscriptions
+    if MembershipSubscription.objects.filter(membership_package=membership_package).exists():
         raise MembershipPackage.DoesNotExist
         return redirect('membership_package', membership_package.organisation_name)
 
