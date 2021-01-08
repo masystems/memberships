@@ -16,7 +16,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
         <div class="modal-content">
             <div class="modal-header modal-colored-header bg-danger">
                 <h4 class="modal-title text-white" id="remove-member-modalLabel">Remove Member</h4>
-                <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip" aria-hidden="true">×</button>
+                <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip" title="Exit Window" aria-hidden="true">×</button>
             </div>
             <div class="modal-body">
                 <p>Are you sure you want to remove this member from {{ membership_package.organisation_name}}?</p>
@@ -143,20 +143,20 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             {% if membership.payment_type == 'card_payment' %}
                                                 {% if membership.stripe_subscription_id %}
                                                     <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Update Card Details" >
                                                             <i class="fad fa-credit-card-front text-success"></i>
                                                         </button>
                                                     </a>
                                                 {% else %}
                                                     <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card Details Not Added">
                                                             <i class="fad fa-credit-card-front text-danger"></i>
                                                         </button>
                                                     </a>
                                                 {% endif %}
                                             {% endif %}
-                                            <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip"><i class="fad fa-user-edit text-info"></i></button></a>
-                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                            <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
                                     </tr>
                                 {% endfor %}
@@ -191,20 +191,20 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             {% if membership.payment_type == 'card_payment' %}
                                                 {% if membership.stripe_subscription_id %}
                                                     <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Update Card Details">
                                                             <i class="fad fa-credit-card-front text-success"></i>
                                                         </button>
                                                     </a>
                                                 {% else %}
                                                     <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card Details Not Added">
                                                             <i class="fad fa-credit-card-front text-danger"></i>
                                                         </button>
                                                     </a>
                                                 {% endif %}
                                             {% endif %}
-                                            <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip"><i class="fad fa-user-edit text-info"></i></button></a>
-                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                            <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
                                 {% empty %}
                                         <td colspan="4">No data available in table</td>
@@ -315,7 +315,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                             <div class="modal-content">
                                 <div class="modal-header modal-colored-header bg-danger">
                                     <h4 class="modal-title text-white" id="delete-org-modalLabel">Delete Organisation</h4>
-                                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                    <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip" title="Exit Window" aria-hidden="true">×</button>
                                 </div>
                                 <div class="modal-body">
                                     <p>Are you sure you want to delete {{ membership_package.organisation_name }}?</p>
