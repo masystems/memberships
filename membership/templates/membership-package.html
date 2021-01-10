@@ -100,6 +100,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                     <div class="dropdown-menu" style="">
                                         <a class="dropdown-item" href="{% url 'manage_admins' membership_package.organisation_name %}">Admins</a>
                                         <a class="dropdown-item" href="{% url 'manage_membership_types' membership_package.organisation_name %}">Membership Types</a>
+                                        <a class="dropdown-item" href="{% url 'manage_payment_methods' membership_package.organisation_name %}">Payment Methods</a>
                                         <a class="dropdown-item" href="{% url 'members_detailed' membership_package.organisation_name %}">Members Detailed</a>
                                     </div>
                                 </div>
@@ -136,20 +137,18 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         <td>
                                             {% for subscription in member.subscription.all %}
                                                 {% if subscription.membership_package == membership_package %}
-                                                    {% if subscription.payment_type == 'card_payment' %}
-                                                        {% if subscription.stripe_subscription_id %}
-                                                            <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                                <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
-                                                                    <i class="fad fa-credit-card-front text-success"></i>
-                                                                </button>
-                                                            </a>
-                                                        {% else %}
-                                                            <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                                <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                                    <i class="fad fa-credit-card-front text-danger"></i>
-                                                                </button>
-                                                            </a>
-                                                        {% endif %}
+                                                    {% if subscription.payment_method or subscription.stripe_subscription_id %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                                <i class="fad fa-credit-card-front text-success"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% else %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                            </button>
+                                                        </a>
                                                     {% endif %}
                                                 {% endif %}
                                             {% endfor %}
@@ -189,20 +188,18 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         <td>
                                             {% for subscription in member.subscription.all %}
                                                 {% if subscription.membership_package == membership_package %}
-                                                    {% if subscription.payment_type == 'card_payment' %}
-                                                        {% if subscription.stripe_subscription_id %}
-                                                            <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                                <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
-                                                                    <i class="fad fa-credit-card-front text-success"></i>
-                                                                </button>
-                                                            </a>
-                                                        {% else %}
-                                                            <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                                <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                                    <i class="fad fa-credit-card-front text-danger"></i>
-                                                                </button>
-                                                            </a>
-                                                        {% endif %}
+                                                    {% if subscription.payment_method or subscription.stripe_subscription_id %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                                <i class="fad fa-credit-card-front text-success"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% else %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                            </button>
+                                                        </a>
                                                     {% endif %}
                                                 {% endif %}
                                             {% endfor %}

@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_tags %}
+
+{% block header %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">Manage Payment Methods</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active" aria-current="page">Manage Payment Methods</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
+
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <!-- Column -->
+        <div class="col-lg-4 col-xlg-3 col-md-5">
+            <div class="card">
+                <div class="card-body">
+                    <center class="mt-4">
+                        <h4 class="card-title mt-2">{{ membership_package.organisation_name }}</h4>
+                        <h6 class="card-title mt-2">Owner: {{ membership_package.owner.get_full_name }}</h6>
+                    </center>
+                </div>
+                <hr>
+                <div class="card-body">
+                    <p>
+                        Use this page to add or remove payment types. The card payment type is a built in feature with Stripe to
+                        this platform, but all others are configurable.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+        <!-- Column -->
+        <div class="col-lg-8 col-xlg-9 col-md-7">
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title">Add/Remove Payment Methods</h4>
+                    <div id="adminFields" class=" m-t-20">
+                        {% for type in payment_methods.all %}
+                            <div class="form-group removeType{{ forloop.counter }}">
+                                <form id="editPaymentMethodForm{{ forloop.counter }}" class="row">
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" id="payment_name{{ forloop.counter }}" name="payment_name" value="{{ type.payment_name }}">
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="form-group">
+                                            <textarea type="text" class="form-control" id="information{{ forloop.counter }}" name="information">{{ type.information }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="form-group">
+                                            <div class="input-group mb-3">
+                                                <li class="list-group-item d-flex align-items-center">
+                                                    <div class="checkbox checkbox-info checkbox-circle">
+                                                        <input id="active{{ forloop.counter }}" type="checkbox" name="active" {% if type.active %}checked{% endif %}>
+                                                        <label class="mb-0" for="active{{ forloop.counter }}"> Enaled </label>
+                                                    </div>
+                                                </li>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <div class="form-group">
+                                            <input type="hidden" id="type_id" name="type_id" value="{{ type.id }}">
+                                            <input type="hidden" id="type{{ forloop.counter }}" name="type" value="edit">
+                                            <button class="btn btn-success d-none" id="saveTypeForm{{ forloop.counter }}" type="button">
+                                                <i class="fad fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-danger" id="delTypeForm{{ forloop.counter }}" type="button">
+                                                <i class="fad fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <script>
+                                $('#payment_name{{ forloop.counter }}').on('input',function(e){
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                });
+                                $( "#information{{ forloop.counter }}" ).on('input', function() {
+                                  $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                });
+                                $('#active{{ forloop.counter }}').change(function(e){
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                });
+                                $("#saveTypeForm{{ forloop.counter }}").click(function(){
+                                    $.ajax({
+                                        url: '{% url 'manage_payment_methods' membership_package.organisation_name %}',
+                                        type: 'POST',
+                                        dataType: 'text',
+                                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                                        data: $('#editPaymentMethodForm{{ forloop.counter }}').serialize(),
+                                        beforeSend: function() {
+                                        },
+                                        success: function(data) {
+                                            var result = JSON.parse(data);
+                                            if (result['status'] == "fail") {
+                                                errorMsg(result['message']);
+                                            } else {
+                                                $('#saveTypeForm{{ forloop.counter }}').addClass('d-none')
+                                                infoMsg(result.message);
+                                            }
+                                         },
+                                        error: function(jqXHR, textStatus, errorThrown){
+                                        }
+                                    });
+                                });
+                                $("#delTypeForm{{ forloop.counter }}").click(function(){
+                                    $("#type{{ forloop.counter }}").val('delete')
+                                    $.ajax({
+                                        url: '{% url 'manage_payment_methods' membership_package.organisation_name %}',
+                                        enctype: 'multipart/form-data',
+                                        type: 'POST',
+                                        dataType: 'text',
+                                        headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                                        data: $('#editPaymentMethodForm{{ forloop.counter }}').serialize(),
+                                        beforeSend: function() {
+                                        },
+                                        success: function(data) {
+                                            var result = JSON.parse(data);
+                                            if (result['status'] == "fail") {
+                                                errorMsg(result['message']);
+                                            } else {
+                                                $('#editPaymentMethodForm{{ forloop.counter }}').addClass('d-none')
+                                                infoMsg(result.message);
+                                            }
+                                         },
+                                        error: function(jqXHR, textStatus, errorThrown){
+                                        }
+                                    });
+                                });
+                            </script>
+                        {% endfor %}
+                    </div>
+                    <form id="addMembershipTypeForm" class="row">
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="payment_name" name="payment_name" placeholder="Payment Name">
+                                <small>e.g. Cash, Bacs, Paypal etc</small>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="form-group">
+                                <textarea type="text" class="form-control" id="information" name="information"></textarea>
+                                <small>Information about how they can use this payment method. e.g. Account No. and Sort Code etc.</small>
+                            </div>
+                        </div>
+                        <div class="col-sm-2">
+                            <div class="form-group">
+                                <div class="input-group mb-3">
+                                    <li class="list-group-item d-flex align-items-center">
+                                        <div class="checkbox checkbox-info checkbox-circle">
+                                            <input id="active" type="checkbox" name="active" checked>
+                                            <label class="mb-0" for="active"> Enaled </label>
+                                        </div>
+                                    </li>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                                <button class="btn btn-success" id="saveTypeForm" type="button">
+                                    <i class="fad fa-check"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- Column -->
+    </div>
+    <!-- Row -->
+
+</div>
+
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}
+
+{% block footer %}
+    <script>
+        $("#saveTypeForm").click(function(){
+            $.ajax({
+                url: '{% url 'manage_payment_methods' membership_package.organisation_name %}',
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#addMembershipTypeForm').serialize(),
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        infoMsg(result.message);
+                        location.reload();
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
+        });
+    </script>
+{% endblock %}
