@@ -739,12 +739,9 @@ def member_bolton_form(request, title, pk):
             bolton_form.subscription = subscription
             bolton_form.save()
 
-            # redirect to payment form IF card payment selected
-            if subscription.payment_type == 'card_payment':
-                return redirect(
-                    f"member_payment", membership_package.organisation_name, member.id)
-            else:
-                return redirect('membership')
+            return redirect(
+                f"member_payment", membership_package.organisation_name, member.id)
+                
         else:
             return render(request, 'member_bolton_form.html', {'bolton_form': form,
                                                                'membership_package': membership_package,
