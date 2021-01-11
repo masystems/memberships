@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
 from memberships.functions import *
-from .models import MembershipPackage, Price, PaymentMethod, Member, MembershipSubscription, Equine
+from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .forms import MembershipPackageForm, MemberForm, EquineForm
 from json import dumps
 import stripe

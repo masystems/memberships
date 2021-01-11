@@ -174,8 +174,8 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    {% for member in incomplete_members.all %}
+                                {% for member in incomplete_members.all %}
+                                    <tr>
                                         <td>
                                             <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
                                         </td>
@@ -208,10 +208,10 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}"><i class="fad fa-key text-success"></i></button>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
-                                    {% empty %}
-                                        <td colspan="4">No data available in table</td>
-                                    {% endfor %}
-                                </tr>
+                                    </tr>
+                                {% empty %}
+                                    <td colspan="4">No incomplete members</td>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
