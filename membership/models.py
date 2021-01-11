@@ -97,7 +97,6 @@ class MembershipSubscription(models.Model):
     validated = models.BooleanField(default=False)
 
     comments = models.TextField(blank=True)
-    membership_start_old = models.DateTimeField(auto_now=True)
     membership_start = models.DateField(null=True, blank=True)
     membership_expiry = models.DateField(null=True, blank=True)
     active = models.BooleanField(default=False)
