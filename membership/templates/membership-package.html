@@ -52,14 +52,14 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
         </div>
         <div class="col-md-5 align-self-center d-none d-md-block">
             {% if stripe_package_setup %}
-                <div class="alert alert-warning" role="alert">
-                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe to set up your membership details. <a href="{{ stripe_package_setup.url }}"><button class="btn btn-sm btn-warning float-right">Go To Stripe</button></a>
+                <div class="alert alert-warning float-right" role="alert">
+                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe to set up your membership details.
                 </div>
 
             {% endif %}
             {% if account_link %}
-                <div class="alert alert-warning" role="alert">
-                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe for more information. <a href="{{ account_link.url }}"><button class="btn btn-sm btn-warning float-right">Go To Stripe</button></a>
+                <div class="alert alert-warning float-right" role="alert">
+                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe for more information.
                 </div>
             {% endif %}
         </div>
