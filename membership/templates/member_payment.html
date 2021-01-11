@@ -49,14 +49,38 @@
                     <h4 class="card-title">{{ package.organisation_name }} Member Payment Information</h4>
                     <div class="row mt-4" id="existing-customer-details">
                         <div class="col-lg-6 offset-lg-3">
-                            <h4 class="card-title">Select Membership Type</h4>
-                            <form id="membershipTypeForm">
-                                {% for type in membership_types_list %}
-                                    <div class="custom-control custom-radio">
-                                        <input type="radio" id="{{ type.id }}" name="payment_type" class="custom-control-input" value="{{ type.id }}"{% if member.subscription.all.0.price.stripe_price_id == type.id %}checked{% endif %}>
-                                        <label class="custom-control-label" for="{{ type.id }}">{{ type.nickname }} - {{ type.recurring.interval|title }}ly - <span class="text-info">£{{ type.unit_amount|price }}</span></label>
+                            <form id="membershipInfoForm">
+                                <div class="row pt-3">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <h4 class="card-title">Select Membership Type</h4>
+                                            {% for type in membership_types_list %}
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" id="{{ type.id }}" name="membership_type" class="custom-control-input" value="{{ type.id }}"{% if subscription.price.stripe_price_id == type.id %}checked{% endif %}>
+                                                    <label class="custom-control-label" for="{{ type.id }}">{{ type.nickname }} - {{ type.recurring.interval|title }}ly - <span class="text-info">£{{ type.unit_amount|price }}</span></label>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
                                     </div>
-                                {% endfor %}
+                                    {% if request.user == package.owner or request.user in package.admins.all or request.user.is_superuser %}
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <h4 class="card-title">Select Payment Method</h4>
+                                                <p>Visible only to Admins of Membership Account</p>
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" id="card-payment" name="payment_method" class="custom-control-input payment_method" value="Card Payment"{% if not subscription.payment_method %}checked{% endif %}>
+                                                    <label class="custom-control-label" for="card-payment"><span class="text-info">Card Payment</span></label>
+                                                </div>
+                                                {% for type in payment_methods.all %}
+                                                    <div class="custom-control custom-radio">
+                                                        <input type="radio" id="{{ type.id }}" name="payment_method" class="custom-control-input payment_method" value="{{ type.payment_name }}"{% if subscription.payment_method.payment_name == type.payment_name %}checked{% endif %}>
+                                                        <label class="custom-control-label" for="{{ type.id }}"><span class="text-info">{{ type.payment_name }}</span></label>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -65,8 +89,8 @@
                 <div id="result" class="d-none text-center">
                     <h2>Success!</h2>
                     <h6>Membership is now active!</h6>
-                    <a href="#" target="_blank" id="receipt"><button type="button" id="receiptBtn" class="btn btn-dark mt-2">View Receipt</button></a>
-                    <a href="#" id="goToMemberPageLink"><button type="button" class="btn btn-warning mt-2">Member Page</button></a>
+                    <a href="#" target="_blank" id="receipt"><button type="button" id="receiptBtn" class="btn btn-dark mt-2 mb-2">View Receipt</button></a>
+                    <a href="#" id="goToMemberPageLink"><button type="button" class="btn btn-warning mt-2 mb-2">Member Page</button></a>
                 </div>
                 <div class="col-lg-6 offset-lg-3">
                     <form id="payment-form">
@@ -83,7 +107,7 @@
                         </div>
                     </form>
                 </div>
-                <hr>
+
                 <div class="card-body" id="payment-buttons">
                     <div class="form-group mb-0 text-right">
                         <button id="save-membership" class="btn btn-info waves-effect waves-light">Make Payment</button>
@@ -117,6 +141,14 @@
           return new Promise((resolve) => setTimeout(resolve, time));
         }
 
+        $('.payment_method').change(function() {
+            if (this.value != "Card Payment") {
+                $('#payment-form').fadeOut(400);
+            } else {
+                $('#payment-form').fadeIn(400);
+            }
+        });
+
         $("#save-membership").click(function(e){
             $('#overlay-spinner').modal();
             e.preventDefault();
@@ -133,7 +165,7 @@
                 type: 'POST',
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                data: $('#membershipTypeForm').serialize(),
+                data: $('#membershipInfoForm').serialize(),
                 beforeSend: function() {
                 },
                 success: function(data) {
@@ -142,7 +174,15 @@
                         errorMsg(result['message']);
                         $('#overlay-spinner').modal('hide');
                     } else {
-                        generateCardToken();
+                        if (result['redirect'] == true) {
+                            $('#overlay-spinner').modal('hide');
+                            infoMsg("Payment Method saved, redirecting.");
+                            sleep(2000).then(() => {
+                                window.location.replace("{% url 'membership_package' package.organisation_name %}");
+                            });
+                        } else {
+                            generateCardToken();
+                        }
                     }
                  },
                 error: function(jqXHR, textStatus, errorThrown){
@@ -160,7 +200,7 @@
             color: '#32325d',
             fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
             fontSmoothing: 'antialiased',
-            fontSize: '16px',
+            fontSize: '24px',
             '::placeholder': {
               color: '#aab7c4'
             }

@@ -80,6 +80,7 @@ class EquineForm(forms.ModelForm):
         exclude = ('membership_package',
                    'subscription')
         widgets = {
+            'date_resigned': forms.DateInput(attrs={'class': 'form-control datepicker'}),
             'animal_owner': forms.CheckboxInput(attrs={'class': ''}),
             'badge': forms.CheckboxInput(attrs={'class': ''}),
             'expired': forms.DateInput(attrs={'class': 'form-control datepicker'}),

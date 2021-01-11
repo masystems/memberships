@@ -7,8 +7,8 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
 from memberships.functions import *
-from .models import MembershipPackage, Price, Member, MembershipSubscription, Equine, Donation
-from .forms import MembershipPackageForm, MemberForm, MemberSubscriptionForm, EquineForm
+from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
+from .forms import MembershipPackageForm, MemberForm, EquineForm
 from json import dumps
 import stripe
 from re import search, match
@@ -173,7 +173,7 @@ def manage_membership_types(request, title):
                                      amount=price.unit_amount,
                                      active=True)
                 return HttpResponse(dumps({'status': "success",
-                                           'message': "Price successfully updated"}), content_type='application/json')
+                                           'message': "Price successfully added"}), content_type='application/json')
             except ValueError:
                 return HttpResponse(dumps({'status': "fail",
                                            'message': "You must enter a valid amount"}), content_type='application/json')
@@ -185,6 +185,53 @@ def manage_membership_types(request, title):
                                                                stripe_account=membership_package.stripe_acct_id))
         return render(request, 'manage-membership-types.html', {'membership_package': membership_package,
                                                                 'membership_types_list': membership_types_list})
+
+
+def manage_payment_methods(request, title):
+    # validate request user is owner or admin of org
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                            Q(admins=request.user),
+                                            organisation_name=title,
+                                            enabled=True).exists():
+        return redirect('dashboard')
+
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    if request.method == "POST":
+        # capture active value from form
+        if request.POST.get('active') == "on":
+            active = True
+        else:
+            active = False
+
+        if request.POST.get('type_id'):
+            if request.POST.get('type') == "delete":
+                # mark objects as active false
+                PaymentMethod.objects.filter(id=request.POST.get('type_id')).delete()
+                return HttpResponse(dumps({'status': "success",
+                                           'message': f"{request.POST.get('payment_name')} successfully deleted"}), content_type='application/json')
+            else:
+                # edit existing
+                PaymentMethod.objects.filter(id=request.POST.get('type_id')).update(
+                    payment_name=request.POST.get('payment_name'),
+                    information=request.POST.get('information'),
+                    active=active)
+                return HttpResponse(dumps({'status': "success",
+                                           'message': f"{request.POST.get('payment_name')} successfully updated"}), content_type='application/json')
+
+        else:
+            # new
+            PaymentMethod.objects.create(membership_package=membership_package,
+                                         payment_name=request.POST.get('payment_name'),
+                                         information=request.POST.get('information'),
+                                         active=active)
+            return HttpResponse(dumps({'status': "success",
+                                       'message': f"{request.POST.get('payment_name')} successfully added"}), content_type='application/json')
+
+
+    else:
+        payment_methods = PaymentMethod.objects.filter(membership_package=membership_package)
+        return render(request, 'manage-payment-methods.html', {'membership_package': membership_package,
+                                                                'payment_methods': payment_methods})
 
 
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
@@ -315,8 +362,8 @@ def delete_membership_package(request, title):
         # disallow access to page
         # return to previous page
         return redirect('membership_package', membership_package.organisation_name)
-    # validate that there are no existing members
-    if Member.objects.filter(membership_package=membership_package).exists():
+    # validate that there are no existing subscriptions
+    if MembershipSubscription.objects.filter(membership_package=membership_package).exists():
         raise MembershipPackage.DoesNotExist
         return redirect('membership_package', membership_package.organisation_name)
 
@@ -692,12 +739,9 @@ def member_bolton_form(request, title, pk):
             bolton_form.subscription = subscription
             bolton_form.save()
 
-            # redirect to payment form IF card payment selected
-            if subscription.payment_type == 'card_payment':
-                return redirect(
-                    f"member_payment", membership_package.organisation_name, member.id)
-            else:
-                return redirect('membership')
+            return redirect(
+                f"member_payment", membership_package.organisation_name, member.id)
+                
         else:
             return render(request, 'member_bolton_form.html', {'bolton_form': form,
                                                                'membership_package': membership_package,
@@ -842,6 +886,9 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         context['public_api_key'] = get_stripe_public_key(self.request)
         context['package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         context['member'] = Member.objects.get(id=self.kwargs['pk'])
+        context['payment_methods'] = PaymentMethod.objects.filter(membership_package=context['package'], active=True)
+        context['subscription'] = MembershipSubscription.objects.get(member=context['member'],
+                                                                     membership_package=context['package'])
         context['membership_types_list'] = []
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
@@ -890,14 +937,22 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
 
 def update_membership_type(request, title, pk):
     if request.method == 'POST':
-        if not request.POST.get('payment_type'):
+        if not request.POST.get('membership_type'):
             return HttpResponse(dumps({'status': "fail",
                                        'message': "You must enter a valid Membership Type"}), content_type='application/json')
 
         package = MembershipPackage.objects.get(organisation_name=title)
         member = Member.objects.get(id=pk)
-        MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=Price.objects.get(stripe_price_id=request.POST.get('payment_type')))
-        return HttpResponse(dumps({'status': "success"}), content_type='application/json')
+        if request.POST.get('payment_method') != 'Card Payment':
+            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')),
+                                                                                                    payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
+                                                                                                                                             membership_package=package))
+            return HttpResponse(dumps({'status': "success",
+                                       'redirect': True}), content_type='application/json')
+        else:
+            MembershipSubscription.objects.filter(member=member, membership_package=package).update(
+                price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')))
+            return HttpResponse(dumps({'status': "success"}), content_type='application/json')
 
 
 class MemberProfileView(MembershipBase):
