@@ -144,8 +144,10 @@
         $('.payment_method').change(function() {
             if (this.value != "Card Payment") {
                 $('#payment-form').fadeOut(400);
+                $("#save-membership").html("Confirm");
             } else {
                 $('#payment-form').fadeIn(400);
+                $("#save-membership").html("Make Payment");
             }
         });
 
