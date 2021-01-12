@@ -13,6 +13,7 @@ class MembershipPackageForm(forms.ModelForm):
                    'stripe_acct_id',
                    'stripe_owner_id',
                    'stripe_product_id',
+                   'bolton',
                    'cloud_lines_account',
                    'enabled')
         help_texts = {
@@ -20,7 +21,6 @@ class MembershipPackageForm(forms.ModelForm):
         }
         widgets = {
             'organisation_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'bolton': forms.Select(attrs={'class': 'form-control'}),
             'business_type': forms.Select(attrs={'class': 'form-control'})
         }
 
