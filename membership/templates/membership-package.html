@@ -155,6 +155,8 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnCom" value="{{ member.user_account.email }}"><i class="fad fa-key text-success"></i></button>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                            <!-- Button to send payment reminder -->
+                                            <a href="{% url 'payment_reminder' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>
                                         </td>
                                     </tr>
                                 {% endfor %}

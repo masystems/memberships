@@ -13,6 +13,7 @@ from json import dumps
 import stripe
 from re import search, match
 from urllib.parse import unquote
+from datetime import datetime
 
 
 def generate_site_vars(request):
@@ -20,7 +21,6 @@ def generate_site_vars(request):
     if request.user.is_authenticated:
         context['membership_packages'] = MembershipPackage.objects.filter(Q(owner=request.user) |
                                                                           Q(admins=request.user), enabled=True).distinct()
-                                                                          #, pmembership_package__stripe__price_id__isnull=False
         context['membership'] = Member.objects.get(user_account=request.user)
 
         context['public_api_key'] = get_stripe_public_key(request)
@@ -511,6 +511,62 @@ def organisation_payment(request):
             return HttpResponse(dumps(result))
 
 
+def payment_reminder(request, title, pk):
+    
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    # the member that needs reminding
+    member = Member.objects.get(id=pk)
+
+    subscription = membership_package.membership_package.get(member=member, membership_package=membership_package)
+    
+    # variables used to construct the email
+    temp_payment_method = subscription.payment_method
+    outstanding_string = ""
+    body = ""
+
+    # if payment_method == None, it is a card payment, and stripe can be used
+    if subscription.payment_method == None:
+        temp_payment_method = "Card payment"
+
+        # stripe subscription
+        stripe.api_key = get_stripe_secret_key(request)
+        stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
+        
+        # if payments are outstanding
+        if stripe_subscription.status == "past_due":
+            outstanding_string = f"<p>Payment to renew your subscription failed. Please try again or contact the owner or an admin of {membership_package.organisation_name}.</p>"
+
+        body = f"""<p>This is a reminder for you to pay for your subscription.</p>
+                    {outstanding_string}
+                    <ul>
+                        <li>Membership Organisation: {membership_package.organisation_name}</li>
+                        <li>Next Payment: £{"{:.2f}".format(int(subscription.price.amount) / 100)} due by {datetime.fromtimestamp(stripe_subscription.current_period_end)}.</li>
+                        <li>Payment Method: {temp_payment_method}</li>
+                        <li>Payment Interval: {subscription.price.interval}</li>
+                    </ul>
+                    """
+
+    # payment method is not card payment
+    else:
+        payment_method = subscription.payment_method
+        payment_info_string = ""
+        if payment_method.information != '':
+            payment_info_string = f"<li>Payment Information: {payment_method.information}</li>"
+        body = f"""<p>This is a reminder for you to pay for your subscription.
+                    <ul>
+                        <li>Membership Organisation: {membership_package.organisation_name}</li>
+                        <li>Amount Due: £{"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
+                        <li>Payment Method: {payment_method.payment_name}</li>
+                        <li>Payment Interval: {subscription.price.interval}</li>
+                        {payment_info_string}
+                    </ul>
+                    """
+    
+    send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email)
+
+    return redirect('membership_package', membership_package.organisation_name)
+
+
 def get_account_link(membership):
     account_link = stripe.AccountLink.create(
         account=membership.stripe_acct_id,
@@ -905,7 +961,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         result = validate_card(request, 'member', subscription.pk)
         if result['result'] == 'fail':
             return HttpResponse(dumps(result))
-
+        print(stripe.Invoice.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id))
         # new subscription
         subscription_details = stripe.Subscription.create(
             customer=subscription.stripe_id,
