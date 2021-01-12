@@ -6,7 +6,7 @@
 {% block header %}
 
 {% endblock %}
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
+
 {% block content %}
 
 <!-- Modal to remove member -->
@@ -52,14 +52,14 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
         </div>
         <div class="col-md-5 align-self-center d-none d-md-block">
             {% if stripe_package_setup %}
-                <div class="alert alert-warning" role="alert">
-                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe to set up your membership details. <a href="{{ stripe_package_setup.url }}"><button class="btn btn-sm btn-warning float-right">Go To Stripe</button></a>
+                <div class="alert alert-warning float-right" role="alert">
+                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe to set up your membership details.
                 </div>
 
             {% endif %}
             {% if account_link %}
-                <div class="alert alert-warning" role="alert">
-                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe for more information. <a href="{{ account_link.url }}"><button class="btn btn-sm btn-warning float-right">Go To Stripe</button></a>
+                <div class="alert alert-warning float-right" role="alert">
+                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe for more information.
                 </div>
             {% endif %}
         </div>
@@ -81,7 +81,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                     <div class="d-flex no-block align-items-center mb-4">
                         <h4 class="card-title">{{ membership_package.organisation_name }} Members Overview</h4>
                         <div class="ml-auto">
-                            <div class="btn-group">
+                            <div class="btn-list">
                                 {% if not stripe_package_setup %}
                                     <a href="{% url 'member_form' membership_package.organisation_name %}">
                                         <button type="button" class="btn btn-success">
@@ -93,28 +93,23 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         Add New Member
                                     </button>
                                 {% endif %}
-                                <a href="{% url 'manage_admins' membership_package.organisation_name %}">
-                                    <button type="button" class="btn btn-info-dark text-white ml-1">
-                                        Manage Admins
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Manage
                                     </button>
-                                </a>
-                                <a href="{% url 'manage_membership_types' membership_package.organisation_name %}">
-                                    <button type="button" class="btn btn-info-dark text-white ml-1">
-                                        Manage Membership Types
-                                    </button>
-                                </a>
-                                <a href="{% url 'members_detailed' membership_package.organisation_name %}">
-                                    <button type="button" class="btn btn-info-dark text-white ml-1">
-                                        Members Detailed
-                                    </button>
-                                </a>
-
+                                    <div class="dropdown-menu" style="">
+                                        <a class="dropdown-item" href="{% url 'manage_admins' membership_package.organisation_name %}">Admins</a>
+                                        <a class="dropdown-item" href="{% url 'manage_membership_types' membership_package.organisation_name %}">Membership Types</a>
+                                        <a class="dropdown-item" href="{% url 'manage_payment_methods' membership_package.organisation_name %}">Payment Methods</a>
+                                        <a class="dropdown-item" href="{% url 'members_detailed' membership_package.organisation_name %}">Members Detailed</a>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="table-responsive">
-                        <table id="file_export" class="table table-bordered nowrap display">
+                        <table id="default_order" class="table table-striped table-bordered display no-wrap" style="width:100%">
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -140,21 +135,24 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             </span>
                                         </td>
                                         <td>
-                                            {% if membership.payment_type == 'card_payment' %}
-                                                {% if membership.stripe_subscription_id %}
-                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Update Card Details" >
-                                                            <i class="fad fa-credit-card-front text-success"></i>
-                                                        </button>
-                                                    </a>
-                                                {% else %}
-                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card Details Not Added">
-                                                            <i class="fad fa-credit-card-front text-danger"></i>
-                                                        </button>
-                                                    </a>
+                                            {% for subscription in member.subscription.all %}
+                                                {% if subscription.membership_package == membership_package %}
+                                                    {% if subscription.payment_method or subscription.stripe_subscription_id %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                                <i class="fad fa-credit-card-front text-success"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% else %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% endif %}
                                                 {% endif %}
-                                            {% endif %}
+                                            {% endfor %}
+                                            <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
                                             <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
@@ -176,8 +174,8 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                 </tr>
                             </thead>
                             <tbody>
-                                    <tr>
                                 {% for member in incomplete_members.all %}
+                                    <tr>
                                         <td>
                                             <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
                                         </td>
@@ -188,28 +186,32 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                             </span>
                                         </td>
                                         <td>
-                                            {% if membership.payment_type == 'card_payment' %}
-                                                {% if membership.stripe_subscription_id %}
-                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Update Card Details">
-                                                            <i class="fad fa-credit-card-front text-success"></i>
-                                                        </button>
-                                                    </a>
-                                                {% else %}
-                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card Details Not Added">
-                                                            <i class="fad fa-credit-card-front text-danger"></i>
-                                                        </button>
-                                                    </a>
+                                            {% for subscription in member.subscription.all %}
+                                                {% if subscription.membership_package == membership_package %}
+                                                    {% if subscription.payment_method or subscription.stripe_subscription_id %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                                <i class="fad fa-credit-card-front text-success"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% else %}
+                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                            </button>
+                                                        </a>
+                                                    {% endif %}
                                                 {% endif %}
-                                            {% endif %}
+                                            {% endfor %}
+
                                             <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}"><i class="fad fa-key text-success"></i></button>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
-                                {% empty %}
-                                        <td colspan="4">No data available in table</td>
-                                {% endfor %}
                                     </tr>
+                                {% empty %}
+                                    <td colspan="4">No incomplete members</td>
+                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
@@ -345,26 +347,13 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
 {% block footer %}
     <script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
-    <!-- start - This is for export functionality only -->
-    <script src="https://cdn.datatables.net/buttons/1.5.1/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.flash.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.print.min.js"></script>
+
     <script>
-        $('#file_export').DataTable({
-            dom: 'Bfrtip',
-            buttons: [
-                'copy', 'csv', 'excel', 'pdf', 'print'
-            ],
-            "language": {
-                            "search": "Filter members:"
-                          },
-            "pagingType": "full_numbers"
+        $('#default_order').DataTable({
+            "order": [
+                [1, "desc"]
+            ]
         });
-        $('.buttons-copy, .buttons-csv, .buttons-print, .buttons-pdf, .buttons-excel').addClass('btn btn-info float-right mr-1');
     </script>
 
     <script>
@@ -372,5 +361,25 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
             $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + $(this).attr("value"))
             $('#remove-member-modal').modal('show');
         });
+
+        $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
+            console.log($(this).attr("value"));
+            $.ajax({
+                url:"{% url 'account_reset_password' %}",
+                type:"POST",
+                data: {
+                    "email": $(this).attr("value"),
+                    "csrfmiddlewaretoken": "{{ csrf_token }}",
+                },
+               success: function (){
+                    infoMsg("Reset email sent successfully!");
+               },
+                error:function (er) {
+                    errorMsg("Password reset failed!",er);
+                }
+            });
+        });
+
+
     </script>
 {% endblock %}

@@ -82,6 +82,13 @@ ACCOUNT_FORMS = {'signup': 'memberships.forms.CustomSignupForm'}
 TIME_FORMAT = 'H:i'
 DATETIME_FORMAT = 'd/m/Y H:i'
 DATETIME_INPUT_FORMATS = ['%d/%m/%Y %H:%M']
+DATE_FORMAT = 'd/m/Y'
+DATE_INPUT_FORMATS = ['%d/%m/%Y', '%d-%m-%Y',
+                      '%Y-%m-%d', '%m/%d/%Y', '%m/%d/%y', # '2006-10-25', '10/25/2006', '10/25/06'
+                      '%b %d %Y', '%b %d, %Y',            # 'Oct 25 2006', 'Oct 25, 2006'
+                      '%d %b %Y', '%d %b, %Y',            # '25 Oct 2006', '25 Oct, 2006'
+                      '%B %d %Y', '%B %d, %Y',            # 'October 25 2006', 'October 25, 2006'
+                      '%d %B %Y', '%d %B, %Y']
 
 LANGUAGE_CODE = 'en-gb'
 

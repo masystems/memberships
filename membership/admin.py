@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import MembershipPackage, Price, Member, MembershipSubscription, Equine, Donation
+from .models import MembershipPackage, Price, PaymentMethod, Member, MembershipSubscription, Payment, Equine, Donation
 
 
 class MembershipPackagesAdmin(admin.ModelAdmin):
@@ -47,3 +47,5 @@ admin.site.register(Equine, EquestrianAdmin)
 admin.site.register(MembershipSubscription)
 admin.site.register(Donation)
 admin.site.register(Price)
+admin.site.register(PaymentMethod)
+admin.site.register(Payment)

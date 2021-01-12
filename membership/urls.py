@@ -7,6 +7,7 @@ urlpatterns = [
     path('org/<str:title>', views.MembershipPackageView.as_view(), name="membership_package"),
     path('org/<str:title>/manage-admins', views.manage_admins, name="manage_admins"),
     path('org/<str:title>/manage-membership-types', views.manage_membership_types, name="manage_membership_types"),
+    path('org/<str:title>/manage-payment-methods', views.manage_payment_methods, name="manage_payment_methods"),
     path('org/select-package', views.SelectMembershipPackageView.as_view(), name="select_package"),
     path('organisation-payment', views.organisation_payment, name='organisation_payment'),
     path('create-package-on-stripe', views.create_package_on_stripe, name='create_package_on_stripe'),
