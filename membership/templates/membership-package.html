@@ -137,24 +137,24 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         <td>
                                             {% for subscription in member.subscription.all %}
                                                 {% if subscription.membership_package == membership_package %}
-                                                    {% if subscription.payment_method or subscription.stripe_subscription_id %}
-                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
-                                                                <i class="fad fa-credit-card-front text-success"></i>
-                                                            </button>
-                                                        </a>
-                                                    {% else %}
+                                                    <!--{% if subscription.payment_method or subscription.stripe_subscription_id %}-->
+                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Visit Payment Page">
+                                                            <i class="fad fa-credit-card-front text-success"></i>
+                                                        </button>
+                                                    </a>
+                                                    <!-- {% else %}
                                                         <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
                                                             <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
                                                                 <i class="fad fa-credit-card-front text-danger"></i>
                                                             </button>
                                                         </a>
-                                                    {% endif %}
+                                                    {% endif %} -->
                                                 {% endif %}
                                             {% endfor %}
-                                            <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1"><i class="fad fa-user-edit text-info"></i></button></a>
-                                            <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnCom" value="{{ member.user_account.email }}"><i class="fad fa-key text-success"></i></button>
-                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                            <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                             <!-- Button to send payment reminder -->
                                             <a href="{% url 'payment_reminder' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>
                                         </td>
@@ -190,24 +190,23 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                         <td>
                                             {% for subscription in member.subscription.all %}
                                                 {% if subscription.membership_package == membership_package %}
-                                                    {% if subscription.payment_method or subscription.stripe_subscription_id %}
+                                                    <!--{% if subscription.payment_method or subscription.stripe_subscription_id %}
                                                         <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
                                                             <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
                                                                 <i class="fad fa-credit-card-front text-success"></i>
                                                             </button>
                                                         </a>
-                                                    {% else %}
-                                                        <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                                <i class="fad fa-credit-card-front text-danger"></i>
-                                                            </button>
-                                                        </a>
-                                                    {% endif %}
+                                                    {% else %}-->
+                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                            <i class="fad fa-credit-card-front text-danger"></i>
+                                                        </button>
+                                                    </a>
+                                                    <!--{% endif %}-->
                                                 {% endif %}
                                             {% endfor %}
-
                                             <a href="{% url 'edit_member' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
-                                            <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}"><i class="fad fa-key text-success"></i></button>
+                                            <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>
                                             <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
                                         </td>
                                     </tr>
