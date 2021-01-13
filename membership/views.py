@@ -515,6 +515,7 @@ def organisation_payment(request):
             return HttpResponse(dumps(result))
 
 
+@login_required(login_url='/accounts/login/')
 def payment_reminder(request, title, pk):
     
     membership_package = MembershipPackage.objects.get(organisation_name=title)
