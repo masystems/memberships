@@ -1095,6 +1095,7 @@ def update_user(request, pk):
     return HttpResponse(False)
 
 
+@login_required(login_url="/accounts/login")
 def validate_card(request, type, pk=0):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
