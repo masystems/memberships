@@ -117,6 +117,7 @@ def manage_admins(request, title):
         return render(request, 'manage-admins.html', {'membership_package': membership_package})
 
 
+@login_required(login_url='/accounts/login/')
 def manage_membership_types(request, title):
     # validate request user is owner or admin of org
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
