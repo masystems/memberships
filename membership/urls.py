@@ -23,4 +23,5 @@ urlpatterns = [
     path('delete-membership-package/<str:title>', views.delete_membership_package, name="delete_membership_package"),
     path('remove-member/<str:title>/<int:pk>', views.remove_member, name="remove_member"),
     path('update_user/<int:pk>', views.update_user, name='update_user'),
+    path('payment-reminder/<str:title>/<int:pk>', views.payment_reminder, name='payment_reminder'),
 ]
