@@ -31,6 +31,13 @@ def generate_site_vars(request):
     return context
 
 
+def check_authentication(request):
+    if request.user.is_authenticated:
+        return
+    else:
+        return redirect('/accounts/login/')
+
+
 class MembershipBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -282,6 +289,36 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         # disallow access to page
         return HttpResponseRedirect('/')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['membership_package'] = MembershipPackage.objects.filter(Q(owner=self.request.user, organisation_name=self.kwargs['title']) |
+                                                                         Q(admins=self.request.user, organisation_name=self.kwargs['title'])).distinct()
+        # sigh
+        context['membership_package'] = context['membership_package'][0]
+
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False).distinct()
+
+        context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
+
+
+        # get strip secret key
+        stripe.api_key = get_stripe_secret_key(self.request)
+        context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
+
+        if context['membership_package'].stripe_acct_id:
+            try:
+                context['edit_account'] = stripe.Account.create_login_link(context['membership_package'].stripe_acct_id)
+            except stripe.error.InvalidRequestError:
+                # stripe account created but not setup
+                context['stripe_package_setup'] = get_account_link(context['membership_package'])
+            if context['stripe_package'].requirements.errors:
+                context['account_link'] = get_account_link(context['membership_package'])
+        else:
+            # stripe account not setup
+            context['stripe_package_setup'] = create_package_on_stripe(self.request)
+        return context
+    
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
