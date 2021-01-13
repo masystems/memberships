@@ -188,7 +188,7 @@
                                             </div>
                                             <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
                                                 <br>
-                                                <p class="text-muted">{{ subscription.payment_type|choicefieldformat }}</p>
+                                                <p class="text-muted">{{ subscription.payment_method.payment_name|choicefieldformat }}</p>
                                             </div>
                                             {% if subscription.billing_period == "monthly" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
