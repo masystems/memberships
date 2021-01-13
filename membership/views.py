@@ -188,6 +188,7 @@ def manage_membership_types(request, title):
                                                                 'membership_types_list': membership_types_list})
 
 
+@login_required(login_url='/accounts/login/')
 def manage_payment_methods(request, title):
     # validate request user is owner or admin of org
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
