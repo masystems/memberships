@@ -81,6 +81,8 @@ class EquineForm(forms.ModelForm):
                    'subscription')
         widgets = {
             'date_resigned': forms.DateInput(attrs={'class': 'form-control datepicker'}),
+            'date_entered': forms.DateInput(attrs={'class': 'form-control datepicker'}),
+            'date_updated': forms.DateInput(attrs={'class': 'form-control datepicker'}),
             'animal_owner': forms.CheckboxInput(attrs={'class': ''}),
             'badge': forms.CheckboxInput(attrs={'class': ''}),
             'expired': forms.DateInput(attrs={'class': 'form-control datepicker'}),
