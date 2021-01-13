@@ -401,6 +401,7 @@ def delete_membership_package(request, title):
     return redirect('/')
 
 
+@login_required(login_url='/accounts/login/')
 def create_package_on_stripe(request):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
