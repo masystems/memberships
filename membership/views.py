@@ -995,6 +995,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         return HttpResponse(dumps(result))
 
 
+@login_required(login_url="/accounts/login")
 def update_membership_type(request, title, pk):
     if request.method == 'POST':
         if not request.POST.get('membership_type'):
