@@ -437,6 +437,7 @@ def create_package_on_stripe(request):
     return get_account_link(membership_package)
 
 
+@login_required(login_url='/accounts/login/')
 def organisation_payment(request):
     if request.POST:
         membership_package = MembershipPackage.objects.get(owner=request.user)
