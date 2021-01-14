@@ -655,7 +655,7 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
             return HttpResponseRedirect('/')
         # redirect to login page if user not logged in
         else:
-            return HttpResponseRedirect(f"{get_login_url()}members-detailed/{kwargs['title']}")
+            return HttpResponseRedirect(f"{get_login_url()}members-detailed/{self.kwargs['title']}")
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -898,23 +898,28 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         return initial
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                Q(admins=self.request.user),
-                                                  organisation_name=kwargs['title']).exists():
-            # disallow access to page
-            return HttpResponseRedirect('/')
+            if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                    Q(admins=self.request.user),
+                                                    organisation_name=kwargs['title']).exists():
+                # disallow access to page
+                return HttpResponseRedirect('/')
 
-        #kwargs.update({'foo': 'bar'})  # inject the foo value
-        # now process dispatch as it otherwise normally would
-        return super().dispatch(request, *args, **kwargs)
+            #kwargs.update({'foo': 'bar'})  # inject the foo value
+            # now process dispatch as it otherwise normally would
+            return super().dispatch(request, *args, **kwargs)
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"{get_login_url()}edit-member/{self.kwargs['title']}/{self.kwargs['pk']}")
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
