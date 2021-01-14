@@ -31,6 +31,18 @@ def generate_site_vars(request):
     return context
 
 
+# this function is not used, as it wouldn't work. Instead, the check is done inside each dispatch method.
+def check_authentication(request):
+    if request.user.is_authenticated:
+        return
+    else:
+        return redirect('/accounts/login/')
+
+
+def get_login_url():
+    return "/accounts/login/?next=/membership/"
+
+
 class MembershipBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,6 +129,7 @@ def manage_admins(request, title):
         return render(request, 'manage-admins.html', {'membership_package': membership_package})
 
 
+@login_required(login_url='/accounts/login/')
 def manage_membership_types(request, title):
     # validate request user is owner or admin of org
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
@@ -187,6 +200,7 @@ def manage_membership_types(request, title):
                                                                 'membership_types_list': membership_types_list})
 
 
+@login_required(login_url='/accounts/login/')
 def manage_payment_methods(request, title):
     # validate request user is owner or admin of org
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
@@ -325,24 +339,59 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
     login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user),
-                                            organisation_name=kwargs['title'],
-                                            enabled=True).exists():
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+            if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                organisation_name=kwargs['title'],
+                                                enabled=True).exists():
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
 
-        # disallow access to page
-        return HttpResponseRedirect('/')
+            # disallow access to page
+            return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"{get_login_url()}org/{kwargs['title']}")
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['membership_package'] = MembershipPackage.objects.filter(Q(owner=self.request.user, organisation_name=self.kwargs['title']) |
+                                                                         Q(admins=self.request.user, organisation_name=self.kwargs['title'])).distinct()
+        # sigh
+        context['membership_package'] = context['membership_package'][0]
+
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False).distinct()
+
+        context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
+
+
+        # get strip secret key
+        stripe.api_key = get_stripe_secret_key(self.request)
+        context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
+
+        if context['membership_package'].stripe_acct_id:
+            try:
+                context['edit_account'] = stripe.Account.create_login_link(context['membership_package'].stripe_acct_id)
+            except stripe.error.InvalidRequestError:
+                # stripe account created but not setup
+                context['stripe_package_setup'] = get_account_link(context['membership_package'])
+            if context['stripe_package'].requirements.errors:
+                context['account_link'] = get_account_link(context['membership_package'])
+        else:
+            # stripe account not setup
+            context['stripe_package_setup'] = create_package_on_stripe(self.request)
+        return context
+    
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -462,6 +511,7 @@ def delete_membership_package(request, title):
     return redirect('/')
 
 
+@login_required(login_url='/accounts/login/')
 def create_package_on_stripe(request):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
@@ -498,6 +548,7 @@ def create_package_on_stripe(request):
     return get_account_link(membership_package)
 
 
+@login_required(login_url='/accounts/login/')
 def organisation_payment(request):
     if request.POST:
         membership_package = MembershipPackage.objects.get(owner=request.user)
@@ -574,6 +625,7 @@ def organisation_payment(request):
             return HttpResponse(dumps(result))
 
 
+@login_required(login_url='/accounts/login/')
 def payment_reminder(request, title, pk):
     
     membership_package = MembershipPackage.objects.get(organisation_name=title)
@@ -644,24 +696,29 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
     template_name = 'members_detailed.html'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user),
-                                            organisation_name=kwargs['title'],
-                                            enabled=True).exists():
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+            if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                organisation_name=kwargs['title'],
+                                                enabled=True).exists():
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
 
-        # disallow access to page
-        return HttpResponseRedirect('/')
+            # disallow access to page
+            return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"{get_login_url()}members-detailed/{self.kwargs['title']}")
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -904,23 +961,28 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         return initial
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                Q(admins=self.request.user),
-                                                  organisation_name=kwargs['title']).exists():
-            # disallow access to page
-            return HttpResponseRedirect('/')
+            if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                    Q(admins=self.request.user),
+                                                    organisation_name=kwargs['title']).exists():
+                # disallow access to page
+                return HttpResponseRedirect('/')
 
-        #kwargs.update({'foo': 'bar'})  # inject the foo value
-        # now process dispatch as it otherwise normally would
-        return super().dispatch(request, *args, **kwargs)
+            #kwargs.update({'foo': 'bar'})  # inject the foo value
+            # now process dispatch as it otherwise normally would
+            return super().dispatch(request, *args, **kwargs)
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"{get_login_url()}edit-member/{self.kwargs['title']}/{self.kwargs['pk']}")
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -977,29 +1039,33 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
     login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        # allow access if requesting user is an owner or admin or if page belongs to the member
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user),
-                                              organisation_name=kwargs['title']).exists() \
-                                              or Member.objects.filter(id=self.kwargs['pk'],
-                                                                       subscription=MembershipSubscription.objects.get(member=Member.objects.get(id=self.kwargs['pk']),
-                                                                                                                       membership_package=MembershipPackage.objects.get(organisation_name=kwargs['title'])),
-                                                                       user_account=self.request.user).exists():
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
+            # allow access if requesting user is an owner or admin or if page belongs to the member
+            if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                organisation_name=kwargs['title']).exists() \
+                                                or Member.objects.filter(id=self.kwargs['pk'],
+                                                                        subscription=MembershipSubscription.objects.get(member=Member.objects.get(id=self.kwargs['pk']),
+                                                                                                                        membership_package=MembershipPackage.objects.get(organisation_name=kwargs['title'])),
+                                                                        user_account=self.request.user).exists():
 
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
+            else:
+                # disallow access to page
+                return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
         else:
-            # disallow access to page
-            return HttpResponseRedirect('/')
-
+            return HttpResponseRedirect(f"{get_login_url()}member-payment/{self.kwargs['title']}/{self.kwargs['pk']}")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1055,6 +1121,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         return HttpResponse(dumps(result))
 
 
+@login_required(login_url="/accounts/login")
 def update_membership_type(request, title, pk):
     if request.method == 'POST':
         if not request.POST.get('membership_type'):
@@ -1080,28 +1147,33 @@ class MemberProfileView(MembershipBase):
     login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        # allow access if requesting user is and owner or admin of one of members subscriptions
-        # OR
-        # if page is members own profile
-        member = Member.objects.get(id=self.kwargs['pk'])
-        if request.user == member.user_account:
-            return super().dispatch(request, *args, **kwargs)
-        for subscription in member.subscription.all():
-            if self.request.user == subscription.membership_package.owner or \
-                    self.request.user in subscription.membership_package.admins.all():
-                # kwargs.update({'foo': 'bar'})  # inject the foo value
-                # now process dispatch as it otherwise normally would
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
+            # allow access if requesting user is and owner or admin of one of members subscriptions
+            # OR
+            # if page is members own profile
+            member = Member.objects.get(id=self.kwargs['pk'])
+            if request.user == member.user_account:
                 return super().dispatch(request, *args, **kwargs)
+            for subscription in member.subscription.all():
+                if self.request.user == subscription.membership_package.owner or \
+                        self.request.user in subscription.membership_package.admins.all():
+                    # kwargs.update({'foo': 'bar'})  # inject the foo value
+                    # now process dispatch as it otherwise normally would
+                    return super().dispatch(request, *args, **kwargs)
+            else:
+                # disallow access to page
+                return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
         else:
-            # disallow access to page
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect(f"{get_login_url()}member-profile/{self.kwargs['pk']}")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1154,6 +1226,7 @@ def update_user(request, pk):
     return HttpResponse(False)
 
 
+@login_required(login_url="/accounts/login")
 def validate_card(request, type, pk=0):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
