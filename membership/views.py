@@ -808,18 +808,18 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.user.last_name = self.form.cleaned_data['last_name']
         self.user.save()
 
-        # send confirmation email
-        body = f"""<p>This is a confirmation email for your new Organisation Subscription.
+        # # send confirmation email
+        # body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 
-                                       <ul>
-                                       <li>Congratulations, you are now a member of {self.context['membership_package']} Organisation.</li>
-                                       </ul>
+        #                                <ul>
+        #                                <li>Congratulations, you are now a member of {self.context['membership_package']} Organisation.</li>
+        #                                </ul>
 
-                                       <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+        #                                <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
 
-                                       """
-        send_email(f"Organisation Confirmation: {self.context['membership_package']}",
-                   self.user.get_full_name(), body, send_to=self.user.email, reply_to=self.user.email)
+        #                                """
+        # send_email(f"Organisation Confirmation: {self.context['membership_package']}",
+        #            self.user.get_full_name(), body, send_to=self.user.email, reply_to=self.user.email)
 
 
 
