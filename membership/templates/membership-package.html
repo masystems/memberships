@@ -316,16 +316,14 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
             "paging": true,
             "ajax": {
                 "url": "{% url 'get_members' membership_package.organisation_name %}",
-                dataSrc: function ( json ) {
-                    return json;
-                }
             },
             "columns": [
-            { "data": "name" },
-            { "data": "email" },
-            { "data": "membership_type" },
-            { "data": "action" },
-        ]
+            { data: "name" },
+            { data: "email" },
+            { data: "membership_type" },
+            { data: "action" },
+        ],
+        colReorder: true
         });
     } );
     </script>

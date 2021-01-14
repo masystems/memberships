@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect, get_object_or_404, reverse
-from django.http import JsonResponse
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -257,7 +256,7 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         return super().get(*args, **kwargs)
 
-from django.urls import reverse
+
 def get_members(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     start = int(request.GET.get('start', 0))
@@ -312,8 +311,13 @@ def get_members(request, title):
                         'email': member.user_account.email,
                         'membership_type': membership_type,
                         'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
-
-    return HttpResponse(dumps(members))
+        data = {
+          "draw": 5,
+          "recordsTotal": all_members.count(),
+          "recordsFiltered": all_members.count(),
+          "data": members
+        }
+    return HttpResponse(dumps(data))
 
 
 class MembershipPackageView(LoginRequiredMixin, MembershipBase):
