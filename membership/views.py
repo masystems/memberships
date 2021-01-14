@@ -267,9 +267,9 @@ def get_members(request, title):
     if search == "":
         all_members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()[start:start+end]
     else:
-        all_members = Member.objects.filter(Q(user_account__first_name__contains=search),
-                                            Q(user_account__last_name__contains=search),
-                                            Q(user_account__email__contains=search),
+        all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
+                                            Q(user_account__last_name__contains=search) |
+                                            Q(user_account__email__contains=search) |
                                             Q(user_account__email__contains=search),
                                             subscription__membership_package=membership_package,
                                             subscription__price__isnull=False).distinct()[start:start + end]
