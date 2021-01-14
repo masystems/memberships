@@ -262,8 +262,17 @@ def get_members(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     start = int(request.GET.get('start', 0))
     end = int(request.GET.get('length', 20))
+    search = request.GET.get('search[value]', "")
     members = []
-    all_members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()[start:start+end]
+    if search == "":
+        all_members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()[start:start+end]
+    else:
+        all_members = Member.objects.filter(Q(user_account__first_name__contains=search),
+                                            Q(user_account__last_name__contains=search),
+                                            Q(user_account__email__contains=search),
+                                            Q(user_account__email__contains=search),
+                                            subscription__membership_package=membership_package,
+                                            subscription__price__isnull=False).distinct()[start:start + end]
     for member in all_members:
         # get membership type
         for sub in member.subscription.all():
