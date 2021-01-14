@@ -633,24 +633,29 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
     template_name = 'members_detailed.html'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user),
-                                            organisation_name=kwargs['title'],
-                                            enabled=True).exists():
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+            if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                organisation_name=kwargs['title'],
+                                                enabled=True).exists():
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
 
-        # disallow access to page
-        return HttpResponseRedirect('/')
+            # disallow access to page
+            return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"{get_login_url()}members-detailed/{kwargs['title']}")
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
