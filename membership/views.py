@@ -200,11 +200,11 @@ def manage_payment_methods(request, title):
     visible = True
 
     if request.method == "POST":
-        print(request.POST)
-        # capture active value from form
+        # capture if active value given from form
         if request.POST.get('active') != "on":
             active = False
 
+        # capture if visible value given from form
         if request.POST.get('visible') != "on":
             visible = False
 

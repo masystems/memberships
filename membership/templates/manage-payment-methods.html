@@ -128,7 +128,6 @@
                                     $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
                                 });
                                 $("#saveTypeForm{{ forloop.counter }}").click(function(){
-                                    console.log($('#editPaymentMethodForm{{ forloop.counter }}').serialize());
                                     $.ajax({
                                         url: '{% url 'manage_payment_methods' membership_package.organisation_name %}',
                                         type: 'POST',
