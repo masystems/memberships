@@ -1067,6 +1067,20 @@ def update_membership_type(request, title, pk):
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')),
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
                                                                                                                                              membership_package=package))
+            
+            # send confirmation email to new member
+            body = f"""<p>This is a confirmation email for your new Organisation Subscription.
+
+                                        <ul>
+                                        <li>Congratulations, you are now a member of {package.organisation_name} Organisation.</li>
+                                        </ul>
+
+                                        <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+
+                                        """
+            send_email(f"Organisation Confirmation: {package.organisation_name}",
+                    member.user_account.get_full_name(), body, send_to=member.user_account.email)
+            
             return HttpResponse(dumps({'status': "success",
                                        'redirect': True}), content_type='application/json')
         else:
