@@ -31,11 +31,16 @@ def generate_site_vars(request):
     return context
 
 
+# this function is not used, as it wouldn't work. Instead, the check is done inside each dispatch method.
 def check_authentication(request):
     if request.user.is_authenticated:
         return
     else:
         return redirect('/accounts/login/')
+
+
+def get_login_url():
+    return "/accounts/login/?next=/membership/"
 
 
 class MembershipBase(TemplateView):
@@ -293,7 +298,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
             return HttpResponseRedirect('/')
         # redirect to login page if user not logged in
         else:
-            return HttpResponseRedirect(f"/accounts/login/?next=/membership/org/{kwargs['title']}")
+            return HttpResponseRedirect(f"{get_login_url()}org/{kwargs['title']}")
         
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
