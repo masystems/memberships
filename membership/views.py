@@ -141,8 +141,12 @@ def manage_membership_types(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
+    visible_value = True
 
     if request.method == "POST":
+        if 'visible' not in request.POST:
+            visible_value = False
+
         # nickname validation
         if request.POST.get('nickname') in ("", None):
             return HttpResponse(dumps({'status': "fail",
@@ -163,7 +167,7 @@ def manage_membership_types(request, title):
                     # unit_amount=int(float(request.POST.get('amount')) * 100),
                     stripe_account=membership_package.stripe_acct_id
                 )
-                Price.objects.filter(stripe_price_id=request.POST.get('type_id')).update(nickname=price.nickname)
+                Price.objects.filter(stripe_price_id=request.POST.get('type_id')).update(nickname=price.nickname, visible=visible_value)
                 return HttpResponse(dumps({'status': "success",
                                            'message': "Price successfully updated"}), content_type='application/json')
 
@@ -183,6 +187,7 @@ def manage_membership_types(request, title):
                                      stripe_price_id=price.id,
                                      nickname=price.nickname,
                                      interval=price.recurring.interval,
+                                     visible=visible_value,
                                      amount=price.unit_amount,
                                      active=True)
                 return HttpResponse(dumps({'status': "success",
@@ -193,11 +198,15 @@ def manage_membership_types(request, title):
 
     else:
         membership_types_list = []
+        price_list = []
+
         for price in Price.objects.filter(membership_package=membership_package, active=True):
-            membership_types_list.append(stripe.Price.retrieve(price.stripe_price_id,
-                                                               stripe_account=membership_package.stripe_acct_id))
+            membership_types_list.append(stripe.Price.retrieve(price.stripe_price_id, stripe_account=membership_package.stripe_acct_id))
+            price_list.append(price.visible)
+
         return render(request, 'manage-membership-types.html', {'membership_package': membership_package,
-                                                                'membership_types_list': membership_types_list})
+                                                                'membership_types_list': membership_types_list,
+                                                                'price_list': price_list})
 
 
 @login_required(login_url='/accounts/login/')

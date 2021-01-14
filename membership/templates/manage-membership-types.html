@@ -61,7 +61,7 @@
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Add/Remove Membership Types</h4>
-                    <div id="adminFields" class=" m-t-20">
+                    <div id="adminFields" class="m-t-20">
                         {% for type in membership_types_list %}
                             <div class="form-group removeType{{ forloop.counter }}">
                                 <form id="editTypeForm{{ forloop.counter }}" class="row">
@@ -88,6 +88,14 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="col-0">
+                                         <li class="py-1 px-1 d-inline-flex align-items-center">
+                                            <div class="checkbox checkbox-success float-center">
+                                                <input id="visible{{ forloop.counter }}" name="visible" value="{{ price_list|index:forloop.counter0 }}" type="checkbox" checked>
+                                                <label for="visible{{ forloop.counter }}"> Visible</label>
+                                            </div>
+                                        </li>
+                                    </div>
                                     <div class="col-sm-2">
                                         <div class="form-group">
                                             <input type="hidden" id="price_id{{ forloop.counter }}" name="type_id" value="{{ type.id }}">
@@ -103,14 +111,31 @@
                                 </form>
                             </div>
                             <script>
+                                $(document).ready(function() {
+                                    if ($("#visible{{ forloop.counter }}").val() == "True"){
+                                        $("#visible{{ forloop.counter }}").attr('checked', true);
+                                    } else {
+                                        $("#visible{{ forloop.counter }}").attr('checked', false);
+                                    }
+                                });
+
+
                                 $('#nickname{{ forloop.counter }}').on('input',function(e){
-                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none');
                                 });
                                 $( "#interval{{ forloop.counter }}" ).change(function() {
-                                  $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                  $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none');
                                 });
                                 $('#amount{{ forloop.counter }}').on('input',function(e){
-                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none');
+                                });
+                                $('#visible{{ forloop.counter }}').change(function() {
+                                    if ($(this).is(':checked')) {
+                                        $(this).attr('value', 'True');
+                                      } else {
+                                        $(this).attr('value', 'False');
+                                      }
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none');
                                 });
                                 $("#saveTypeForm{{ forloop.counter }}").click(function(){
                                     $.ajax({
@@ -186,6 +211,14 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-0">
+                             <li class="py-1 px-1s d-inline-flex align-items-center">
+                                <div class="checkbox checkbox-success float-center">
+                                    <input id="visible{{ forloop.counter }}" value="True" name="visible" type="checkbox" checked>
+                                    <label for="visible{{ forloop.counter }}"> Visible</label>
+                                </div>
+                            </li>
+                        </div>
                         <div class="col-sm-2">
                             <div class="form-group">
                                 <button class="btn btn-success" data-toggle="tooltip" id="saveTypeForm" type="button">
@@ -210,6 +243,14 @@
 
 {% block footer %}
     <script>
+        $('#visible{{ forloop.counter }}').change(function() {
+            if ($(this).is(':checked')) {
+                $(this).attr('value', 'True');
+              } else {
+                $(this).attr('value', 'False');
+              }
+            $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none');
+        });
         $("#saveTypeForm").click(function(){
             $.ajax({
                 url: '{% url 'manage_membership_types' membership_package.organisation_name %}',
@@ -218,7 +259,8 @@
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
                 data: $('#addMembershipTypeForm').serialize(),
-                beforeSend: function() {
+                beforeSend: function(data) {
+                    console.log(data);
                 },
                 success: function(data) {
                     var result = JSON.parse(data);
