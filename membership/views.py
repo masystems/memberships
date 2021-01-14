@@ -1083,28 +1083,33 @@ class MemberProfileView(MembershipBase):
     login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        # allow access if requesting user is and owner or admin of one of members subscriptions
-        # OR
-        # if page is members own profile
-        member = Member.objects.get(id=self.kwargs['pk'])
-        if request.user == member.user_account:
-            return super().dispatch(request, *args, **kwargs)
-        for subscription in member.subscription.all():
-            if self.request.user == subscription.membership_package.owner or \
-                    self.request.user in subscription.membership_package.admins.all():
-                # kwargs.update({'foo': 'bar'})  # inject the foo value
-                # now process dispatch as it otherwise normally would
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
+            # allow access if requesting user is and owner or admin of one of members subscriptions
+            # OR
+            # if page is members own profile
+            member = Member.objects.get(id=self.kwargs['pk'])
+            if request.user == member.user_account:
                 return super().dispatch(request, *args, **kwargs)
+            for subscription in member.subscription.all():
+                if self.request.user == subscription.membership_package.owner or \
+                        self.request.user in subscription.membership_package.admins.all():
+                    # kwargs.update({'foo': 'bar'})  # inject the foo value
+                    # now process dispatch as it otherwise normally would
+                    return super().dispatch(request, *args, **kwargs)
+            else:
+                # disallow access to page
+                return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
         else:
-            # disallow access to page
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect(f"{get_login_url()}member-profile/{self.kwargs['pk']}")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
