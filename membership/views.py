@@ -959,12 +959,13 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
 
         subscription = MembershipSubscription.objects.get(member=self.member,
                                                           membership_package=self.context['membership_package'])
-        stripe_customer = stripe.Customer.modify(
-            subscription.stripe_id,
-            name=self.member.user_account.get_full_name(),
-            email=self.member.user_account.email,
-            stripe_account=self.context['membership_package'].stripe_acct_id
-        )
+        if subscription.stripe_id:
+            stripe_customer = stripe.Customer.modify(
+                subscription.stripe_id,
+                name=self.member.user_account.get_full_name(),
+                email=self.member.user_account.email,
+                stripe_account=self.context['membership_package'].stripe_acct_id
+            )
 
 
 class MemberPaymentView(LoginRequiredMixin, MembershipBase):
