@@ -17,3 +17,8 @@ def price(value):
 @register.filter
 def choicefieldformat(value):
     return value.replace('_', ' ').title()
+
+
+@register.filter
+def index(indexable, i):
+    return indexable[i]
