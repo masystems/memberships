@@ -219,12 +219,17 @@ def manage_payment_methods(request, title):
         return redirect('dashboard')
 
     membership_package = MembershipPackage.objects.get(organisation_name=title)
+    active = True
+    visible = True
+
     if request.method == "POST":
-        # capture active value from form
-        if request.POST.get('active') == "on":
-            active = True
-        else:
+        # capture if active value given from form
+        if request.POST.get('active') != "on":
             active = False
+
+        # capture if visible value given from form
+        if request.POST.get('visible') != "on":
+            visible = False
 
         if request.POST.get('type_id'):
             if request.POST.get('type') == "delete":
@@ -237,6 +242,7 @@ def manage_payment_methods(request, title):
                 PaymentMethod.objects.filter(id=request.POST.get('type_id')).update(
                     payment_name=request.POST.get('payment_name'),
                     information=request.POST.get('information'),
+                    visible=visible,
                     active=active)
                 return HttpResponse(dumps({'status': "success",
                                            'message': f"{request.POST.get('payment_name')} successfully updated"}), content_type='application/json')
@@ -246,6 +252,7 @@ def manage_payment_methods(request, title):
             PaymentMethod.objects.create(membership_package=membership_package,
                                          payment_name=request.POST.get('payment_name'),
                                          information=request.POST.get('information'),
+                                         visible=visible,
                                          active=active)
             return HttpResponse(dumps({'status': "success",
                                        'message': f"{request.POST.get('payment_name')} successfully added"}), content_type='application/json')

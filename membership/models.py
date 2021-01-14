@@ -68,6 +68,7 @@ class PaymentMethod(models.Model):
     # payment_type = models.CharField(max_length=19, choices=PAYMENT_TYPE, null=True, default='card_payment',
     #                                 help_text="Payment type used by member")
     information = models.TextField(blank=True)
+    visible = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
 
     def __str__(self):
