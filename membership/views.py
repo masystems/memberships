@@ -271,25 +271,30 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
     login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user),
-                                            organisation_name=kwargs['title'],
-                                            enabled=True).exists():
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+            if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                organisation_name=kwargs['title'],
+                                                enabled=True).exists():
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
 
-        # disallow access to page
-        return HttpResponseRedirect('/')
-
+            # disallow access to page
+            return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"/accounts/login/?next=/membership/org/{kwargs['title']}")
+        
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['membership_package'] = MembershipPackage.objects.filter(Q(owner=self.request.user, organisation_name=self.kwargs['title']) |
