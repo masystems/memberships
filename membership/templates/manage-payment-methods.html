@@ -68,7 +68,7 @@
                         {% for type in payment_methods.all %}
                             <div class="form-group removeType{{ forloop.counter }}">
                                 <form id="editPaymentMethodForm{{ forloop.counter }}" class="row">
-                                    <div class="col-sm-3">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <input type="text" class="form-control" id="payment_name{{ forloop.counter }}" name="payment_name" value="{{ type.payment_name }}">
                                         </div>
@@ -78,7 +78,7 @@
                                             <textarea type="text" class="form-control" id="information{{ forloop.counter }}" name="information">{{ type.information }}</textarea>
                                         </div>
                                     </div>
-                                    <div class="col-sm-2">
+                                    <div class="col-0">
                                         <div class="form-group">
                                             <div class="input-group mb-3">
                                                 <li class="list-group-item d-flex align-items-center">
@@ -88,6 +88,16 @@
                                                     </div>
                                                 </li>
                                             </div>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-group">
+                                            <li class="list-group-item d-inline-flex align-items-center">
+                                                <div class="checkbox checkbox-success checkbox-circle">
+                                                    <input id="visible{{ forloop.counter }}" type="checkbox" name="visible" {% if type.visible %}checked{% endif %}>
+                                                    <label class="mb-0" for="visible{{ forloop.counter }}"> Visible </label>
+                                                </div>
+                                            </li>
                                         </div>
                                     </div>
                                     <div class="col-sm-3">
@@ -112,6 +122,9 @@
                                   $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
                                 });
                                 $('#active{{ forloop.counter }}').change(function(e){
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                });
+                                $('#visible{{ forloop.counter }}').change(function(e){
                                     $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
                                 });
                                 $("#saveTypeForm{{ forloop.counter }}").click(function(){
@@ -164,7 +177,7 @@
                         {% endfor %}
                     </div>
                     <form id="addMembershipTypeForm" class="row">
-                        <div class="col-sm-3">
+                        <div class="col-2">
                             <div class="form-group">
                                 <input type="text" class="form-control" id="payment_name" name="payment_name" placeholder="Payment Name">
                                 <small>e.g. Cash, Bacs, Paypal etc</small>
@@ -176,7 +189,7 @@
                                 <small>Information about how they can use this payment method. e.g. Account No. and Sort Code etc.</small>
                             </div>
                         </div>
-                        <div class="col-sm-2">
+                        <div class="col-0">
                             <div class="form-group">
                                 <div class="input-group mb-3">
                                     <li class="list-group-item d-flex align-items-center">
@@ -186,6 +199,16 @@
                                         </div>
                                     </li>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <li class="list-group-item d-inline-flex align-items-center">
+                                    <div class="checkbox checkbox-success checkbox-circle">
+                                        <input id="visible" type="checkbox" name="visible" checked>
+                                        <label class="mb-0" for="visible"> Visible</label>
+                                    </div>
+                                </li>
                             </div>
                         </div>
                         <div class="col-sm-3">
