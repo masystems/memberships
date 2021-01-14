@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect, get_object_or_404, reverse
+from django.http import JsonResponse
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -256,6 +257,55 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         return super().get(*args, **kwargs)
 
+from django.urls import reverse
+def get_members(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    start = int(request.GET.get('start', 0))
+    end = int(request.GET.get('length', 20))
+    members = []
+    all_members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()[start:start+end]
+    for member in all_members:
+        # get membership type
+        for sub in member.subscription.all():
+            if sub.membership_package == membership_package:
+                membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+                break
+            else:
+                membership_type = ""
+
+        # buttons!
+        for sub in member.subscription.all():
+            if sub.membership_package == membership_package:
+                if sub.payment_method or sub.stripe_subscription_id:
+                    pass
+                    card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                    'pk': member.id})}">
+                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Visit Payment Page">
+                                            <i class="fad fa-credit-card-front text-success"></i>
+                                        </button>
+                                    </a>"""
+                else:
+                    card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                    'pk': member.id})}">
+                                                <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                    <i class="fad fa-credit-card-front text-danger"></i>
+                                                </button>
+                                            </a>"""
+            edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
+                                                                            'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>"""
+            reset_password_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{ member.user_account.email }" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>"""
+            remove_member_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{ member.id }"><i class="fad fa-user-slash text-danger"></i></button>"""
+            payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                        'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
+        # set member id, name, email, mambership_type and buttons
+        members.append({'id': member.id,
+                        'name': member.user_account.get_full_name(),
+                        'email': member.user_account.email,
+                        'membership_type': membership_type,
+                        'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
+
+    return HttpResponse(dumps(members))
+
 
 class MembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'membership-package.html'
@@ -288,7 +338,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # sigh
         context['membership_package'] = context['membership_package'][0]
 
-        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False).distinct()
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package']).count()
 
         context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
 
