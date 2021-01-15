@@ -193,13 +193,13 @@
                                             {% if subscription.billing_period == "monthly" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
                                                     <p class="text-muted">
-                                                        £{{ subscription.membership_package.membership_price_per_month }}
+                                                        £{{ subscription.price.amount|price }}
                                                     </p>
                                                 </div>
                                             {% else %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Year</strong>
                                                     <p class="text-muted">
-                                                        £{{ subscription.membership_package.membership_price_per_year }}
+                                                        £{{ subscription.price.amount|price }}
                                                     </p>
                                                 </div>
                                             {% endif %}
