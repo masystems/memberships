@@ -750,7 +750,7 @@ def payment_reminder(request, title, pk):
     # the member that needs reminding
     member = Member.objects.get(id=pk)
 
-    subscription = membership_package.objects.get(member=member, membership_package=membership_package)
+    subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
     
     # variables used to construct the email
     temp_payment_method = subscription.payment_method
