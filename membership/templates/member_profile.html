@@ -183,14 +183,14 @@
                                             <div class="col-md-3 col-xs-6 b-r"> <strong>Payment Interval</strong>
                                                 <br>
                                                 <p class="text-muted">
-                                                    {{ subscription.billing_period|title }}
+                                                    {{ subscription.price.interval|title }}
                                                 </p>
                                             </div>
                                             <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
                                                 <br>
                                                 <p class="text-muted">{{ subscription.payment_method.payment_name }}</p>
                                             </div>
-                                            {% if subscription.billing_period == "monthly" %}
+                                            {% if subscription.price.interval == "month" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
                                                     <p class="text-muted">
                                                         £{{ subscription.price.amount|price }}
