@@ -308,24 +308,18 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
     <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
 
     <script>
-    $(document).ready(function() {
         $('#default_order').DataTable({
             "processing": true,
             "serverSide": true,
-            "iDisplayLength": 10,
-            "paging": true,
-            "ajax": {
-                "url": "{% url 'get_members' membership_package.organisation_name %}",
-            },
+            "ajax": "{% url 'get_members' membership_package.organisation_name %}",
             "columns": [
-            { data: "name" },
-            { data: "email" },
-            { data: "membership_type" },
-            { data: "action" },
-        ],
-        colReorder: true
+                { data: "name" },
+                { data: "email" },
+                { data: "membership_type" },
+                { data: "action" },
+            ],
+            colReorder: true
         });
-    } );
     </script>
 
     <script>
