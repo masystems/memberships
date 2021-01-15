@@ -10,8 +10,7 @@
 {% block content %}
 
 <!-- Modal to remove member -->
-<div id="remove-member-modal" class="modal fade" tabindex="-1" role="dialog"
-aria-labelledby="remove-member-modalLabel" aria-hidden="true">
+<div id="remove-member-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="remove-member-modalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header modal-colored-header bg-danger">
@@ -213,10 +212,6 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                                     <td>{{ stripe_package.business_profile.name|title }}</td>
                                 </tr>
                                 <tr>
-                                    <th scope="row">URL</th>
-                                    <td><a href="{{ stripe_package.business_profile.url }}" target="_blank">{{ stripe_package.business_profile.url }} <i class="fad fa-external-link"></i></a></td>
-                                </tr>
-                                <tr>
                                     <th scope="row">Country</th>
                                     <td>{{ stripe_package.country }}</td>
                                 </tr>
@@ -232,7 +227,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                         </table>
                     </div>
                     <hr>
-                    <h4 class="card-title">Card Details</h4>
+                    <h4 class="card-title">Account Details</h4>
                     <div class="table-responsive">
                         <table class="table table-striped">
                             <tbody>
@@ -311,6 +306,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
         $('#default_order').DataTable({
             "processing": true,
             "serverSide": true,
+            "bSort": false,
             "ajax": "{% url 'get_members' membership_package.organisation_name %}",
             "columns": [
                 { data: "name" },
@@ -323,18 +319,22 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
     </script>
 
     <script>
-        $('.removeUserBtn').on('click',function(){
-            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + $(this).attr("value"))
+
+        var removeMember = function (user_id) {
             $('#remove-member-modal').modal('show');
+            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id);
+        }
+
+        $('.removeUserBtn').on('click',function(){
+            removeMember($(this).attr("value"));
         });
 
-        $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
-            console.log($(this).attr("value"));
+        var resetMemberPwd = function (user_email) {
             $.ajax({
                 url:"{% url 'account_reset_password' %}",
                 type:"POST",
                 data: {
-                    "email": $(this).attr("value"),
+                    "email": user_email,
                     "csrfmiddlewaretoken": "{{ csrf_token }}",
                 },
                success: function (){
@@ -342,10 +342,12 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                },
                 error:function (er) {
                     errorMsg("Password reset failed!",er);
-                }
+               }
             });
+        }
+
+        $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
+            resetMemberPwd($(this).attr("value"));
         });
-
-
     </script>
 {% endblock %}
