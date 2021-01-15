@@ -62,24 +62,21 @@
                                             {% endfor %}
                                         </div>
                                     </div>
-                                    {% if request.user == package.owner or request.user in package.admins.all or request.user.is_superuser %}
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <h4 class="card-title">Select Payment Method</h4>
-                                                <p>Visible only to Admins of Membership Account</p>
-                                                <div class="custom-control custom-radio">
-                                                    <input type="radio" id="card-payment" name="payment_method" class="custom-control-input payment_method" value="Card Payment"{% if not subscription.payment_method %}checked{% endif %}>
-                                                    <label class="custom-control-label" for="card-payment"><span class="text-info">Card Payment</span></label>
-                                                </div>
-                                                {% for type in payment_methods.all %}
-                                                    <div class="custom-control custom-radio">
-                                                        <input type="radio" id="{{ type.id }}" name="payment_method" class="custom-control-input payment_method" value="{{ type.payment_name }}"{% if subscription.payment_method.payment_name == type.payment_name %}checked{% endif %}>
-                                                        <label class="custom-control-label" for="{{ type.id }}"><span class="text-info">{{ type.payment_name }}</span></label>
-                                                    </div>
-                                                {% endfor %}
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <h4 class="card-title">Select Payment Method</h4>
+                                            <div class="custom-control custom-radio">
+                                                <input type="radio" id="card-payment" name="payment_method" class="custom-control-input payment_method" value="Card Payment"{% if not subscription.payment_method %}checked{% endif %}>
+                                                <label class="custom-control-label" for="card-payment"><span class="text-info">Card Payment</span></label>
                                             </div>
+                                            {% for type in payment_methods.all %}
+                                                <div class="custom-control custom-radio">
+                                                    <input type="radio" id="{{ type.id }}" name="payment_method" class="custom-control-input payment_method" value="{{ type.payment_name }}"{% if subscription.payment_method.payment_name == type.payment_name %}checked{% endif %}>
+                                                    <label class="custom-control-label" for="{{ type.id }}"><span class="text-info">{{ type.payment_name }}</span> {% if not type.visible %}<small style="font-style: italic;" class="text-danger">Hidden from members</small>{% endif %}</label>
+                                                </div>
+                                            {% endfor %}
                                         </div>
-                                    {% endif %}
+                                    </div>
                                 </div>
                             </form>
                         </div>
@@ -140,6 +137,13 @@
         function sleep (time) {
           return new Promise((resolve) => setTimeout(resolve, time));
         }
+
+        $(document).ready(function() {
+            if ($('input[name="payment_method"]:checked').val() != "Card Payment") {
+                    $('#payment-form').hide();
+                    $("#save-membership").html("Confirm");
+                }
+        });
 
         $('.payment_method').change(function() {
             if (this.value != "Card Payment") {

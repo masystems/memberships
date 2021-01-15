@@ -34,6 +34,10 @@ class MembershipPackage(models.Model):
 
 
 class Price(models.Model):
+    """
+    Membership Types,
+    Payment Types
+    """
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='pmembership_package', verbose_name="Membership Package")
     stripe_price_id = models.CharField(max_length=255, blank=True)
     nickname = models.CharField(max_length=255, blank=True)
@@ -44,6 +48,7 @@ class Price(models.Model):
     interval = models.CharField(max_length=19, choices=INTERVAL, null=True, default='monthly',
                                       help_text="Payment frequency")
     amount = models.CharField(max_length=255, blank=True)
+    visible = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
 
     def __str__(self):
@@ -53,20 +58,8 @@ class Price(models.Model):
 class PaymentMethod(models.Model):
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='pmmembership_package', verbose_name="Membership Package")
     payment_name = models.CharField(max_length=250)
-    # PAYMENT_TYPE = (
-    #     ('cash', 'Cash'),
-    #     ('cheque', 'Cheque '),
-    #     ('standing_order', 'Standing Order'),
-    #     ('caf_standing_order', 'CAF standing Order'),
-    #     ('petty_cash', 'Petty Cash'),
-    #     ('bacs', 'BACS'),
-    #     ('caf_voucher', 'Caf Voucher'),
-    #     ('postal_cheque ', 'Postal Cheque'),
-    #     ('paypal', 'Paypal')
-    # )
-    # payment_type = models.CharField(max_length=19, choices=PAYMENT_TYPE, null=True, default='card_payment',
-    #                                 help_text="Payment type used by member")
     information = models.TextField(blank=True)
+    visible = models.BooleanField(default=True)
     active = models.BooleanField(default=False)
 
     def __str__(self):
@@ -92,7 +85,7 @@ class Member(models.Model):
 class MembershipSubscription(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='subscription', verbose_name="Membership Subscription")
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='membership_package', verbose_name="Membership Package")
-    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=True, null=True, related_name='payment_method', verbose_name="Payment Method")
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=True, null=True, related_name='spayment_method', verbose_name="Payment Method")
     price = models.ForeignKey(Price, on_delete=models.CASCADE, blank=True, null=True, related_name='price', verbose_name="Price")
     stripe_id = models.CharField(max_length=255, blank=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
@@ -108,10 +101,20 @@ class MembershipSubscription(models.Model):
 
 
 class Payment(models.Model):
-    subscription = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='payment', verbose_name="Subscription Payment")
+    subscription = models.ForeignKey(MembershipSubscription, on_delete=models.CASCADE, related_name='payment', verbose_name="Subscription Payment")
+    TYPE = (
+        ('subscription', 'Subscription'),
+        ('donation', 'Donation '),
+        ('merchandise', 'Merchandise '),
+        ('fees', 'Fees '),
+        ('adverts', 'Adverts '),
+    )
+    type = models.CharField(max_length=25, choices=TYPE, null=True, default='subscription', verbose_name="Payment Type")
     amount = models.CharField(max_length=255, blank=True)
     comments = models.TextField(blank=True)
     created = models.DateField(default=datetime.now)
+    gift_aid = models.BooleanField(default=False)
+    gift_aid_percentage = models.CharField(max_length=255, blank=True)
 
 
 class Equine(models.Model):
