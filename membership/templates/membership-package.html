@@ -307,6 +307,7 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
         $('#default_order').DataTable({
             "processing": true,
             "serverSide": true,
+            "bSort": false,
             "ajax": "{% url 'get_members' membership_package.organisation_name %}",
             "columns": [
                 { data: "name" },
