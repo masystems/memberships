@@ -10,8 +10,7 @@
 {% block content %}
 
 <!-- Modal to remove member -->
-<div id="remove-member-modal" class="modal fade" tabindex="-1" role="dialog"
-aria-labelledby="remove-member-modalLabel" aria-hidden="true">
+<div id="remove-member-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="remove-member-modalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header modal-colored-header bg-danger">
@@ -320,9 +319,14 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
     </script>
 
     <script>
-        $('.removeUserBtn').on('click',function(){
-            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + $(this).attr("value"))
+
+        var removeMember = function (user_id) {
             $('#remove-member-modal').modal('show');
+            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id);
+        }
+
+        $('.removeUserBtn').on('click',function(){
+            removeMember($(this).attr("value"));
         });
 
         $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
@@ -342,7 +346,5 @@ aria-labelledby="remove-member-modalLabel" aria-hidden="true">
                 }
             });
         });
-
-
     </script>
 {% endblock %}
