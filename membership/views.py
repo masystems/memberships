@@ -1197,7 +1197,7 @@ def update_membership_type(request, title, pk):
                                        'redirect': True}), content_type='application/json')
         else:
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
-                price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')))
+                price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')), payment_method=None)
 
             # send confirmation email to new member
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
