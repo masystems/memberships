@@ -141,6 +141,13 @@
           return new Promise((resolve) => setTimeout(resolve, time));
         }
 
+        $(document).ready(function() {
+            if ($('.payment_method').value != "Card Payment") {
+                    $('#payment-form').hide();
+                    $("#save-membership").html("Confirm");
+                }
+        });
+
         $('.payment_method').change(function() {
             if (this.value != "Card Payment") {
                 $('#payment-form').fadeOut(400);

@@ -31,6 +31,18 @@ def generate_site_vars(request):
     return context
 
 
+# this function is not used, as it wouldn't work. Instead, the check is done inside each dispatch method.
+def check_authentication(request):
+    if request.user.is_authenticated:
+        return
+    else:
+        return redirect('/accounts/login/')
+
+
+def get_login_url():
+    return "/accounts/login/?next=/membership/"
+
+
 class MembershipBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -117,6 +129,7 @@ def manage_admins(request, title):
         return render(request, 'manage-admins.html', {'membership_package': membership_package})
 
 
+@login_required(login_url='/accounts/login/')
 def manage_membership_types(request, title):
     # validate request user is owner or admin of org
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
@@ -128,8 +141,12 @@ def manage_membership_types(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
+    visible_value = True
 
     if request.method == "POST":
+        if 'visible' not in request.POST:
+            visible_value = False
+
         # nickname validation
         if request.POST.get('nickname') in ("", None):
             return HttpResponse(dumps({'status': "fail",
@@ -150,7 +167,7 @@ def manage_membership_types(request, title):
                     # unit_amount=int(float(request.POST.get('amount')) * 100),
                     stripe_account=membership_package.stripe_acct_id
                 )
-                Price.objects.filter(stripe_price_id=request.POST.get('type_id')).update(nickname=price.nickname)
+                Price.objects.filter(stripe_price_id=request.POST.get('type_id')).update(nickname=price.nickname, visible=visible_value)
                 return HttpResponse(dumps({'status': "success",
                                            'message': "Price successfully updated"}), content_type='application/json')
 
@@ -170,6 +187,7 @@ def manage_membership_types(request, title):
                                      stripe_price_id=price.id,
                                      nickname=price.nickname,
                                      interval=price.recurring.interval,
+                                     visible=visible_value,
                                      amount=price.unit_amount,
                                      active=True)
                 return HttpResponse(dumps({'status': "success",
@@ -180,13 +198,18 @@ def manage_membership_types(request, title):
 
     else:
         membership_types_list = []
+        price_list = []
+
         for price in Price.objects.filter(membership_package=membership_package, active=True):
-            membership_types_list.append(stripe.Price.retrieve(price.stripe_price_id,
-                                                               stripe_account=membership_package.stripe_acct_id))
+            membership_types_list.append(stripe.Price.retrieve(price.stripe_price_id, stripe_account=membership_package.stripe_acct_id))
+            price_list.append(price.visible)
+
         return render(request, 'manage-membership-types.html', {'membership_package': membership_package,
-                                                                'membership_types_list': membership_types_list})
+                                                                'membership_types_list': membership_types_list,
+                                                                'price_list': price_list})
 
 
+@login_required(login_url='/accounts/login/')
 def manage_payment_methods(request, title):
     # validate request user is owner or admin of org
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
@@ -279,52 +302,63 @@ def get_members(request, title):
                                             Q(user_account__email__contains=search),
                                             subscription__membership_package=membership_package,
                                             subscription__price__isnull=False).distinct()[start:start + end]
-    for member in all_members:
-        # get membership type
-        for sub in member.subscription.all():
-            if sub.membership_package == membership_package:
-                membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
-                break
-            else:
-                membership_type = ""
-
-        # buttons!
-        for sub in member.subscription.all():
-            if sub.membership_package == membership_package:
-                if sub.payment_method or sub.stripe_subscription_id:
-                    pass
-                    card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                    'pk': member.id})}">
-                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Visit Payment Page">
-                                            <i class="fad fa-credit-card-front text-success"></i>
-                                        </button>
-                                    </a>"""
+    total_members = Member.objects.filter(subscription__membership_package=membership_package,
+                                        subscription__price__isnull=False).distinct().count()
+    if all_members.count() > 0:
+        for member in all_members:
+            # get membership type
+            for sub in member.subscription.all():
+                if sub.membership_package == membership_package:
+                    membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+                    break
                 else:
-                    card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                    'pk': member.id})}">
-                                                <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                    <i class="fad fa-credit-card-front text-danger"></i>
-                                                </button>
-                                            </a>"""
-            edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
-                                                                            'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>"""
-            reset_password_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{ member.user_account.email }" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>"""
-            remove_member_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{ member.id }"><i class="fad fa-user-slash text-danger"></i></button>"""
-            payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                        'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
-        # set member id, name, email, mambership_type and buttons
-        members.append({'id': member.id,
-                        'name': member.user_account.get_full_name(),
-                        'email': member.user_account.email,
-                        'membership_type': membership_type,
-                        'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
-        data = {
-          "draw": 5,
-          "recordsTotal": all_members.count(),
-          "recordsFiltered": all_members.count(),
-          "data": members
+                    membership_type = ""
+
+            # buttons!
+            for sub in member.subscription.all():
+                if sub.membership_package == membership_package:
+                    if sub.payment_method or sub.stripe_subscription_id:
+                        pass
+                        card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                        'pk': member.id})}">
+                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Visit Payment Page">
+                                                <i class="fad fa-credit-card-front text-success"></i>
+                                            </button>
+                                        </a>"""
+                    else:
+                        card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                        'pk': member.id})}">
+                                                    <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                        <i class="fad fa-credit-card-front text-danger"></i>
+                                                    </button>
+                                                </a>"""
+                edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
+                                                                                'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>"""
+                reset_password_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{ member.user_account.email }" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>"""
+                remove_member_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{ member.id }"><i class="fad fa-user-slash text-danger"></i></button>"""
+                payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                            'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
+
+            # # set member id, name, email, mambership_type and buttons
+            members.append({'id': member.id,
+                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
+                            'email': member.user_account.email,
+                            'membership_type': membership_type,
+                            'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
+            complete_data = {
+              "draw": 0,
+              "recordsTotal": all_members.count(),
+              "recordsFiltered": total_members,
+              "data": members
+            }
+    else:
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "data": []
         }
-    return HttpResponse(dumps(data))
+    return HttpResponse(dumps(complete_data))
 
 
 class MembershipPackageView(LoginRequiredMixin, MembershipBase):
@@ -332,24 +366,59 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
     login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user),
-                                            organisation_name=kwargs['title'],
-                                            enabled=True).exists():
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+            if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                organisation_name=kwargs['title'],
+                                                enabled=True).exists():
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
 
-        # disallow access to page
-        return HttpResponseRedirect('/')
+            # disallow access to page
+            return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"{get_login_url()}org/{kwargs['title']}")
+        
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['membership_package'] = MembershipPackage.objects.filter(Q(owner=self.request.user, organisation_name=self.kwargs['title']) |
+                                                                         Q(admins=self.request.user, organisation_name=self.kwargs['title'])).distinct()
+        # sigh
+        context['membership_package'] = context['membership_package'][0]
+
+        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False).distinct()
+
+        context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
+
+
+        # get strip secret key
+        stripe.api_key = get_stripe_secret_key(self.request)
+        context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
+
+        if context['membership_package'].stripe_acct_id:
+            try:
+                context['edit_account'] = stripe.Account.create_login_link(context['membership_package'].stripe_acct_id)
+            except stripe.error.InvalidRequestError:
+                # stripe account created but not setup
+                context['stripe_package_setup'] = get_account_link(context['membership_package'])
+            if context['stripe_package'].requirements.errors:
+                context['account_link'] = get_account_link(context['membership_package'])
+        else:
+            # stripe account not setup
+            context['stripe_package_setup'] = create_package_on_stripe(self.request)
+        return context
+    
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -469,6 +538,7 @@ def delete_membership_package(request, title):
     return redirect('/')
 
 
+@login_required(login_url='/accounts/login/')
 def create_package_on_stripe(request):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
@@ -505,6 +575,7 @@ def create_package_on_stripe(request):
     return get_account_link(membership_package)
 
 
+@login_required(login_url='/accounts/login/')
 def organisation_payment(request):
     if request.POST:
         membership_package = MembershipPackage.objects.get(owner=request.user)
@@ -581,6 +652,7 @@ def organisation_payment(request):
             return HttpResponse(dumps(result))
 
 
+@login_required(login_url='/accounts/login/')
 def payment_reminder(request, title, pk):
     
     membership_package = MembershipPackage.objects.get(organisation_name=title)
@@ -651,24 +723,29 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
     template_name = 'members_detailed.html'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user),
-                                            organisation_name=kwargs['title'],
-                                            enabled=True).exists():
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+            if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                organisation_name=kwargs['title'],
+                                                enabled=True).exists():
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
 
-        # disallow access to page
-        return HttpResponseRedirect('/')
+            # disallow access to page
+            return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"{get_login_url()}members-detailed/{self.kwargs['title']}")
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -796,7 +873,9 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         subscription.stripe_id = stripe_customer.id
         subscription.save()
 
-        if self.context['membership_package'].bolton != 'none':
+        if self.context['membership_package'].bolton != 'none' and MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                                    Q(admins=self.request.user),
+                                                                      organisation_name=self.context['membership_package'].organisation_name).exists():
             return redirect(
                 f"member_bolton_form", self.context['membership_package'].organisation_name, self.member.id)
         else:
@@ -815,18 +894,18 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.user.last_name = self.form.cleaned_data['last_name']
         self.user.save()
 
-        # send confirmation email
-        body = f"""<p>This is a confirmation email for your new Organisation Subscription.
+        # # send confirmation email
+        # body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 
-                                       <ul>
-                                       <li>Congratulations, you are now a member of {self.context['membership_package']} Organisation.</li>
-                                       </ul>
+        #                                <ul>
+        #                                <li>Congratulations, you are now a member of {self.context['membership_package']} Organisation.</li>
+        #                                </ul>
 
-                                       <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+        #                                <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
 
-                                       """
-        send_email(f"Organisation Confirmation: {self.context['membership_package']}",
-                   self.user.get_full_name(), body, send_to=self.user.email, reply_to=self.user.email)
+        #                                """
+        # send_email(f"Organisation Confirmation: {self.context['membership_package']}",
+        #            self.user.get_full_name(), body, send_to=self.user.email, reply_to=self.user.email)
 
 
 
@@ -911,23 +990,28 @@ class UpdateMember(LoginRequiredMixin, UpdateView):
         return initial
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
 
-        if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                Q(admins=self.request.user),
-                                                  organisation_name=kwargs['title']).exists():
-            # disallow access to page
-            return HttpResponseRedirect('/')
+            if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                    Q(admins=self.request.user),
+                                                    organisation_name=kwargs['title']).exists():
+                # disallow access to page
+                return HttpResponseRedirect('/')
 
-        #kwargs.update({'foo': 'bar'})  # inject the foo value
-        # now process dispatch as it otherwise normally would
-        return super().dispatch(request, *args, **kwargs)
+            #kwargs.update({'foo': 'bar'})  # inject the foo value
+            # now process dispatch as it otherwise normally would
+            return super().dispatch(request, *args, **kwargs)
+        # redirect to login page if user not logged in
+        else:
+            return HttpResponseRedirect(f"{get_login_url()}edit-member/{self.kwargs['title']}/{self.kwargs['pk']}")
 
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
@@ -984,29 +1068,33 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
     login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        # allow access if requesting user is an owner or admin or if page belongs to the member
-        if MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                            Q(admins=self.request.user),
-                                              organisation_name=kwargs['title']).exists() \
-                                              or Member.objects.filter(id=self.kwargs['pk'],
-                                                                       subscription=MembershipSubscription.objects.get(member=Member.objects.get(id=self.kwargs['pk']),
-                                                                                                                       membership_package=MembershipPackage.objects.get(organisation_name=kwargs['title'])),
-                                                                       user_account=self.request.user).exists():
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
+            # allow access if requesting user is an owner or admin or if page belongs to the member
+            if MembershipPackage.objects.filter(Q(owner=self.request.user) |
+                                                Q(admins=self.request.user),
+                                                organisation_name=kwargs['title']).exists() \
+                                                or Member.objects.filter(id=self.kwargs['pk'],
+                                                                        subscription=MembershipSubscription.objects.get(member=Member.objects.get(id=self.kwargs['pk']),
+                                                                                                                        membership_package=MembershipPackage.objects.get(organisation_name=kwargs['title'])),
+                                                                        user_account=self.request.user).exists():
 
-            # kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
+                # kwargs.update({'foo': 'bar'})  # inject the foo value
+                # now process dispatch as it otherwise normally would
+                return super().dispatch(request, *args, **kwargs)
+            else:
+                # disallow access to page
+                return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
         else:
-            # disallow access to page
-            return HttpResponseRedirect('/')
-
+            return HttpResponseRedirect(f"{get_login_url()}member-payment/{self.kwargs['title']}/{self.kwargs['pk']}")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1062,6 +1150,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         return HttpResponse(dumps(result))
 
 
+@login_required(login_url="/accounts/login")
 def update_membership_type(request, title, pk):
     if request.method == 'POST':
         if not request.POST.get('membership_type'):
@@ -1074,11 +1163,39 @@ def update_membership_type(request, title, pk):
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')),
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
                                                                                                                                              membership_package=package))
+            
+            # send confirmation email to new member
+            body = f"""<p>This is a confirmation email for your new Organisation Subscription.
+
+                                        <ul>
+                                        <li>Congratulations, you are now a member of {package.organisation_name} Organisation.</li>
+                                        </ul>
+
+                                        <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+
+                                        """
+            send_email(f"Organisation Confirmation: {package.organisation_name}",
+                    member.user_account.get_full_name(), body, send_to=member.user_account.email)
+            
             return HttpResponse(dumps({'status': "success",
                                        'redirect': True}), content_type='application/json')
         else:
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
                 price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')))
+
+            # send confirmation email to new member
+            body = f"""<p>This is a confirmation email for your new Organisation Subscription.
+
+                                        <ul>
+                                        <li>Congratulations, you are now a member of {package.organisation_name} Organisation.</li>
+                                        </ul>
+
+                                        <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+
+                                        """
+            send_email(f"Organisation Confirmation: {package.organisation_name}",
+                    member.user_account.get_full_name(), body, send_to=member.user_account.email)
+
             return HttpResponse(dumps({'status': "success"}), content_type='application/json')
 
 
@@ -1087,28 +1204,33 @@ class MemberProfileView(MembershipBase):
     login_url = '/accounts/login/'
 
     def dispatch(self, request, *args, **kwargs):
-        """
-        Only allow the owner and admins to view this page
-        :param request:
-        :param args:
-        :param kwargs:
-        :return:
-        """
-        # allow access if requesting user is and owner or admin of one of members subscriptions
-        # OR
-        # if page is members own profile
-        member = Member.objects.get(id=self.kwargs['pk'])
-        if request.user == member.user_account:
-            return super().dispatch(request, *args, **kwargs)
-        for subscription in member.subscription.all():
-            if self.request.user == subscription.membership_package.owner or \
-                    self.request.user in subscription.membership_package.admins.all():
-                # kwargs.update({'foo': 'bar'})  # inject the foo value
-                # now process dispatch as it otherwise normally would
+        # check user is logged in
+        if request.user.is_authenticated:
+            """
+            Only allow the owner and admins to view this page
+            :param request:
+            :param args:
+            :param kwargs:
+            :return:
+            """
+            # allow access if requesting user is and owner or admin of one of members subscriptions
+            # OR
+            # if page is members own profile
+            member = Member.objects.get(id=self.kwargs['pk'])
+            if request.user == member.user_account:
                 return super().dispatch(request, *args, **kwargs)
+            for subscription in member.subscription.all():
+                if self.request.user == subscription.membership_package.owner or \
+                        self.request.user in subscription.membership_package.admins.all():
+                    # kwargs.update({'foo': 'bar'})  # inject the foo value
+                    # now process dispatch as it otherwise normally would
+                    return super().dispatch(request, *args, **kwargs)
+            else:
+                # disallow access to page
+                return HttpResponseRedirect('/')
+        # redirect to login page if user not logged in
         else:
-            # disallow access to page
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect(f"{get_login_url()}member-profile/{self.kwargs['pk']}")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -1161,6 +1283,7 @@ def update_user(request, pk):
     return HttpResponse(False)
 
 
+@login_required(login_url="/accounts/login")
 def validate_card(request, type, pk=0):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
