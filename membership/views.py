@@ -1136,7 +1136,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         result = validate_card(request, 'member', subscription.pk)
         if result['result'] == 'fail':
             return HttpResponse(dumps(result))
-        print(stripe.Invoice.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id))
+        #print(stripe.Invoice.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id))
         # new subscription
         subscription_details = stripe.Subscription.create(
             customer=subscription.stripe_id,
@@ -1180,7 +1180,15 @@ def update_membership_type(request, title, pk):
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
                                                                                                                                              membership_package=package))
             
-            # send confirmation email to new member
+            stripe.api_key = get_stripe_secret_key(request)
+            # cancel stripe subscription
+            subscription = member.subscription.get(member=member)
+            if subscription.stripe_subscription_id:
+                stripe.Subscription.delete(subscription.stripe_subscription_id,
+                                        stripe_account=package.stripe_acct_id)
+                subscription.stripe_subscription_id = ''
+                subscription.save()
+                
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 
                                         <ul>
