@@ -287,12 +287,99 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
         return super().get(*args, **kwargs)
 
 
+def get_members_detailed(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    start = int(request.GET.get('start', 0))
+    end = int(request.GET.get('length', 20))
+    search = request.GET.get('search[value]', "")
+    sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
+    print(request.GET)
+    members = []
+    if search == "":
+        all_members = Member.objects.filter(subscription__membership_package=membership_package,
+                                            subscription__price__isnull=False).distinct()[start:start + end]
+        print(all_members)
+    else:
+        all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
+                                            Q(user_account__last_name__contains=search) |
+                                            Q(user_account__email__contains=search) |
+                                            Q(user_account__email__contains=search),
+                                            subscription__membership_package=membership_package).distinct()[
+                      start:start + end]
+        print(all_members)
+    total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
+
+    if all_members.count() > 0:
+        for member in all_members:
+            # get membership type
+            for sub in member.subscription.all():
+                if sub.membership_package == membership_package:
+                    membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+                    break
+                else:
+                    membership_type = ""
+
+            # buttons!
+            for sub in member.subscription.all():
+                if sub.membership_package == membership_package:
+                    if sub.payment_method or sub.stripe_subscription_id:
+                        pass
+                        card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                        'pk': member.id})}">
+                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Visit Payment Page">
+                                                <i class="fad fa-credit-card-front text-success"></i>
+                                            </button>
+                                        </a>"""
+                    else:
+                        card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                        'pk': member.id})}">
+                                                    <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                        <i class="fad fa-credit-card-front text-danger"></i>
+                                                    </button>
+                                                </a>"""
+                edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
+                                                                                'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>"""
+                reset_password_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{ member.user_account.email }" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>"""
+                remove_member_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{ member.id }"><i class="fad fa-user-slash text-danger"></i></button>"""
+                payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                            'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
+
+            # # set member id, name, email, mambership_type and buttons
+            members.append({'id': member.id,
+                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
+                            'email': member.user_account.email,
+                            'address': f'{member.address_line_1}</br>{member.address_line_2}<br>{member.town}<br>{member.county}<br>{member.postcode}',
+                            'contact': member.contact_number,
+                            'membership_type': membership_type,
+                            'payment_method': '',
+                            'billing_interval': sub.price.interval.title(),
+                            'comments': sub.comments,
+                            'membership_start': f"{sub.membership_start}",
+                            'membership_expiry': f"{sub.membership_expiry}",
+                            'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
+        # sorting
+        members_sorted = members
+        #members_sorted = sorted(members, key=lambda k: k[sort_by])
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": all_members.count(),
+            "recordsFiltered": total_members,
+            "data": members_sorted
+        }
+    else:
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "data": []
+        }
+    return HttpResponse(dumps(complete_data))
+
 def get_members(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     start = int(request.GET.get('start', 0))
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
-    print(request.GET)
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
     members = []
     if search == "":
@@ -302,10 +389,8 @@ def get_members(request, title):
                                             Q(user_account__last_name__contains=search) |
                                             Q(user_account__email__contains=search) |
                                             Q(user_account__email__contains=search),
-                                            subscription__membership_package=membership_package,
-                                            subscription__price__isnull=False).distinct()[start:start + end]
-    total_members = Member.objects.filter(subscription__membership_package=membership_package,
-                                        subscription__price__isnull=False).distinct().count()
+                                            subscription__membership_package=membership_package).distinct()[start:start + end]
+    total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
     if all_members.count() > 0:
         for member in all_members:
             # get membership type
@@ -350,12 +435,12 @@ def get_members(request, title):
             # sorting
             members_sorted = members
             #members_sorted = sorted(members, key=lambda k: k[sort_by])
-            complete_data = {
-              "draw": 0,
-              "recordsTotal": all_members.count(),
-              "recordsFiltered": total_members,
-              "data": members_sorted
-            }
+        complete_data = {
+          "draw": 0,
+          "recordsTotal": all_members.count(),
+          "recordsFiltered": total_members,
+          "data": members_sorted
+        }
     else:
         complete_data = {
             "draw": 0,
@@ -664,7 +749,7 @@ def payment_reminder(request, title, pk):
     # the member that needs reminding
     member = Member.objects.get(id=pk)
 
-    subscription = membership_package.membership_package.get(member=member, membership_package=membership_package)
+    subscription = membership_package.objects.get(member=member, membership_package=membership_package)
     
     # variables used to construct the email
     temp_payment_method = subscription.payment_method
@@ -755,13 +840,13 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-        self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
+        #self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
 
-        hidden_bolon_fields = ['id', 'membership_package', 'subscription']
-        if self.context['membership_package'].bolton == "equine":
-
-            self.context['bolton_columns'] = [field for field in Equine._meta.get_fields(include_parents=False, include_hidden=False) if field.name not in hidden_bolon_fields]
-            self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package']).defer('id', 'membership_package', 'subscription', 'subscription_id')
+        # hidden_bolon_fields = ['id', 'membership_package', 'subscription']
+        # if self.context['membership_package'].bolton == "equine":
+        #
+        #     self.context['bolton_columns'] = [field for field in Equine._meta.get_fields(include_parents=False, include_hidden=False) if field.name not in hidden_bolon_fields]
+        #     self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package']).defer('id', 'membership_package', 'subscription', 'subscription_id')
         return self.context
 
 
@@ -1136,7 +1221,6 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         result = validate_card(request, 'member', subscription.pk)
         if result['result'] == 'fail':
             return HttpResponse(dumps(result))
-        print(stripe.Invoice.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id))
         # new subscription
         subscription_details = stripe.Subscription.create(
             customer=subscription.stripe_id,

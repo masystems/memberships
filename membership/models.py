@@ -85,7 +85,7 @@ class Member(models.Model):
 class MembershipSubscription(models.Model):
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='subscription', verbose_name="Membership Subscription")
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='membership_package', verbose_name="Membership Package")
-    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=True, null=True, related_name='payment_method', verbose_name="Payment Method")
+    payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=True, null=True, related_name='spayment_method', verbose_name="Payment Method")
     price = models.ForeignKey(Price, on_delete=models.CASCADE, blank=True, null=True, related_name='price', verbose_name="Price")
     stripe_id = models.CharField(max_length=255, blank=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
