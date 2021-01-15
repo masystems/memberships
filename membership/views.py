@@ -292,6 +292,8 @@ def get_members(request, title):
     start = int(request.GET.get('start', 0))
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
+    print(request.GET)
+    sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
     members = []
     if search == "":
         all_members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()[start:start+end]
@@ -345,11 +347,14 @@ def get_members(request, title):
                             'email': member.user_account.email,
                             'membership_type': membership_type,
                             'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
+            # sorting
+            members_sorted = members
+            #members_sorted = sorted(members, key=lambda k: k[sort_by])
             complete_data = {
               "draw": 0,
               "recordsTotal": all_members.count(),
               "recordsFiltered": total_members,
-              "data": members
+              "data": members_sorted
             }
     else:
         complete_data = {
