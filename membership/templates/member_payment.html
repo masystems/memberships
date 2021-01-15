@@ -139,7 +139,7 @@
         }
 
         $(document).ready(function() {
-            if ($('.payment_method').value != "Card Payment") {
+            if ($('input[name="payment_method"]:checked').val() != "Card Payment") {
                     $('#payment-form').hide();
                     $("#save-membership").html("Confirm");
                 }
