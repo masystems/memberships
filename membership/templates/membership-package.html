@@ -329,13 +329,12 @@
             removeMember($(this).attr("value"));
         });
 
-        $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
-            console.log($(this).attr("value"));
+        var resetMemberPwd = function (user_email) {
             $.ajax({
                 url:"{% url 'account_reset_password' %}",
                 type:"POST",
                 data: {
-                    "email": $(this).attr("value"),
+                    "email": user_email,
                     "csrfmiddlewaretoken": "{{ csrf_token }}",
                 },
                success: function (){
@@ -343,8 +342,12 @@
                },
                 error:function (er) {
                     errorMsg("Password reset failed!",er);
-                }
+               }
             });
+        }
+
+        $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
+            resetMemberPwd($(this).attr("value"));
         });
     </script>
 {% endblock %}
