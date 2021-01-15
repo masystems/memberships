@@ -68,32 +68,14 @@
                                     <th>Address</th>
                                     <th>Contact</th>
                                     <th>Membership Type</th>
-                                    <th>Payment Type</th>
+                                    <th>Payment Method</th>
                                     <th>Billing Interval</th>
                                     <th>Comments</th>
-                                    <th>Date Created</th>
+                                    <th>Membership Start</th>
+                                    <th>Membership Expiry</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                {% for member in members.all %}
-                                    <tr>
-                                        <td>{{ member.user_account.get_full_name }}</td>
-                                        <td>{{ member.user_account.email }}</td>
-                                        <td>{{ member.address_line_1 }}<br>
-                                            {{ member.address_line_2 }}<br>
-                                            {{ member.town }}<br>
-                                            {{ member.county }}<br>
-                                            {{ member.postcode }}
-                                        </td>
-                                        <td>{{ member.contact_number }}</td>
-                                        <td>{{ member.subscription.all.0.price.nickname }}</td>
-                                        <td>{{ member.subscription.all.0.payment_type|choicefieldformat }}</td>
-                                        <td>{{ member.subscription.all.0.price.interval|choicefieldformat }}</td>
-                                        <td>{{ member.subscription.all.0.comments }}</td>
-                                        <td>{{ member.subscription.all.0.membership_start }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
+
                             <tfoot>
                                 <tr>
                                     <th>Name</th>
@@ -101,10 +83,11 @@
                                     <th>Address</th>
                                     <th>Contact</th>
                                     <th>Membership Type</th>
-                                    <th>Payment Type</th>
+                                    <th>Payment Method</th>
                                     <th>Billing Interval</th>
                                     <th>Comments</th>
-                                    <th>Date Created</th>
+                                    <th>Membership Start</th>
+                                    <th>Membership Expiry</th>
                                 </tr>
                             </tfoot>
                         </table>
@@ -173,9 +156,27 @@
     <script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
     <script>
-        var table = $('#show_hide_col').DataTable({
-            "paging": true
+        $('#show_hide_col').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "bSort": false,
+            "ajax": "{% url 'get_members_detailed' membership_package.organisation_name %}",
+            "columns": [
+                { data: "name" },
+                { data: "email" },
+                { data: "address" },
+                { data: "contact" },
+                { data: "membership_type" },
+                { data: "payment_method" },
+                { data: "billing_interval" },
+                { data: "comments" },
+                { data: "membership_start" },
+                { data: "membership_expiry" },
+            ],
+            colReorder: true
         });
+
+
         $('a.toggle-vis').on('click', function(e) {
             e.preventDefault();
 
