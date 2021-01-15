@@ -1101,15 +1101,26 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         context['public_api_key'] = get_stripe_public_key(self.request)
         context['package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         context['member'] = Member.objects.get(id=self.kwargs['pk'])
-        context['payment_methods'] = PaymentMethod.objects.filter(membership_package=context['package'], active=True)
+
+        if self.request.user == context['package'].owner or self.request.user in context['package'].admins.all():
+            context['payment_methods'] = PaymentMethod.objects.filter(membership_package=context['package'], active=True)
+        else:
+            context['payment_methods'] = PaymentMethod.objects.filter(membership_package=context['package'],
+                                                                      visible=True, active=True)
+
         context['subscription'] = MembershipSubscription.objects.get(member=context['member'],
                                                                      membership_package=context['package'])
         context['membership_types_list'] = []
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
-        for price in Price.objects.filter(membership_package=context['package'], active=True):
-            context['membership_types_list'].append(stripe.Price.retrieve(price.stripe_price_id,
-                                                   stripe_account=context['package'].stripe_acct_id))
+        if self.request.user == context['package'].owner or self.request.user in context['package'].admins.all():
+            for price in Price.objects.filter(membership_package=context['package'], active=True):
+                context['membership_types_list'].append(stripe.Price.retrieve(price.stripe_price_id,
+                                                       stripe_account=context['package'].stripe_acct_id))
+        else:
+            for price in Price.objects.filter(membership_package=context['package'], visible=True, active=True):
+                context['membership_types_list'].append(stripe.Price.retrieve(price.stripe_price_id,
+                                                       stripe_account=context['package'].stripe_acct_id))
         return context
 
     def post(self, request, *args, **kwargs):
