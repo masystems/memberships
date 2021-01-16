@@ -293,12 +293,10 @@ def get_members_detailed(request, title):
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
-    print(request.GET)
     members = []
     if search == "":
         all_members = Member.objects.filter(subscription__membership_package=membership_package,
                                             subscription__price__isnull=False).distinct()[start:start + end]
-        print(all_members)
     else:
         all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
                                             Q(user_account__last_name__contains=search) |
@@ -306,18 +304,23 @@ def get_members_detailed(request, title):
                                             Q(user_account__email__contains=search),
                                             subscription__membership_package=membership_package).distinct()[
                       start:start + end]
-        print(all_members)
     total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
 
     if all_members.count() > 0:
         for member in all_members:
-            # get membership type
+            # get membership type and payment method
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
                     membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+
+                    if sub.payment_method:
+                        payment_method = sub.payment_method.payment_name
+                    else:
+                        payment_method = "Card Payment"
                     break
                 else:
                     membership_type = ""
+                    payment_method = "Card Payment"
 
             # buttons!
             for sub in member.subscription.all():
@@ -351,11 +354,11 @@ def get_members_detailed(request, title):
                             'address': f'{member.address_line_1}</br>{member.address_line_2}<br>{member.town}<br>{member.county}<br>{member.postcode}',
                             'contact': member.contact_number,
                             'membership_type': membership_type,
-                            'payment_method': '',
+                            'payment_method': payment_method,
                             'billing_interval': sub.price.interval.title(),
                             'comments': sub.comments,
-                            'membership_start': f"{sub.membership_start}",
-                            'membership_expiry': f"{sub.membership_expiry}",
+                            'membership_start': f"{sub.membership_start if sub.membership_start != None else ''}",
+                            'membership_expiry': f"{sub.membership_expiry if sub.membership_expiry != None else ''}",
                             'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
         # sorting
         members_sorted = members
@@ -841,7 +844,6 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-        #self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
 
         # hidden_bolon_fields = ['id', 'membership_package', 'subscription']
         # if self.context['membership_package'].bolton == "equine":
