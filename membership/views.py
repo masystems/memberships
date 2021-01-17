@@ -525,7 +525,6 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
 
-
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
         context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
