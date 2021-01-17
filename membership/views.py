@@ -293,31 +293,34 @@ def get_members_detailed(request, title):
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
-    print(request.GET)
     members = []
     if search == "":
         all_members = Member.objects.filter(subscription__membership_package=membership_package,
                                             subscription__price__isnull=False).distinct()[start:start + end]
-        print(all_members)
     else:
         all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
                                             Q(user_account__last_name__contains=search) |
                                             Q(user_account__email__contains=search) |
-                                            Q(user_account__email__contains=search),
+                                            Q(subscription__membership_number__contains=search),
                                             subscription__membership_package=membership_package).distinct()[
                       start:start + end]
-        print(all_members)
     total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
 
     if all_members.count() > 0:
         for member in all_members:
-            # get membership type
+            # get membership type and payment method
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
                     membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+
+                    if sub.payment_method:
+                        payment_method = sub.payment_method.payment_name
+                    else:
+                        payment_method = "Card Payment"
                     break
                 else:
                     membership_type = ""
+                    payment_method = "Card Payment"
 
             # buttons!
             for sub in member.subscription.all():
@@ -345,17 +348,17 @@ def get_members_detailed(request, title):
                                                                                             'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
 
             # # set member id, name, email, mambership_type and buttons
-            members.append({'id': member.id,
+            members.append({'id': sub.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
                             'email': member.user_account.email,
                             'address': f'{member.address_line_1}</br>{member.address_line_2}<br>{member.town}<br>{member.county}<br>{member.postcode}',
                             'contact': member.contact_number,
                             'membership_type': membership_type,
-                            'payment_method': '',
+                            'payment_method': payment_method,
                             'billing_interval': sub.price.interval.title(),
                             'comments': sub.comments,
-                            'membership_start': f"{sub.membership_start}",
-                            'membership_expiry': f"{sub.membership_expiry}",
+                            'membership_start': f"{sub.membership_start if sub.membership_start != None else ''}",
+                            'membership_expiry': f"{sub.membership_expiry if sub.membership_expiry != None else ''}",
                             'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
         # sorting
         members_sorted = members
@@ -388,7 +391,7 @@ def get_members(request, title):
         all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
                                             Q(user_account__last_name__contains=search) |
                                             Q(user_account__email__contains=search) |
-                                            Q(user_account__email__contains=search),
+                                            Q(subscription__membership_number__contains=search),
                                             subscription__membership_package=membership_package).distinct()[start:start + end]
     total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
     if all_members.count() > 0:
@@ -428,7 +431,7 @@ def get_members(request, title):
 
 
             # # set member id, name, email, mambership_type and buttons
-            members.append({'id': member.id,
+            members.append({'id': sub.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
                             'email': member.user_account.email,
                             'membership_type': membership_type,
@@ -841,7 +844,6 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-        #self.context['members'] = Member.objects.filter(subscription__membership_package=self.context['membership_package'])
 
         # hidden_bolon_fields = ['id', 'membership_package', 'subscription']
         # if self.context['membership_package'].bolton == "equine":
@@ -1222,6 +1224,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         result = validate_card(request, 'member', subscription.pk)
         if result['result'] == 'fail':
             return HttpResponse(dumps(result))
+
         # new subscription
         subscription_details = stripe.Subscription.create(
             customer=subscription.stripe_id,
@@ -1265,7 +1268,15 @@ def update_membership_type(request, title, pk):
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
                                                                                                                                              membership_package=package))
             
-            # send confirmation email to new member
+            stripe.api_key = get_stripe_secret_key(request)
+            # cancel stripe subscription
+            subscription = member.subscription.get(member=member)
+            if subscription.stripe_subscription_id:
+                stripe.Subscription.delete(subscription.stripe_subscription_id,
+                                        stripe_account=package.stripe_acct_id)
+                subscription.stripe_subscription_id = ''
+                subscription.save()
+                
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 
                                         <ul>
@@ -1282,7 +1293,7 @@ def update_membership_type(request, title, pk):
                                        'redirect': True}), content_type='application/json')
         else:
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
-                price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')))
+                price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')), payment_method=None)
 
             # send confirmation email to new member
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.

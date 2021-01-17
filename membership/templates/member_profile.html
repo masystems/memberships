@@ -144,7 +144,7 @@
                                                     </div>
                                                     <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
                                                         <br>
-                                                        <p class="text-muted">{{ subscription.payment_type|choicefieldformat }}</p>
+                                                        <p class="text-muted">Card</p>
                                                     </div>
                                                     {% if details.subscription.plan.interval == "month" %}
                                                         <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
@@ -183,23 +183,27 @@
                                             <div class="col-md-3 col-xs-6 b-r"> <strong>Payment Interval</strong>
                                                 <br>
                                                 <p class="text-muted">
-                                                    {{ subscription.billing_period|title }}
+                                                    {% if subscription.price.interval == 'month' %}
+                                                        Monthly
+                                                    {% elif subscription.price.interval == 'year' %}
+                                                        Yearly
+                                                    {% endif %}
                                                 </p>
                                             </div>
                                             <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
                                                 <br>
-                                                <p class="text-muted">{{ subscription.payment_type|choicefieldformat }}</p>
+                                                <p class="text-muted">{{ subscription.payment_method.payment_name }}</p>
                                             </div>
-                                            {% if subscription.billing_period == "monthly" %}
+                                            {% if subscription.price.interval == "month" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
                                                     <p class="text-muted">
-                                                        £{{ subscription.membership_package.membership_price_per_month }}
+                                                        £{{ subscription.price.amount|price }}
                                                     </p>
                                                 </div>
-                                            {% else %}
+                                            {% elif subscription.price.interval == "year" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Year</strong>
                                                     <p class="text-muted">
-                                                        £{{ subscription.membership_package.membership_price_per_year }}
+                                                        £{{ subscription.price.amount|price }}
                                                     </p>
                                                 </div>
                                             {% endif %}
