@@ -301,7 +301,7 @@ def get_members_detailed(request, title):
         all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
                                             Q(user_account__last_name__contains=search) |
                                             Q(user_account__email__contains=search) |
-                                            Q(user_account__email__contains=search),
+                                            Q(subscription__membership_number__contains=search),
                                             subscription__membership_package=membership_package).distinct()[
                       start:start + end]
     total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
@@ -348,7 +348,7 @@ def get_members_detailed(request, title):
                                                                                             'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
 
             # # set member id, name, email, mambership_type and buttons
-            members.append({'id': member.id,
+            members.append({'id': sub.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
                             'email': member.user_account.email,
                             'address': f'{member.address_line_1}</br>{member.address_line_2}<br>{member.town}<br>{member.county}<br>{member.postcode}',
@@ -391,7 +391,7 @@ def get_members(request, title):
         all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
                                             Q(user_account__last_name__contains=search) |
                                             Q(user_account__email__contains=search) |
-                                            Q(user_account__email__contains=search),
+                                            Q(subscription__membership_number__contains=search),
                                             subscription__membership_package=membership_package).distinct()[start:start + end]
     total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
     if all_members.count() > 0:
@@ -431,7 +431,7 @@ def get_members(request, title):
 
 
             # # set member id, name, email, mambership_type and buttons
-            members.append({'id': member.id,
+            members.append({'id': sub.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
                             'email': member.user_account.email,
                             'membership_type': membership_type,
