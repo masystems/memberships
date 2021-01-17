@@ -378,6 +378,7 @@ def get_members_detailed(request, title):
         }
     return HttpResponse(dumps(complete_data))
 
+
 def get_members(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     start = int(request.GET.get('start', 0))
@@ -422,12 +423,14 @@ def get_members(request, title):
                                                         <i class="fad fa-credit-card-front text-danger"></i>
                                                     </button>
                                                 </a>"""
+                member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
+                                                                                'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Member Payments"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>"""
                 edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>"""
-                reset_password_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" onclick="resetMemberPwd('{ member.user_account.email }');" data-toggle="tooltip" title="Reset Password" value="{ member.user_account.email }"><i class="fad fa-key text-success"></i></button>"""
-                remove_member_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" onclick="removeMember({ member.id });" data-toggle="tooltip" title="Remove Member" value="{ member.id }"><i class="fad fa-user-slash text-danger"></i></button>"""
+                reset_password_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 mr-1 passRstBtnIn" onclick="resetMemberPwd('{ member.user_account.email }');" data-toggle="tooltip" title="Reset Password" value="{ member.user_account.email }"><i class="fad fa-key text-success"></i></button>"""
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
+                                                                                            'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1 mr-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
+                remove_member_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" onclick="removeMember({ member.id });" data-toggle="tooltip" title="Remove Member" value="{ member.id }"><i class="fad fa-user-slash text-danger"></i></button>"""
 
 
             # # set member id, name, email, mambership_type and buttons
@@ -435,7 +438,7 @@ def get_members(request, title):
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
                             'email': member.user_account.email,
                             'membership_type': membership_type,
-                            'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
+                            'action': f"{card_button}{member_payments_button}{edit_member_button}{reset_password_button}{payment_reminder_button}{remove_member_button}"})
             # sorting
             members_sorted = members
             #members_sorted = sorted(members, key=lambda k: k[sort_by])
@@ -1362,6 +1365,69 @@ class MemberProfileView(MembershipBase):
                 context['subscriptions'][subscription.id]['payments'] = stripe.Charge.list(customer=subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
         return context
+
+
+@login_required(login_url='/accounts/login/')
+def member_payments(request, title, pk):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    member = Member.objects.get(id=pk)
+    return render(request, 'member_payments.html', {'membership_package': membership_package,
+                                                    'member': member})
+
+
+@login_required(login_url='/accounts/login/')
+def get_member_payments(request, title, pk):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    member = Member.objects.get(id=pk)
+    subscription = MembershipSubscription.objects.get(membership_package=membership_package,
+                                                      member=member)
+    start = int(request.GET.get('start', 0))
+    end = int(request.GET.get('length', 20))
+    search = request.GET.get('search[value]', "")
+    sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
+    payments = []
+    if search == "":
+        all_payments = Payment.objects.filter(subscription=subscription)[start:start + end]
+    else:
+        all_payments = Payment.objects.filter(Q(payment_method__payment_name__contains=search) |
+                                            Q(payment_number__contains=search) |
+                                            Q(type__contains=search) |
+                                            Q(comments__contains=search) |
+                                            Q(created__contains=search) |
+                                            Q(gift_aid_percentage__contains=search) |
+                                            Q(amount__contains=search),
+                                            subscription=subscription).distinct()[
+                      start:start + end]
+    total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
+
+    if all_payments.count() > 0:
+        for payment in all_payments:
+            # set params
+            payments.append({'id': payment.payment_number,
+                            'method': payment.payment_method.payment_name,
+                            'type': payment.type,
+                            'amount': payment.amount,
+                            'comments': payment.comments,
+                            'created': str(payment.created),
+                            'gift_aid': payment.gift_aid,
+                            'gift_aid_percentage': payment.gift_aid_percentage})
+        # sorting
+        members_sorted = payments
+        # members_sorted = sorted(members, key=lambda k: k[sort_by])
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": all_payments.count(),
+            "recordsFiltered": total_payments,
+            "data": members_sorted
+        }
+    else:
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "data": []
+        }
+    return HttpResponse(dumps(complete_data))
 
 
 @login_required(login_url="/accounts/login")
