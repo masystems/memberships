@@ -1266,8 +1266,9 @@ def update_membership_type(request, title, pk):
         package = MembershipPackage.objects.get(organisation_name=title)
         member = Member.objects.get(id=pk)
         subscription = member.subscription.get(member=member)
+        price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
         if request.POST.get('payment_method') != 'Card Payment':
-            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')),
+            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price,
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
                                                                                                                                              membership_package=package))
             
@@ -1278,6 +1279,15 @@ def update_membership_type(request, title, pk):
                                         stripe_account=package.stripe_acct_id)
                 subscription.stripe_subscription_id = ''
                 subscription.save()
+
+            # get payment_number this payment
+            latest_payment = Payment.objects.last()
+
+            # create payment for none card payment
+            Payment.objects.create(subscription=subscription,
+                                            amount=price.amount,
+                                            created=datetime.now(),
+                                            payment_number=int(latest_payment.payment_number)+1)
                 
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 
@@ -1294,7 +1304,6 @@ def update_membership_type(request, title, pk):
             return HttpResponse(dumps({'status': "success",
                                        'redirect': True}), content_type='application/json')
         else:
-            price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
                 price=price, payment_method=None)
 
