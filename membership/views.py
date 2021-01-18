@@ -8,7 +8,7 @@ from django.conf import settings
 from django.db.models import Q
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
-from .forms import MembershipPackageForm, MemberForm, EquineForm
+from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
 from json import dumps
 import stripe
 from re import search, match
@@ -1402,15 +1402,21 @@ def get_member_payments(request, title, pk):
 
     if all_payments.count() > 0:
         for payment in all_payments:
+            if payment.gift_aid:
+                giftaid = '<i class="fad fa-check text-success"></i>'
+            else:
+                giftaid = '<i class="fad fa-times text-danger"></i>'
             # set params
-            payments.append({'id': payment.payment_number,
-                            'method': payment.payment_method.payment_name,
-                            'type': payment.type,
-                            'amount': payment.amount,
-                            'comments': payment.comments,
-                            'created': str(payment.created),
-                            'gift_aid': payment.gift_aid,
-                            'gift_aid_percentage': payment.gift_aid_percentage})
+            payments.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
+                                                                                'pk': member.id, 'payment_id': payment.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Member Payments"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>""",
+                             'id': payment.payment_number,
+                             'method': payment.payment_method.payment_name,
+                             'type': payment.type,
+                             'amount': payment.amount,
+                             'comments': payment.comments,
+                             'created': str(payment.created),
+                             'gift_aid': giftaid,
+                             'gift_aid_percentage': payment.gift_aid_percentage})
         # sorting
         members_sorted = payments
         # members_sorted = sorted(members, key=lambda k: k[sort_by])
@@ -1428,6 +1434,51 @@ def get_member_payments(request, title, pk):
             "data": []
         }
     return HttpResponse(dumps(complete_data))
+
+
+def member_payment_form(request, title, pk):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    member = Member.objects.get(id=pk)
+    subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+
+    # if this is a POST request we need to process the form data
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = PaymentForm(request.POST)
+        # check whether it's valid:
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.subscription = subscription
+            payment.save()
+            return redirect('member_payments', membership_package.organisation_name, member.id)
+    else:
+        latest_payment = Payment.objects.last()
+        form = PaymentForm({'payment_number': int(latest_payment.payment_number) + 1})
+
+    return render(request, 'payment_form.html', {'form': form,
+                                                 'membership_package': membership_package,
+                                                 'member': member})
+
+
+def member_payment_form_edit(request, title, pk, payment_id):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    member = Member.objects.get(id=pk)
+    payment = Payment.objects.get(id=payment_id)
+
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = PaymentForm(request.POST, instance=payment)
+        # check whether it's valid:
+        if form.is_valid():
+            form.save()
+            return redirect('member_payments', membership_package.organisation_name, member.id)
+    else:
+        form = PaymentForm(instance=payment)
+
+    return render(request, 'payment_form_edit.html', {'form': form,
+                                                      'membership_package': membership_package,
+                                                      'member': member,
+                                                      'payment': payment})
 
 
 @login_required(login_url="/accounts/login")

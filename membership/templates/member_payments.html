@@ -28,7 +28,7 @@
             </div>
         </div>
         <div class="col-md-7 align-self-center d-none d-md-block">
-
+            <a href="{% url 'member_payment_form' membership_package.organisation_name member.id %}"><button class="btn btn-success float-right">Add Payment</button></a>
         </div>
     </div>
 </div>
@@ -46,20 +46,21 @@
                 <div class="card-body">
                     <h4 class="card-title">{{ package.organisation_name }} Members</h4>
                     <div class="mb-2">
-                        Toggle columns: <a href="#!" class="toggle-vis" data-column="0"><button class="btn btn-info">ID</button></a>
-                        <a href="#!" class="toggle-vis" data-column="1"><button class="btn btn-info">Method</button></a>
-                        <a href="#!" class="toggle-vis" data-column="2"><button class="btn btn-info">Type</button></a>
-                        <a href="#!" class="toggle-vis" data-column="3"><button class="btn btn-info">Amount</button></a>
-                        <a href="#!" class="toggle-vis" data-column="4"><button class="btn btn-info">Comments</button></a>
-                        <a href="#!" class="toggle-vis" data-column="5"><button class="btn btn-info">Created</button></a>
-                        <a href="#!" class="toggle-vis" data-column="6"><button class="btn btn-info">Gift Aid</button></a>
-                        <a href="#!" class="toggle-vis" data-column="7"><button class="btn btn-info">Gift Aid Percentage</button></a>
+                        Toggle columns: <a href="#!" class="toggle-vis" data-column="1"><button class="btn btn-info">ID</button></a>
+                        <a href="#!" class="toggle-vis" data-column="2"><button class="btn btn-info">Method</button></a>
+                        <a href="#!" class="toggle-vis" data-column="3"><button class="btn btn-info">Type</button></a>
+                        <a href="#!" class="toggle-vis" data-column="4"><button class="btn btn-info">Amount</button></a>
+                        <a href="#!" class="toggle-vis" data-column="5"><button class="btn btn-info">Comments</button></a>
+                        <a href="#!" class="toggle-vis" data-column="6"><button class="btn btn-info">Created</button></a>
+                        <a href="#!" class="toggle-vis" data-column="7"><button class="btn btn-info">Gift Aid</button></a>
+                        <a href="#!" class="toggle-vis" data-column="8"><button class="btn btn-info">Gift Aid Percentage</button></a>
                     </div>
                     <div class="table-responsive">
                         <table id="show_hide_col" class="table table-striped table-bordered display no-wrap"
                             style="width:100%">
                             <thead>
                                 <tr>
+                                    <th>Action</th>
                                     <th>ID</th>
                                     <th>Method</th>
                                     <th>Type</th>
@@ -73,6 +74,7 @@
 
                             <tfoot>
                                 <tr>
+                                    <th>Action</th>
                                     <th>ID</th>
                                     <th>Method</th>
                                     <th>Type</th>
@@ -101,12 +103,13 @@
     <script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
     <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
     <script>
-        $('#show_hide_col').DataTable({
+        table = $('#show_hide_col').DataTable({
             "processing": true,
             "serverSide": true,
             "bSort": false,
             "ajax": "{% url 'get_member_payments' membership_package.organisation_name member.id %}",
             "columns": [
+                { data: "action" },
                 { data: "id" },
                 { data: "method" },
                 { data: "type" },
@@ -129,5 +132,6 @@
             // Toggle the visibility
             column.visible(!column.visible());
         });
+
     </script>
 {% endblock %}

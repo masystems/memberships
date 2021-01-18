@@ -1,4 +1,4 @@
-from .models import MembershipPackage, Member, MembershipSubscription, Equine
+from .models import MembershipPackage, Member, MembershipSubscription, Payment, Equine
 from django.utils.translation import gettext_lazy as _
 from django import forms
 
@@ -70,6 +70,17 @@ class MemberSubscriptionForm(forms.ModelForm):
             'payment_type': forms.Select(attrs={'class': 'form-control'}),
             'billing_period': forms.Select(attrs={'class': 'form-control'}),
             'comments': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+        }
+
+
+class PaymentForm(forms.ModelForm):
+    class Meta:
+        model = Payment
+        fields = '__all__'
+        exclude = ('membership_package',
+                   'subscription')
+        widgets = {
+            'created': forms.DateInput(attrs={'class': 'form-control datepicker'}),
         }
 
 
