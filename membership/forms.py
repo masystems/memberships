@@ -76,10 +76,9 @@ class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
         fields = '__all__'
-        exclude = ('subscription', 'stripe_payment_id', 'payment_number')
+        exclude = ('subscription', 'payment_number')
         widgets = {
             'payment_method': forms.Select(attrs={'class': 'form-control'}),
-            'payment_number': forms.TextInput(attrs={'class': 'form-control'}),
             'type': forms.Select(attrs={'class': 'form-control'}),
             'amount': forms.TextInput(attrs={'class': 'form-control'}),
             'comments': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),

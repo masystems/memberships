@@ -118,7 +118,6 @@ class Payment(models.Model):
     created = models.DateField(default=datetime.now)
     gift_aid = models.BooleanField(default=False)
     gift_aid_percentage = models.CharField(max_length=255, blank=True)
-    stripe_payment_id = models.CharField(max_length=255, blank=True)
 
 
 class Equine(models.Model):

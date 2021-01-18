@@ -1468,11 +1468,21 @@ def member_payment_form(request, title, pk):
         if form.is_valid():
             # get payment_number of latest payment
             latest_payment = Payment.objects.last()
+            payment_number = int(latest_payment.payment_number)
+            print(payment_number)
+            while True:
+                payment_number += 1
+                print(Payment.objects.filter(payment_number=str(payment_number + 1)).exists())
+                if Payment.objects.filter(payment_number=str(payment_number + 1)).exists():
+                    print(str(payment_number + 1))
+                    continue
+                else:
+                    break
 
             payment = form.save(commit=False)
             payment.subscription = subscription
             # get next payment number
-            payment.payment_number = int(latest_payment.payment_number)+1
+            payment.payment_number = payment_number
             payment.amount = subscription.price.amount
             payment.save()
 
