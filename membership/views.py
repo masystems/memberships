@@ -1408,7 +1408,7 @@ def get_member_payments(request, title, pk):
                 giftaid = '<i class="fad fa-times text-danger"></i>'
             # set params
             payments.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id, 'payment_id': payment.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Member Payments"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>""",
+                                                                                'pk': member.id, 'payment_id': payment.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>""",
                              'id': payment.payment_number,
                              'method': payment.payment_method.payment_name,
                              'type': payment.type,
