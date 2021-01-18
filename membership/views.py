@@ -1265,14 +1265,15 @@ def update_membership_type(request, title, pk):
 
         package = MembershipPackage.objects.get(organisation_name=title)
         member = Member.objects.get(id=pk)
+        subscription = member.subscription.get(member=member)
+        price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
         if request.POST.get('payment_method') != 'Card Payment':
-            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')),
+            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price,
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
                                                                                                                                              membership_package=package))
             
             stripe.api_key = get_stripe_secret_key(request)
             # cancel stripe subscription
-            subscription = member.subscription.get(member=member)
             if subscription.stripe_subscription_id:
                 stripe.Subscription.delete(subscription.stripe_subscription_id,
                                         stripe_account=package.stripe_acct_id)
@@ -1295,7 +1296,7 @@ def update_membership_type(request, title, pk):
                                        'redirect': True}), content_type='application/json')
         else:
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
-                price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')), payment_method=None)
+                price=price, payment_method=None)
 
             # send confirmation email to new member
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
@@ -1447,13 +1448,26 @@ def member_payment_form(request, title, pk):
         form = PaymentForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
+            # get payment_number of latest payment
+            latest_payment = Payment.objects.last()
+            payment_number = int(latest_payment.payment_number)
+            while True:
+                payment_number += 1
+                if Payment.objects.filter(payment_number=str(payment_number + 1)).exists():
+                    continue
+                else:
+                    break
+
             payment = form.save(commit=False)
             payment.subscription = subscription
+            # get next payment number
+            payment.payment_number = payment_number
+            payment.amount = subscription.price.amount
             payment.save()
+
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
-        latest_payment = Payment.objects.last()
-        form = PaymentForm({'payment_number': int(latest_payment.payment_number) + 1})
+        form = PaymentForm()
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
