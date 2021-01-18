@@ -1279,15 +1279,6 @@ def update_membership_type(request, title, pk):
                                         stripe_account=package.stripe_acct_id)
                 subscription.stripe_subscription_id = ''
                 subscription.save()
-
-            # get payment_number this payment
-            latest_payment = Payment.objects.last()
-
-            # create payment for none card payment
-            Payment.objects.create(subscription=subscription,
-                                            amount=price.amount,
-                                            created=datetime.now(),
-                                            payment_number=int(latest_payment.payment_number)+1)
                 
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 
@@ -1306,15 +1297,6 @@ def update_membership_type(request, title, pk):
         else:
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
                 price=price, payment_method=None)
-
-            # get payment_number this payment
-            latest_payment = Payment.objects.last()
-
-            # create payment for card payment
-            Payment.objects.create(subscription=subscription,
-                                            amount=price.amount,
-                                            created=datetime.now(),
-                                            payment_number=int(latest_payment.payment_number)+1)
 
             # send confirmation email to new member
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
@@ -1469,12 +1451,9 @@ def member_payment_form(request, title, pk):
             # get payment_number of latest payment
             latest_payment = Payment.objects.last()
             payment_number = int(latest_payment.payment_number)
-            print(payment_number)
             while True:
                 payment_number += 1
-                print(Payment.objects.filter(payment_number=str(payment_number + 1)).exists())
                 if Payment.objects.filter(payment_number=str(payment_number + 1)).exists():
-                    print(str(payment_number + 1))
                     continue
                 else:
                     break
