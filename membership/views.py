@@ -1466,13 +1466,19 @@ def member_payment_form(request, title, pk):
         form = PaymentForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
+            # get payment_number of latest payment
+            latest_payment = Payment.objects.last()
+
             payment = form.save(commit=False)
             payment.subscription = subscription
+            # get next payment number
+            payment.payment_number = int(latest_payment.payment_number)+1
+            payment.amount = subscription.price.amount
             payment.save()
+
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
-        latest_payment = Payment.objects.last()
-        form = PaymentForm({'payment_number': int(latest_payment.payment_number) + 1})
+        form = PaymentForm()
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
