@@ -104,7 +104,7 @@ class MembershipSubscription(models.Model):
 class Payment(models.Model):
     subscription = models.ForeignKey(MembershipSubscription, on_delete=models.CASCADE, related_name='payment', verbose_name="Subscription Payment")
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.SET_NULL, null=True, related_name='payment_method', verbose_name="Payment Method")
-    payment_number = models.CharField(max_length=255, blank=True, unique=True)
+    payment_number = models.CharField(max_length=255, unique=True)
     TYPE = (
         ('subscription', 'Subscription'),
         ('donation', 'Donation '),
