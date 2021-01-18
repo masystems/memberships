@@ -1265,6 +1265,7 @@ def update_membership_type(request, title, pk):
 
         package = MembershipPackage.objects.get(organisation_name=title)
         member = Member.objects.get(id=pk)
+        subscription = member.subscription.get(member=member)
         if request.POST.get('payment_method') != 'Card Payment':
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')),
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
@@ -1272,7 +1273,6 @@ def update_membership_type(request, title, pk):
             
             stripe.api_key = get_stripe_secret_key(request)
             # cancel stripe subscription
-            subscription = member.subscription.get(member=member)
             if subscription.stripe_subscription_id:
                 stripe.Subscription.delete(subscription.stripe_subscription_id,
                                         stripe_account=package.stripe_acct_id)
@@ -1294,8 +1294,18 @@ def update_membership_type(request, title, pk):
             return HttpResponse(dumps({'status': "success",
                                        'redirect': True}), content_type='application/json')
         else:
+            price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
-                price=Price.objects.get(stripe_price_id=request.POST.get('membership_type')), payment_method=None)
+                price=price, payment_method=None)
+
+            # get payment_number this payment
+            latest_payment = Payment.objects.last()
+
+            # create payment for card payment
+            Payment.objects.create(subscription=subscription,
+                                            amount=price.amount,
+                                            created=datetime.now(),
+                                            payment_number=int(latest_payment.payment_number)+1)
 
             # send confirmation email to new member
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
