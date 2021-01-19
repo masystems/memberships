@@ -967,26 +967,25 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         try:
             subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
         except MembershipSubscription.DoesNotExist:
-            # get latest subscription
+            # get latest membership number
             latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
-            # check latest subscription has a valid membership number
+            # check latest membership number is valid
             if latest_valid_mem_num == None or latest_valid_mem_num == '':
-                next_membership_number = 1
                 i = 1
                 # check we haven't gone past the end of the subscriptions
                 if i < MembershipSubscription.objects.all().count():
-                    # get sub before last sub
+                    # get membership number before last before last sub
                     latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
-                    # go through subscriptions in reverse until we find a valid one
+                    # go through subscription's membership numbers in reverse until we find a valid one
                     while latest_valid_mem_num == None or latest_valid_mem_num == '':
                         i += 1
                         # check we haven't gone past the end of the subscriptions
                         if i < MembershipSubscription.objects.all().count():
                             latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
-                        # no valid membership numbers
+                        # no valid membership numbers, so set variable to zero
                         else:
                             latest_valid_mem_num = 0
-                # no valid membership numbers
+                # no valid membership numbers, so set variable to zero
                 else:
                     latest_valid_mem_num = 0
             membership_number = int(latest_valid_mem_num) + 1
