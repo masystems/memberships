@@ -1506,15 +1506,40 @@ def member_payment_form(request, title, pk):
         form = PaymentForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-            # get payment_number of latest payment
-            latest_payment = Payment.objects.last()
-            payment_number = int(latest_payment.payment_number)
-            while True:
-                payment_number += 1
-                if Payment.objects.filter(payment_number=str(payment_number + 1)).exists():
-                    continue
-                else:
-                    break
+            # check there are existing Payment objects
+            if Payment.objects.exists():
+                # get latest payment number
+                latest_valid_pay_num = Payment.objects.last().payment_number
+                # check whether latest payment number is valid
+                if latest_valid_pay_num == None or latest_valid_pay_num == '':
+                    i = 1
+                    # check we haven't gone past the end of the payments
+                    if i < Payment.objects.all().count():
+                        # get payment number before last
+                        latest_valid_pay_num = Payment.objects.all().reverse()[i].payment_number
+                        # go through Payment's payment numbers in reverse until we find a valid one
+                        while latest_valid_pay_num == None or latest_valid_pay_num == '':
+                            i += 1
+                            # check we haven't gone past the end of the payments
+                            if i < Payment.objects.all().count():
+                                latest_valid_pay_num = Payment.objects.all().reverse()[i].payment_number
+                            # no valid payment numbers, so set variable to zero
+                            else:
+                                latest_valid_pay_num = 0
+                    # no valid payment numbers, so set variable to zero
+                    else:
+                        latest_valid_pay_num = 0
+                payment_number = int(latest_valid_pay_num) + 1
+                # check this payment number isn't taken
+                # if it is taken, increment by 1 then check that one
+                while True:
+                    if Payment.objects.filter(payment_number=str(payment_number)).exists():
+                        payment_number += 1
+                    else:
+                        break
+            # there are no existing Payment objects, so set payment_number to 1
+            else:
+                payment_number = 1
 
             payment = form.save(commit=False)
             payment.subscription = subscription
