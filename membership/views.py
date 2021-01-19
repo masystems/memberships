@@ -400,7 +400,7 @@ def get_members(request, title):
             # get membership type
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
-                    membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+                    membership_type = f"""<span class="badge py-1 badge-info">{sub.price}</span>"""
                     break
                 else:
                     membership_type = ""
@@ -411,34 +411,42 @@ def get_members(request, title):
                     if sub.payment_method or sub.stripe_subscription_id:
                         pass
                         card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                        'pk': member.id})}">
-                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Visit Payment Page">
-                                                <i class="fad fa-credit-card-front text-success"></i>
-                                            </button>
+                                                        'pk': member.id})}" class="dropdown-item">
+                                                <i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page
                                         </a>"""
                     else:
                         card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                        'pk': member.id})}">
-                                                    <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                        <i class="fad fa-credit-card-front text-danger"></i>
-                                                    </button>
-                                                </a>"""
+                                                        'pk': member.id})}" class="dropdown-item">
+                                                <i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page
+                                        </a>"""
                 member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Member Payments"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>"""
+                                                                                'pk': member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
                 edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>"""
-                reset_password_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 mr-1 passRstBtnIn" onclick="resetMemberPwd('{ member.user_account.email }');" data-toggle="tooltip" title="Reset Password" value="{ member.user_account.email }"><i class="fad fa-key text-success"></i></button>"""
+                                                                                'pk': member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
+                reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password"""
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1 mr-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
-                remove_member_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" onclick="removeMember({ member.id });" data-toggle="tooltip" title="Remove Member" value="{ member.id }"><i class="fad fa-user-slash text-danger"></i></button>"""
+                                                                                            'pk': member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+                remove_member_button = f"""<a href="javascript:removeMember({ member.id });" value="{ member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member"""
 
 
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': sub.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
-                            'email': member.user_account.email,
+                            'email': f"{member.user_account.email[:10]}...",
                             'membership_type': membership_type,
-                            'action': f"{card_button}{member_payments_button}{edit_member_button}{reset_password_button}{payment_reminder_button}{remove_member_button}"})
+                            'action': f"""<div class="btn-group">
+                                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    Administer
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                    {card_button}
+                                                    {member_payments_button}
+                                                    {edit_member_button}
+                                                    {reset_password_button}
+                                                    {payment_reminder_button}
+                                                    {remove_member_button}
+                                                </div>
+                                            </div>"""})
             # sorting
             members_sorted = members
             #members_sorted = sorted(members, key=lambda k: k[sort_by])
@@ -943,7 +951,18 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         try:
             subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
         except MembershipSubscription.DoesNotExist:
-            subscription = MembershipSubscription.objects.create(member=self.member, membership_package=self.context['membership_package'])
+            # get payment_number of latest payment
+            latest_sub = MembershipSubscription.objects.last()
+            membership_number = int(latest_sub.membership_number)
+            while True:
+                membership_number += 1
+                if MembershipSubscription.objects.filter(membership_number=str(membership_number + 1)).exists():
+                    continue
+                else:
+                    break
+            subscription = MembershipSubscription.objects.create(member=self.member,
+                                                                 membership_package=self.context['membership_package'],
+                                                                 membership_number=membership_number)
 
         subscription.membership_package = self.context['membership_package']
         subscription.member = self.member
@@ -988,20 +1007,6 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.user.first_name = self.form.cleaned_data['first_name']
         self.user.last_name = self.form.cleaned_data['last_name']
         self.user.save()
-
-        # # send confirmation email
-        # body = f"""<p>This is a confirmation email for your new Organisation Subscription.
-
-        #                                <ul>
-        #                                <li>Congratulations, you are now a member of {self.context['membership_package']} Organisation.</li>
-        #                                </ul>
-
-        #                                <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
-
-        #                                """
-        # send_email(f"Organisation Confirmation: {self.context['membership_package']}",
-        #            self.user.get_full_name(), body, send_to=self.user.email, reply_to=self.user.email)
-
 
 
 @login_required(login_url='/accounts/login/')
@@ -1399,7 +1404,12 @@ def get_member_payments(request, title, pk):
                                             Q(amount__contains=search),
                                             subscription=subscription).distinct()[
                       start:start + end]
+    # get stripe payments
     total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
+    if subscription.stripe_id:
+        stripe.api_key = get_stripe_secret_key(request)
+        stripe_payments = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
+        print(stripe_payments)
 
     if all_payments.count() > 0:
         for payment in all_payments:
