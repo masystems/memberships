@@ -967,15 +967,37 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         try:
             subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
         except MembershipSubscription.DoesNotExist:
-            # get payment_number of latest payment
-            latest_sub = MembershipSubscription.objects.last()
-            membership_number = int(latest_sub.membership_number)
+            # get latest subscription
+            latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
+            # check latest subscription has a valid membership number
+            if latest_valid_mem_num == None or latest_valid_mem_num == '':
+                next_membership_number = 1
+                i = 1
+                # check we haven't gone past the end of the subscriptions
+                if i < MembershipSubscription.objects.all().count():
+                    # get sub before last sub
+                    latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                    # go through subscriptions in reverse until we find a valid one
+                    while latest_valid_mem_num == None or latest_valid_mem_num == '':
+                        i += 1
+                        # check we haven't gone past the end of the subscriptions
+                        if i < MembershipSubscription.objects.all().count():
+                            latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                        # no valid membership numbers
+                        else:
+                            latest_valid_mem_num = 0
+                # no valid membership numbers
+                else:
+                    latest_valid_mem_num = 0
+            membership_number = int(latest_valid_mem_num) + 1
+            # check this membership number isn't taken
+            # if it is taken, increment by 1 then check that one
             while True:
-                membership_number += 1
-                if MembershipSubscription.objects.filter(membership_number=str(membership_number + 1)).exists():
-                    continue
+                if MembershipSubscription.objects.filter(membership_number=str(membership_number)).exists():
+                    membership_number += 1
                 else:
                     break
+            # use the membership number to make a new subscription
             subscription = MembershipSubscription.objects.create(member=self.member,
                                                                  membership_package=self.context['membership_package'],
                                                                  membership_number=membership_number)
