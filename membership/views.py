@@ -967,15 +967,36 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         try:
             subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
         except MembershipSubscription.DoesNotExist:
-            # get payment_number of latest payment
-            latest_sub = MembershipSubscription.objects.last()
-            membership_number = int(latest_sub.membership_number)
+            # get latest membership number
+            latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
+            # check latest membership number is valid
+            if latest_valid_mem_num == None or latest_valid_mem_num == '':
+                i = 1
+                # check we haven't gone past the end of the subscriptions
+                if i < MembershipSubscription.objects.all().count():
+                    # get membership number before last before last sub
+                    latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                    # go through subscription's membership numbers in reverse until we find a valid one
+                    while latest_valid_mem_num == None or latest_valid_mem_num == '':
+                        i += 1
+                        # check we haven't gone past the end of the subscriptions
+                        if i < MembershipSubscription.objects.all().count():
+                            latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                        # no valid membership numbers, so set variable to zero
+                        else:
+                            latest_valid_mem_num = 0
+                # no valid membership numbers, so set variable to zero
+                else:
+                    latest_valid_mem_num = 0
+            membership_number = int(latest_valid_mem_num) + 1
+            # check this membership number isn't taken
+            # if it is taken, increment by 1 then check that one
             while True:
-                membership_number += 1
-                if MembershipSubscription.objects.filter(membership_number=str(membership_number + 1)).exists():
-                    continue
+                if MembershipSubscription.objects.filter(membership_number=str(membership_number)).exists():
+                    membership_number += 1
                 else:
                     break
+            # use the membership number to make a new subscription
             subscription = MembershipSubscription.objects.create(member=self.member,
                                                                  membership_package=self.context['membership_package'],
                                                                  membership_number=membership_number)
@@ -1427,18 +1448,23 @@ def get_member_payments(request, title, pk):
         stripe_payments = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
         for payment in stripe_payments:
             print(payment)
+            # get the amount as a variable so it can be converted to the correct format to be displayed
+            temp_amount = int(payment['amount'])/100
             payments.append({'action': 'asd',
                             'id': payment['id'],
                             'method': 'Card Payment',
                             'type': 'Card Payment',
-                            'amount': payment['amount'],
+                            'amount': "£%.2f" % temp_amount,
                             'comments': 'asd',
                             'created': 'asd',
                             'gift_aid': 'asd',
                             'gift_aid_percentage': 'asd'})
 
-    if all_payments.count() > 0:
+    # if there are payments in our database, or if it is a stripe subscription
+    if all_payments.count() > 0 or subscription.stripe_id:
         for payment in all_payments:
+            # get the amount as a variable so it can be converted to the correct format to be displayed
+            temp_amount = int(payment.amount)/100
             if payment.gift_aid:
                 giftaid = '<i class="fad fa-check text-success"></i>'
             else:
@@ -1449,7 +1475,7 @@ def get_member_payments(request, title, pk):
                              'id': payment.payment_number,
                              'method': payment.payment_method.payment_name,
                              'type': payment.type,
-                             'amount': payment.amount,
+                             'amount': "£%.2f" % temp_amount,
                              'comments': payment.comments,
                              'created': str(payment.created),
                              'gift_aid': giftaid,
@@ -1485,15 +1511,40 @@ def member_payment_form(request, title, pk):
         form = PaymentForm(request.POST)
         # check whether it's valid:
         if form.is_valid():
-            # get payment_number of latest payment
-            latest_payment = Payment.objects.last()
-            payment_number = int(latest_payment.payment_number)
-            while True:
-                payment_number += 1
-                if Payment.objects.filter(payment_number=str(payment_number + 1)).exists():
-                    continue
-                else:
-                    break
+            # check there are existing Payment objects
+            if Payment.objects.exists():
+                # get latest payment number
+                latest_valid_pay_num = Payment.objects.last().payment_number
+                # check whether latest payment number is valid
+                if latest_valid_pay_num == None or latest_valid_pay_num == '':
+                    i = 1
+                    # check we haven't gone past the end of the payments
+                    if i < Payment.objects.all().count():
+                        # get payment number before last
+                        latest_valid_pay_num = Payment.objects.all().reverse()[i].payment_number
+                        # go through Payment's payment numbers in reverse until we find a valid one
+                        while latest_valid_pay_num == None or latest_valid_pay_num == '':
+                            i += 1
+                            # check we haven't gone past the end of the payments
+                            if i < Payment.objects.all().count():
+                                latest_valid_pay_num = Payment.objects.all().reverse()[i].payment_number
+                            # no valid payment numbers, so set variable to zero
+                            else:
+                                latest_valid_pay_num = 0
+                    # no valid payment numbers, so set variable to zero
+                    else:
+                        latest_valid_pay_num = 0
+                payment_number = int(latest_valid_pay_num) + 1
+                # check this payment number isn't taken
+                # if it is taken, increment by 1 then check that one
+                while True:
+                    if Payment.objects.filter(payment_number=str(payment_number)).exists():
+                        payment_number += 1
+                    else:
+                        break
+            # there are no existing Payment objects, so set payment_number to 1
+            else:
+                payment_number = 1
 
             payment = form.save(commit=False)
             payment.subscription = subscription
