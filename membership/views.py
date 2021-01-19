@@ -343,10 +343,10 @@ def get_members_detailed(request, title):
                                                                                 'pk': member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
                 edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
-                reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password"""
+                reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                             'pk': member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
-                remove_member_button = f"""<a href="javascript:removeMember({ member.id });" value="{ member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member"""
+                remove_member_button = f"""<a href="javascript:removeMember({ member.id });" value="{ member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': sub.membership_number,
@@ -361,7 +361,7 @@ def get_members_detailed(request, title):
                             'membership_start': f"{sub.membership_start if sub.membership_start != None else ''}",
                             'membership_expiry': f"{sub.membership_expiry if sub.membership_expiry != None else ''}",
                             'action': f"""<div class="btn-group">
-                                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
                                                 </button>
                                                 <div class="dropdown-menu">
@@ -439,10 +439,10 @@ def get_members(request, title):
                                                                                 'pk': member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
                 edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
-                reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password"""
+                reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                             'pk': member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
-                remove_member_button = f"""<a href="javascript:removeMember({ member.id });" value="{ member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member"""
+                remove_member_button = f"""<a href="javascript:removeMember({ member.id });" value="{ member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
 
             # # set member id, name, email, mambership_type and buttons
@@ -451,7 +451,7 @@ def get_members(request, title):
                             'email': f"{member.user_account.email[:10]}...",
                             'membership_type': membership_type,
                             'action': f"""<div class="btn-group">
-                                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <button type="button" class="btn btn-info-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
                                                 </button>
                                                 <div class="dropdown-menu">
