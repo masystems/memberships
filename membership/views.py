@@ -311,7 +311,10 @@ def get_members_detailed(request, title):
             # get membership type and payment method
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
-                    membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+                    if sub.price.nickname:
+                        membership_type = f"""<span class="badge py-1 badge-info">{sub.price}</span>"""
+                    else:
+                        membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
 
                     if sub.payment_method:
                         payment_method = sub.payment_method.payment_name
@@ -328,24 +331,22 @@ def get_members_detailed(request, title):
                     if sub.payment_method or sub.stripe_subscription_id:
                         pass
                         card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                        'pk': member.id})}">
-                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Visit Payment Page">
-                                                <i class="fad fa-credit-card-front text-success"></i>
-                                            </button>
+                                                        'pk': member.id})}" class="dropdown-item">
+                                                <i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page
                                         </a>"""
                     else:
                         card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                        'pk': member.id})}">
-                                                    <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                        <i class="fad fa-credit-card-front text-danger"></i>
-                                                    </button>
-                                                </a>"""
+                                                        'pk': member.id})}" class="dropdown-item">
+                                                <i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page
+                                        </a>"""
+                member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
+                                                                                'pk': member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
                 edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>"""
-                reset_password_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{ member.user_account.email }" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>"""
-                remove_member_button = f"""<button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{ member.id }"><i class="fad fa-user-slash text-danger"></i></button>"""
+                                                                                'pk': member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
+                reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password"""
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': member.id})}"><button class="btn btn-sm btn-rounded btn-light mt-1" data-toggle="tooltip" data-placement="top" title="Send payment reminder"><i class="fad fa-envelope-open-dollar"></i></button></a>"""
+                                                                                            'pk': member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+                remove_member_button = f"""<a href="javascript:removeMember({ member.id });" value="{ member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member"""
 
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': sub.membership_number,
@@ -359,7 +360,19 @@ def get_members_detailed(request, title):
                             'comments': sub.comments,
                             'membership_start': f"{sub.membership_start if sub.membership_start != None else ''}",
                             'membership_expiry': f"{sub.membership_expiry if sub.membership_expiry != None else ''}",
-                            'action': f"{card_button}{edit_member_button}{reset_password_button}{remove_member_button}{payment_reminder_button}"})
+                            'action': f"""<div class="btn-group">
+                                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                    Administer
+                                                </button>
+                                                <div class="dropdown-menu">
+                                                    {card_button}
+                                                    {member_payments_button}
+                                                    {edit_member_button}
+                                                    {reset_password_button}
+                                                    {payment_reminder_button}
+                                                    {remove_member_button}
+                                                </div>
+                                            </div>"""})
         # sorting
         members_sorted = members
         #members_sorted = sorted(members, key=lambda k: k[sort_by])
@@ -400,7 +413,10 @@ def get_members(request, title):
             # get membership type
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
-                    membership_type = f"""<span class="badge py-1 badge-info">{sub.price}</span>"""
+                    if sub.price.nickname:
+                        membership_type = f"""<span class="badge py-1 badge-info">{sub.price}</span>"""
+                    else:
+                        membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
                     break
                 else:
                     membership_type = ""
