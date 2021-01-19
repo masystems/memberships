@@ -400,7 +400,7 @@ def get_members(request, title):
             # get membership type
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
-                    membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+                    membership_type = f"""<span class="badge py-1 badge-info">{sub.price}</span>"""
                     break
                 else:
                     membership_type = ""
@@ -943,7 +943,18 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         try:
             subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
         except MembershipSubscription.DoesNotExist:
-            subscription = MembershipSubscription.objects.create(member=self.member, membership_package=self.context['membership_package'])
+            # get payment_number of latest payment
+            latest_sub = MembershipSubscription.objects.last()
+            membership_number = int(latest_sub.membership_number)
+            while True:
+                membership_number += 1
+                if MembershipSubscription.objects.filter(membership_number=str(membership_number + 1)).exists():
+                    continue
+                else:
+                    break
+            subscription = MembershipSubscription.objects.create(member=self.member,
+                                                                 membership_package=self.context['membership_package'],
+                                                                 membership_number=membership_number)
 
         subscription.membership_package = self.context['membership_package']
         subscription.member = self.member
@@ -988,20 +999,6 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.user.first_name = self.form.cleaned_data['first_name']
         self.user.last_name = self.form.cleaned_data['last_name']
         self.user.save()
-
-        # # send confirmation email
-        # body = f"""<p>This is a confirmation email for your new Organisation Subscription.
-
-        #                                <ul>
-        #                                <li>Congratulations, you are now a member of {self.context['membership_package']} Organisation.</li>
-        #                                </ul>
-
-        #                                <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
-
-        #                                """
-        # send_email(f"Organisation Confirmation: {self.context['membership_package']}",
-        #            self.user.get_full_name(), body, send_to=self.user.email, reply_to=self.user.email)
-
 
 
 @login_required(login_url='/accounts/login/')
@@ -1399,7 +1396,12 @@ def get_member_payments(request, title, pk):
                                             Q(amount__contains=search),
                                             subscription=subscription).distinct()[
                       start:start + end]
+    # get stripe payments
     total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
+    if subscription.stripe_id:
+        stripe.api_key = get_stripe_secret_key(request)
+        stripe_payments = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
+        print(stripe_payments)
 
     if all_payments.count() > 0:
         for payment in all_payments:

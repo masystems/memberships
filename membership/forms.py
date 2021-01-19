@@ -26,9 +26,9 @@ class MembershipPackageForm(forms.ModelForm):
 
 
 class MemberForm(forms.ModelForm):
-    email = forms.EmailField(widget=forms.TextInput(attrs={'class' : 'form-control'}))
-    first_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'form-control'}))
-    last_name = forms.CharField(widget=forms.TextInput(attrs={'class' : 'form-control'}))
+    email = forms.EmailField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Member
