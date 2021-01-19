@@ -448,7 +448,7 @@ def get_members(request, title):
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': sub.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
-                            'email': f"{member.user_account.email[:10]}...",
+                            'email': f"{member.user_account.email}",
                             'membership_type': membership_type,
                             'action': f"""<div class="btn-group">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
