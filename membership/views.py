@@ -451,7 +451,7 @@ def get_members(request, title):
                             'email': f"{member.user_account.email[:10]}...",
                             'membership_type': membership_type,
                             'action': f"""<div class="btn-group">
-                                                <button type="button" class="btn btn-info-dark dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
                                                 </button>
                                                 <div class="dropdown-menu">
