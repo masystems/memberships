@@ -312,7 +312,7 @@ def get_members_detailed(request, title):
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
                     if sub.price.nickname:
-                        membership_type = f"""<span class="badge py-1 badge-info">{sub.price}</span>"""
+                        membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
                     else:
                         membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
 
@@ -414,7 +414,7 @@ def get_members(request, title):
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
                     if sub.price.nickname:
-                        membership_type = f"""<span class="badge py-1 badge-info">{sub.price}</span>"""
+                        membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
                     else:
                         membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
                     break
