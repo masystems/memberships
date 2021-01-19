@@ -1448,11 +1448,13 @@ def get_member_payments(request, title, pk):
         stripe_payments = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
         for payment in stripe_payments:
             print(payment)
+            # get the amount as a variable so it can be converted to the correct format to be displayed
+            temp_amount = int(payment['amount'])/100
             payments.append({'action': 'asd',
                             'id': payment['id'],
                             'method': 'Card Payment',
                             'type': 'Card Payment',
-                            'amount': payment['amount'],
+                            'amount': "£%.2f" % temp_amount,
                             'comments': 'asd',
                             'created': 'asd',
                             'gift_aid': 'asd',
