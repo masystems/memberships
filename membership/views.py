@@ -1425,7 +1425,17 @@ def get_member_payments(request, title, pk):
     if subscription.stripe_id:
         stripe.api_key = get_stripe_secret_key(request)
         stripe_payments = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
-        print(stripe_payments)
+        for payment in stripe_payments:
+            print(payment)
+            payments.append({'action': 'asd',
+                            'id': payment['id'],
+                            'method': 'Card Payment',
+                            'type': 'Card Payment',
+                            'amount': payment['amount'],
+                            'comments': 'asd',
+                            'created': 'asd',
+                            'gift_aid': 'asd',
+                            'gift_aid_percentage': 'asd'})
 
     if all_payments.count() > 0:
         for payment in all_payments:
@@ -1460,6 +1470,7 @@ def get_member_payments(request, title, pk):
             "recordsFiltered": 0,
             "data": []
         }
+    print(payments)
     return HttpResponse(dumps(complete_data))
 
 
