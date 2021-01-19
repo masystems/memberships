@@ -413,11 +413,11 @@ def get_members(request, title):
             # get membership type
             for sub in member.subscription.all():
                 if sub.membership_package == membership_package:
-                    if sub.price.nickname:
+                    try:
                         membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
-                    else:
+                    except AttributeError:
                         membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
-                    break
+                        break
                 else:
                     membership_type = ""
 
@@ -1447,18 +1447,17 @@ def get_member_payments(request, title, pk):
         stripe.api_key = get_stripe_secret_key(request)
         stripe_payments = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
         for payment in stripe_payments:
-            print(payment)
             # get the amount as a variable so it can be converted to the correct format to be displayed
             temp_amount = int(payment['amount'])/100
-            payments.append({'action': 'asd',
+            payments.append({'action': f"""<a href="{payment['receipt_url']}"><button class="btn btn-sm btn-rounded btn-light" data-toggle="tooltip" title="View Receipt"><i class="fad fa-file-invoice text-info"></i></button></a>""",
                             'id': payment['id'],
                             'method': 'Card Payment',
                             'type': 'Card Payment',
                             'amount': "£%.2f" % temp_amount,
-                            'comments': 'asd',
-                            'created': 'asd',
-                            'gift_aid': 'asd',
-                            'gift_aid_percentage': 'asd'})
+                            'comments': f"<small>Managed by Stripe</small><br>{payment['description']}",
+                            'created': datetime.fromtimestamp(payment['created']).strftime('%c'),
+                            'gift_aid': 'n/a',
+                            'gift_aid_percentage': 'n/a'})
 
     # if there are payments in our database, or if it is a stripe subscription
     if all_payments.count() > 0 or subscription.stripe_id:
@@ -1496,7 +1495,6 @@ def get_member_payments(request, title, pk):
             "recordsFiltered": 0,
             "data": []
         }
-    print(payments)
     return HttpResponse(dumps(complete_data))
 
 
