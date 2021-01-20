@@ -879,11 +879,63 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         return self.context
 
 
+@login_required(login_url='/accounts/login/')
+def member_form_redirect(request, title):
+    # # check user is logged in
+    # if request.user.is_authenticated:
+    """
+    Redirect to member update form if user is already a member of this organisation
+    :param request:
+    :param args:
+    :param kwargs:
+    :return:
+    """
+    # check whether there is a member with a subscription whose membership package is the one for this form
+    if MembershipSubscription.objects.filter(membership_package=MembershipPackage.objects.get(organisation_name=title),
+            member=Member.objects.get(user_account=request.user)).exists():
+        # redirect user, as they are already a member
+        return redirect('edit_member', title, Member.objects.get(user_account=request.user).id)
+    # user is not already a member, so they can continue
+    else:
+        #kwargs.update({'foo': 'bar'})  # inject the foo value
+        # now process dispatch as it otherwise normally would
+        return redirect('member_form', title)
+    # redirect to login page if user not logged in
+    # else:
+    #     return redirect(f"{get_login_url()}edit-member/{title}/{Member.objects.get(user_account=request.user).id}")
+
+
 class MemberRegForm(LoginRequiredMixin, FormView):
     template_name = 'member_form_new.html'
     login_url = '/accounts/login/'
     form_class = MemberForm
     success_url = '/membership/'
+
+    def dispatch(self, request, *args, **kwargs):
+        pass
+        # # check user is logged in
+        # if request.user.is_authenticated:
+        """
+        Redirect to member update form if user is already a member of this organisation
+        :param request:
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        # # check whether there is a member with a subscription whose membership package is the one for this form
+        # if MembershipSubscription.objects.filter(membership_package=MembershipPackage.objects.get(organisation_name=self.kwargs['title']),
+        #         member=Member.objects.get(user_account=request.user)).exists():
+        #     # redirect user, as they are already a member
+        #     return redirect('edit_member', self.kwargs['title'], Member.objects.get(user_account=request.user).id)
+        # # user is not already a member, so they can continue
+        # else:
+        #     #kwargs.update({'foo': 'bar'})  # inject the foo value
+        #     # now process dispatch as it otherwise normally would
+        #     #return redirect('member_form', self.kwargs['title'])
+        return super().dispatch(request, *args, **kwargs)
+        # redirect to login page if user not logged in
+        # else:
+        #     return redirect(f"{get_login_url()}edit-member/{title}/{Member.objects.get(user_account=request.user).id}")
 
     def get_initial(self):
         """
@@ -936,6 +988,7 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         return self.context
 
     def form_valid(self, form, **kwargs):
+        print("hello 970")
         self.context = self.get_context_data(**kwargs)
         # validate user not already a member of package
         try:
