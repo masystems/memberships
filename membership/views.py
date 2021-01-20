@@ -907,7 +907,7 @@ class MemberRegForm(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-        
+
         # check to see if membership type exists
         self.context['is_price'] = False
         prices = None
@@ -962,40 +962,43 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.member.contact_number = self.form.cleaned_data['contact_number']
         self.member.save()
 
-
-        # create subscription object
         try:
             subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
         except MembershipSubscription.DoesNotExist:
-            # get latest membership number
-            latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
-            # check latest membership number is valid
-            if latest_valid_mem_num == None or latest_valid_mem_num == '':
-                i = 1
-                # check we haven't gone past the end of the subscriptions
-                if i < MembershipSubscription.objects.all().count():
-                    # get membership number before last before last sub
-                    latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
-                    # go through subscription's membership numbers in reverse until we find a valid one
-                    while latest_valid_mem_num == None or latest_valid_mem_num == '':
-                        i += 1
-                        # check we haven't gone past the end of the subscriptions
-                        if i < MembershipSubscription.objects.all().count():
-                            latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
-                        # no valid membership numbers, so set variable to zero
-                        else:
-                            latest_valid_mem_num = 0
-                # no valid membership numbers, so set variable to zero
-                else:
-                    latest_valid_mem_num = 0
-            membership_number = int(latest_valid_mem_num) + 1
-            # check this membership number isn't taken
-            # if it is taken, increment by 1 then check that one
-            while True:
-                if MembershipSubscription.objects.filter(membership_number=str(membership_number)).exists():
-                    membership_number += 1
-                else:
-                    break
+            # check there are existing subscriptions
+            if MembershipSubscription.objects.exists():
+                # get latest membership number
+                latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
+                # check latest membership number is valid
+                if latest_valid_mem_num == None or latest_valid_mem_num == '':
+                    i = 1
+                    # check we haven't gone past the end of the subscriptions
+                    if i < MembershipSubscription.objects.all().count():
+                        # get membership number before last before last sub
+                        latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                        # go through subscription's membership numbers in reverse until we find a valid one
+                        while latest_valid_mem_num == None or latest_valid_mem_num == '':
+                            i += 1
+                            # check we haven't gone past the end of the subscriptions
+                            if i < MembershipSubscription.objects.all().count():
+                                latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                            # no valid membership numbers, so set variable to zero
+                            else:
+                                latest_valid_mem_num = 0
+                    # no valid membership numbers, so set variable to zero
+                    else:
+                        latest_valid_mem_num = 0
+                membership_number = int(latest_valid_mem_num) + 1
+                # check this membership number isn't taken
+                # if it is taken, increment by 1 then check that one
+                while True:
+                    if MembershipSubscription.objects.filter(membership_number=str(membership_number)).exists():
+                        membership_number += 1
+                    else:
+                        break
+            # there are no existing subscriptions, so this is the first
+            else:
+                membership_number = 1
             # use the membership number to make a new subscription
             subscription = MembershipSubscription.objects.create(member=self.member,
                                                                  membership_package=self.context['membership_package'],
