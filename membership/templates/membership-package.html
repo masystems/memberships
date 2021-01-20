@@ -148,6 +148,7 @@
                                                 <th>ID</th>
                                                 <th>Name</th>
                                                 <th>Email</th>
+                                                <th>Comments</th>
                                                 <th>Membership Type</th>
                                                 <th>Action</th>
                                             </tr>
@@ -337,15 +338,25 @@
             "processing": true,
             "serverSide": true,
             "bSort": false,
+            responsive: true,
             "ajax": "{% url 'get_members' membership_package.organisation_name %}",
             "columns": [
-                { data: "id" },
+                { data: "id"},
                 { data: "name" },
-                { data: "email" },
+                { data: "email", "width": 20 },
+                { data: "comments" },
                 { data: "membership_type" },
                 { data: "action" },
             ],
-            colReorder: true
+            colReorder: true,
+            columnDefs: [
+                {
+                    render: function (data, type, full, meta) {
+                        return "<div class='text-wrap width-200'>" + data + "</div>";
+                    },
+                    targets: 3
+                }
+            ]
         });
     </script>
 
