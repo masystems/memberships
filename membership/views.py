@@ -907,7 +907,7 @@ class MemberRegForm(LoginRequiredMixin, FormView):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-        
+
         # check to see if membership type exists
         self.context['is_price'] = False
         prices = None
@@ -962,8 +962,6 @@ class MemberRegForm(LoginRequiredMixin, FormView):
         self.member.contact_number = self.form.cleaned_data['contact_number']
         self.member.save()
 
-
-        # create subscription object
         try:
             subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
         except MembershipSubscription.DoesNotExist:
