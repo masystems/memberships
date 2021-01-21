@@ -452,7 +452,7 @@ def get_members(request, title):
                             'email': f"{member.user_account.email}",
                             'comments': f"""{sub.comments}<a href="javascript:editComment('{sub.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                             'membership_type': membership_type,
-                            'action': f"""<div class="btn-group dropleft" style="position:fixed;">
+                            'action': f"""<div class="btn-group dropleft">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
                                                 </button>
