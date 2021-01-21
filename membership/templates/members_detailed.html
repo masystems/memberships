@@ -48,15 +48,16 @@
                 <div class="card-body">
                     <h4 class="card-title">{{ package.organisation_name }} Members</h4>
                     <div class="mb-2">
-                        Toggle columns: <a href="#!" class="toggle-vis" data-column="2"><button class="btn btn-info">Name</button></a>
-                        <a href="#!" class="toggle-vis" data-column="3"><button class="btn btn-info">Email</button></a>
-                        <a href="#!" class="toggle-vis" data-column="4"><button class="btn btn-info">Address</button></a>
-                        <a href="#!" class="toggle-vis" data-column="5"><button class="btn btn-info">Contact</button></a>
-                        <a href="#!" class="toggle-vis" data-column="6"><button class="btn btn-info">Membership Type</button></a>
-                        <a href="#!" class="toggle-vis" data-column="7"><button class="btn btn-info">Payment Type</button></a>
-                        <a href="#!" class="toggle-vis" data-column="8"><button class="btn btn-info">Billing Interval</button></a>
-                        <a href="#!" class="toggle-vis" data-column="9"><button class="btn btn-info">Comments</button></a>
-                        <a href="#!" class="toggle-vis" data-column="10"><button class="btn btn-info">Date Created</button></a>
+                        Toggle columns: 
+                        <a href="#!" class="toggle-vis name-lnk" data-column="2"><button class="btn btn-info" id="name-btn">Name</button></a>
+                        <a href="#!" class="toggle-vis email-lnk" data-column="3"><button class="btn btn-info" id="email-btn">Email</button></a>
+                        <a href="#!" class="toggle-vis address-lnk" data-column="4"><button class="btn btn-info" id="address-btn">Address</button></a>
+                        <a href="#!" class="toggle-vis contact-lnk" data-column="5"><button class="btn btn-info" id="contact-btn">Contact</button></a>
+                        <a href="#!" class="toggle-vis mem-lnk" data-column="6"><button class="btn btn-info" id="mem-btn">Membership Type</button></a>
+                        <a href="#!" class="toggle-vis pay-lnk" data-column="7"><button class="btn btn-info" id="pay-btn">Payment Type</button></a>
+                        <a href="#!" class="toggle-vis bill-lnk" data-column="8"><button class="btn btn-info" id="bill-btn">Billing Interval</button></a>
+                        <a href="#!" class="toggle-vis comments-lnk" data-column="9"><button class="btn btn-info" id="comments-btn">Comments</button></a>
+                        <a href="#!" class="toggle-vis date-lnk" data-column="10"><button class="btn btn-info" id="date-btn">Date Created</button></a>
                     </div>
                     <div class="table-responsive">
                         <table id="show_hide_col" class="table table-striped table-bordered display no-wrap"
@@ -210,6 +211,107 @@
             var column = $('#show_hide_col').dataTable().api().column($(this).attr('data-column'));
             // Toggle the visibility
             column.visible(!column.visible());
+
+            // See which link has been clicked
+            if ($(this).hasClass('name-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#name-btn').hasClass('btn-info')) {
+                    $('#name-btn').removeClass('btn-info')
+                    $('#name-btn').addClass('btn-light')
+                }
+                else if ($('#name-btn').hasClass('btn-light')) {
+                    $('#name-btn').removeClass('btn-light')
+                    $('#name-btn').addClass('btn-info')
+                }
+            }
+            else if ($(this).hasClass('email-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#email-btn').hasClass('btn-info')) {
+                    $('#email-btn').removeClass('btn-info')
+                    $('#email-btn').addClass('btn-light')
+                }
+                else if ($('#email-btn').hasClass('btn-light')) {
+                    $('#email-btn').removeClass('btn-light')
+                    $('#email-btn').addClass('btn-info')
+                }
+            }
+            else if ($(this).hasClass('address-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#address-btn').hasClass('btn-info')) {
+                    $('#address-btn').removeClass('btn-info')
+                    $('#address-btn').addClass('btn-light')
+                }
+                else if ($('#address-btn').hasClass('btn-light')) {
+                    $('#address-btn').removeClass('btn-light')
+                    $('#address-btn').addClass('btn-info')
+                }
+            }
+            else if ($(this).hasClass('contact-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#contact-btn').hasClass('btn-info')) {
+                    $('#contact-btn').removeClass('btn-info')
+                    $('#contact-btn').addClass('btn-light')
+                }
+                else if ($('#contact-btn').hasClass('btn-light')) {
+                    $('#contact-btn').removeClass('btn-light')
+                    $('#contact-btn').addClass('btn-info')
+                }
+            }
+            else if ($(this).hasClass('mem-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#mem-btn').hasClass('btn-info')) {
+                    $('#mem-btn').removeClass('btn-info')
+                    $('#mem-btn').addClass('btn-light')
+                }
+                else if ($('#mem-btn').hasClass('btn-light')) {
+                    $('#mem-btn').removeClass('btn-light')
+                    $('#mem-btn').addClass('btn-info')
+                }
+            }
+            else if ($(this).hasClass('pay-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#pay-btn').hasClass('btn-info')) {
+                    $('#pay-btn').removeClass('btn-info')
+                    $('#pay-btn').addClass('btn-light')
+                }
+                else if ($('#pay-btn').hasClass('btn-light')) {
+                    $('#pay-btn').removeClass('btn-light')
+                    $('#pay-btn').addClass('btn-info')
+                }
+            }
+            else if ($(this).hasClass('bill-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#bill-btn').hasClass('btn-info')) {
+                    $('#bill-btn').removeClass('btn-info')
+                    $('#bill-btn').addClass('btn-light')
+                }
+                else if ($('#bill-btn').hasClass('btn-light')) {
+                    $('#bill-btn').removeClass('btn-light')
+                    $('#bill-btn').addClass('btn-info')
+                }
+            }
+            else if ($(this).hasClass('comments-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#comments-btn').hasClass('btn-info')) {
+                    $('#comments-btn').removeClass('btn-info')
+                    $('#comments-btn').addClass('btn-light')
+                }
+                else if ($('#comments-btn').hasClass('btn-light')) {
+                    $('#comments-btn').removeClass('btn-light')
+                    $('#comments-btn').addClass('btn-info')
+                }
+            }
+            else if ($(this).hasClass('date-lnk')) {
+                // Toggle colour of button when pressed
+                if ($('#date-btn').hasClass('btn-info')) {
+                    $('#date-btn').removeClass('btn-info')
+                    $('#date-btn').addClass('btn-light')
+                }
+                else if ($('#date-btn').hasClass('btn-light')) {
+                    $('#date-btn').removeClass('btn-light')
+                    $('#date-btn').addClass('btn-info')
+                }
+            }
         });
     </script>
     <script>
