@@ -538,35 +538,13 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         else:
             # stripe account not setup
             context['stripe_package_setup'] = create_package_on_stripe(self.request)
-        return context
-    
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['membership_package'] = MembershipPackage.objects.filter(Q(owner=self.request.user, organisation_name=self.kwargs['title']) |
-                                                                         Q(admins=self.request.user, organisation_name=self.kwargs['title'])).distinct()
-        # sigh
-        context['membership_package'] = context['membership_package'][0]
-
-        context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package']).count()
-
-        context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
-
-        # get strip secret key
-        stripe.api_key = get_stripe_secret_key(self.request)
-        context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
-
-        if context['membership_package'].stripe_acct_id:
-            try:
-                context['edit_account'] = stripe.Account.create_login_link(context['membership_package'].stripe_acct_id)
-            except stripe.error.InvalidRequestError:
-                # stripe account created but not setup
-                context['stripe_package_setup'] = get_account_link(context['membership_package'])
-            if context['stripe_package'].requirements.errors:
-                context['account_link'] = get_account_link(context['membership_package'])
-        else:
-            # stripe account not setup
-            context['stripe_package_setup'] = create_package_on_stripe(self.request)
+        # generate report data
+        total_stripe_subscriptions = stripe.Subscription.list(stripe_account=context['membership_package'].stripe_acct_id)
+        context['stripe_members'] = 0
+        for sub in total_stripe_subscriptions:
+            if sub.plan.active:
+                context['stripe_members'] += 1
         return context
 
 
@@ -870,12 +848,6 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-
-        # hidden_bolon_fields = ['id', 'membership_package', 'subscription']
-        # if self.context['membership_package'].bolton == "equine":
-        #
-        #     self.context['bolton_columns'] = [field for field in Equine._meta.get_fields(include_parents=False, include_hidden=False) if field.name not in hidden_bolon_fields]
-        #     self.context['bolton'] = Equine.objects.filter(membership_package=self.context['membership_package']).defer('id', 'membership_package', 'subscription', 'subscription_id')
         return self.context
 
 

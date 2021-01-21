@@ -103,10 +103,16 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="pills-payments-tab" data-toggle="pill"
+                            <a class="nav-link" id="pills-reports-tab" data-toggle="pill"
+                               href="#reports" role="tab" aria-controls="pills-account-tab" aria-selected="false">
+                                <i class="fad fa-clipboard d-lg-none d-block mr-1"></i>
+                                <span class="d-none d-lg-block"><i class="fad fa-analytics mr-2"></i>Reports</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="pills-account-tab" data-toggle="pill"
                                href="#account-overview" role="tab" aria-controls="pills-account-tab" aria-selected="false">
                                 <i class="fad fa-clipboard d-lg-none d-block mr-1"></i>
-                                <span class="d-none d-lg-block"><i class="fad fa-clipboard mr-2"></i>Account</span></a>
+                                <span class="d-none d-lg-block"><i class="fad fa-clipboard-list-check mr-2"></i>Account</span></a>
                         </li>
                     </ul>
                     <!-- Tabs -->
@@ -212,6 +218,48 @@
                             </div>
                         </div>
                         <!-- Tabs -->
+                        <div class="tab-pane" id="reports" role="tabpanel">
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Column -->
+                                    <div class="col-md-6 col-lg-3 col-xlg-3">
+                                        <div class="card">
+                                            <div class="box p-2 rounded bg-info text-center">
+                                                <h1 class="font-weight-light text-white">{{ members.count }}</h1>
+                                                <h6 class="text-white">Total Members</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Column -->
+                                    <div class="col-md-6 col-lg-3 col-xlg-3">
+                                        <div class="card">
+                                            <div class="box p-2 rounded bg-danger text-center">
+                                                <h1 class="font-weight-light text-white">{{ incomplete_members.count }}</h1>
+                                                <h6 class="text-white">Incomplete Members</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Column -->
+                                    <div class="col-md-6 col-lg-3 col-xlg-3">
+                                        <div class="card">
+                                            <div class="box p-2 rounded bg-success text-center">
+                                                <h1 class="font-weight-light text-white">{{ stripe_members }}</h1>
+                                                <h6 class="text-white">Stripe Subscriptions</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Column -->
+                                    <div class="col-md-6 col-lg-3 col-xlg-3">
+                                        <div class="card">
+                                            <div class="box p-2 rounded bg-warning text-center">
+                                                <h1 class="font-weight-light text-white"></h1>
+                                                <h6 class="text-white">More Coming Soon!</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <!-- Tabs -->
                         <div class="tab-pane" id="account-overview" role="tabpanel">
                             <div class="card-body">
