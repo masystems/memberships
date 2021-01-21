@@ -8,6 +8,8 @@
 
 {% block content %}
 
+{% include 'comments-modal.html' %}
+
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
@@ -165,7 +167,7 @@
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.print.min.js"></script>
     <script>
-        $('#show_hide_col').DataTable({
+        var members_table = $('#show_hide_col').DataTable({
             "processing": true,
             "serverSide": true,
             "bSort": false,
@@ -208,6 +210,53 @@
             var column = $('#show_hide_col').dataTable().api().column($(this).attr('data-column'));
             // Toggle the visibility
             column.visible(!column.visible());
+        });
+    </script>
+    <script>
+        <!-- edit comments -->
+        var editComment = function (sub_id) {
+            $.ajax({
+                url:"/membership/edit-sub-comment/"+sub_id,
+                type:"GET",
+                success: function (data){
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        $("textarea#commentField").val(result['comment']);
+                        $("#save-comment").val(sub_id);
+                        $('#comment-modal').modal('toggle');
+                    }
+                },
+                error:function (er) {
+                    errorMsg("Failed to edit comment!",er);
+                }
+            });
+
+       }
+       $("#save-comment").click(function(e){
+            sub_id = $("#save-comment").val();
+            $.ajax({
+                url:"/membership/edit-sub-comment/"+sub_id,
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#commentForm').serialize(),
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        $('#comment-modal').modal('toggle');
+                        infoMsg(result['message']);
+                        members_table.ajax.reload()
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
         });
     </script>
 {% endblock %}

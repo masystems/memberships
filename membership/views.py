@@ -357,7 +357,7 @@ def get_members_detailed(request, title):
                             'membership_type': membership_type,
                             'payment_method': payment_method,
                             'billing_interval': sub.price.interval.title(),
-                            'comments': sub.comments,
+                            'comments': f"""{sub.comments}<a href="javascript:editComment('{sub.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                             'membership_start': f"{sub.membership_start if sub.membership_start != None else ''}",
                             'membership_expiry': f"{sub.membership_expiry if sub.membership_expiry != None else ''}",
                             'action': f"""<div class="btn-group">
