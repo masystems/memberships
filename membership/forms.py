@@ -1,6 +1,9 @@
 from .models import MembershipPackage, Member, MembershipSubscription, Payment, Equine
 from django.utils.translation import gettext_lazy as _
 from django import forms
+from django.core.validators import RegexValidator
+
+EMAIL_REGEX = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
 
 
 class MembershipPackageForm(forms.ModelForm):
@@ -26,7 +29,9 @@ class MembershipPackageForm(forms.ModelForm):
 
 
 class MemberForm(forms.ModelForm):
-    email = forms.EmailField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}),
+                             validators=[RegexValidator("^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-z]+$",
+                                                        message="Email address is invalid!")])
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
 

@@ -189,6 +189,14 @@
             buttons: [
                 'copy', 'csv', 'excel', 'pdf', 'print'
             ],
+            columnDefs: [
+                {
+                    render: function (data, type, full, meta) {
+                        return "<div class='text-wrap width-200'>" + data + "</div>";
+                    },
+                    targets: 9
+                }
+            ]
         });
 
 
