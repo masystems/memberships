@@ -448,7 +448,7 @@ def get_members(request, title):
             members.append({'id': sub.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
                             'email': f"{member.user_account.email}",
-                            'comments': sub.comments,
+                            'comments': f"""{sub.comments}<a href="javascript:editComment('{sub.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                             'membership_type': membership_type,
                             'action': f"""<div class="btn-group">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -1411,6 +1411,31 @@ class MemberProfileView(MembershipBase):
                 context['subscriptions'][subscription.id]['payments'] = stripe.Charge.list(customer=subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
         return context
+
+
+@login_required(login_url='/accounts/login/')
+def edit_sub_comment(request, id):
+    if request.method == "GET":
+        try:
+            comments = MembershipSubscription.objects.get(id=id).comments
+        except MembershipSubscription.DoesNotExist:
+            return HttpResponse(dumps({'status': "fail",
+                                       'message': "Subscription does not exist"}))
+
+        return HttpResponse(dumps({'status': "success",
+                                   'message': None,
+                                   'comment': comments}))
+
+    elif request.method == "POST":
+        try:
+            sub = MembershipSubscription.objects.get(id=id)
+        except MembershipSubscription.DoesNotExist:
+            return HttpResponse(dumps({'status': "fail",
+                                       'message': "Subscription does not exist"}))
+        sub.comments = request.POST.get('comment')
+        sub.save()
+        return HttpResponse(dumps({'status': "success",
+                                   'message': "Comments updated"}))
 
 
 @login_required(login_url='/accounts/login/')

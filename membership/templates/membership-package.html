@@ -30,6 +30,36 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+<!-- Success Header Modal -->
+<div id="comment-modal" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="comment-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-success">
+                <h4 class="modal-title text-white" id="success-header-modalLabel">Edit Comment
+                </h4>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-hidden="true">×</button>
+            </div>
+            <form id="commentForm">
+                <div class="modal-body">
+                    <h5 class="mt-0">Success Background</h5>
+                    <p>Cras mattis consectetur purus sit amet fermentum. Cras justo odio,
+                        dapibus ac facilisis in, egestas eget quam. Morbi leo risus, porta
+                        ac consectetur ac, vestibulum at eros.</p>
+                    <textarea id="commentField" name="comment" class="form-control">
+
+                    </textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light"
+                        data-dismiss="modal">Close</button>
+                    <button id="save-comment" type="button" class="btn btn-success">Save changes</button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
@@ -334,7 +364,7 @@
         });
     </script>
     <script>
-        $('#default_order').DataTable({
+        var members_table = $('#default_order').DataTable({
             "processing": true,
             "serverSide": true,
             "bSort": false,
@@ -390,6 +420,55 @@
 
         $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
             resetMemberPwd($(this).attr("value"));
+        });
+    </script>
+    <script>
+<!--    <button type="button" class="btn btn-success" data-toggle="modal"-->
+<!--                                        data-target="#comment-modal">Success Header</button>-->
+        <!-- edit comments -->
+        var editComment = function (sub_id) {
+            $.ajax({
+                url:"/membership/edit-sub-comment/"+sub_id,
+                type:"GET",
+                success: function (data){
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        $("textarea#commentField").val(result['comment']);
+                        $("#save-comment").val(sub_id);
+                        $('#comment-modal').modal('toggle');
+                    }
+                },
+                error:function (er) {
+                    errorMsg("Failed to edit comment!",er);
+                }
+            });
+
+       }
+       $("#save-comment").click(function(e){
+            sub_id = $("#save-comment").val();
+            $.ajax({
+                url:"/membership/edit-sub-comment/"+sub_id,
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#commentForm').serialize(),
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        $('#comment-modal').modal('toggle');
+                        infoMsg(result['message']);
+                        members_table.ajax.reload()
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
         });
     </script>
 {% endblock %}
