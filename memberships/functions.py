@@ -3,6 +3,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from random import randint
+import re
 
 
 def generate_username(first_name, last_name):
@@ -28,15 +29,22 @@ def send_email(subject, name, body,
               send_from='contact@masys.co.uk',
               reply_to='contact@masys.co.uk'):
 
-    html_content = render_to_string('account/email/email.html', {'name': name,
-                                                        'body': body})
-    text_content = strip_tags(html_content)
+    # check if the email adress to send the email to is a random one we generated
+    pattern_to_ignore = re.compile("^\d+@masys\.co\.uk$")
+    if not pattern_to_ignore.fullmatch(send_to):
+        print('email to be sent')
 
-    # create the email, and attach the HTML version as well.
-    msg = EmailMultiAlternatives(subject, text_content, send_from, [send_to], reply_to=[reply_to])
-    msg.attach_alternative(html_content, "text/html")
+        html_content = render_to_string('account/email/email.html', {'name': name,
+                                                            'body': body})
+        text_content = strip_tags(html_content)
 
-    msg.send()
+        # create the email, and attach the HTML version as well.
+        msg = EmailMultiAlternatives(subject, text_content, send_from, [send_to], reply_to=[reply_to])
+        msg.attach_alternative(html_content, "text/html")
+
+        msg.send()
+    else:
+        print('email not to be sent')
 
     # example email
     # from memberships.functions import send_email
