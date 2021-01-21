@@ -452,18 +452,18 @@ def get_members(request, title):
                             'email': f"{member.user_account.email}",
                             'comments': f"""{sub.comments}<a href="javascript:editComment('{sub.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                             'membership_type': membership_type,
-                            'action': f"""<div class="btn-group">
+                            'action': f"""<div class="btn-group dropleft" style="position:fixed;">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
                                                 </button>
-                                                <div class="dropdown-menu">
-                                                    {card_button}
-                                                    {member_payments_button}
-                                                    {edit_member_button}
-                                                    {reset_password_button}
-                                                    {payment_reminder_button}
-                                                    {remove_member_button}
-                                                </div>
+                                                <ul class="dropdown-menu" role="menu">
+                                                    <li>{card_button}</li>
+                                                    <li>{member_payments_button}</li>
+                                                    <li>{edit_member_button}</li>
+                                                    <li>{reset_password_button}</li>
+                                                    <li>{payment_reminder_button}</li>
+                                                    <li>{remove_member_button}</li>
+                                                </ul>
                                             </div>"""})
             # sorting
             members_sorted = members
@@ -523,7 +523,6 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=False).distinct()
 
         context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
-
 
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
