@@ -30,6 +30,7 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+{% include 'comments-modal.html' %}
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
@@ -334,7 +335,7 @@
         });
     </script>
     <script>
-        $('#default_order').DataTable({
+        var members_table = $('#default_order').DataTable({
             "processing": true,
             "serverSide": true,
             "bSort": false,
@@ -390,6 +391,53 @@
 
         $('.passRstBtnCom, .passRstBtnIn').on('click',function(e){
             resetMemberPwd($(this).attr("value"));
+        });
+    </script>
+    <script>
+        <!-- edit comments -->
+        var editComment = function (sub_id) {
+            $.ajax({
+                url:"/membership/edit-sub-comment/"+sub_id,
+                type:"GET",
+                success: function (data){
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        $("textarea#commentField").val(result['comment']);
+                        $("#save-comment").val(sub_id);
+                        $('#comment-modal').modal('toggle');
+                    }
+                },
+                error:function (er) {
+                    errorMsg("Failed to edit comment!",er);
+                }
+            });
+
+       }
+       $("#save-comment").click(function(e){
+            sub_id = $("#save-comment").val();
+            $.ajax({
+                url:"/membership/edit-sub-comment/"+sub_id,
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#commentForm').serialize(),
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        errorMsg(result['message']);
+                    } else {
+                        $('#comment-modal').modal('toggle');
+                        infoMsg(result['message']);
+                        members_table.ajax.reload()
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
         });
     </script>
 {% endblock %}

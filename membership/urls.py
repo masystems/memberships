@@ -22,6 +22,7 @@ urlpatterns = [
     path('member-form/<str:title>', views.MemberRegForm.as_view(), name="member_form"),
     path('member-bolton-form/<str:title>/<int:pk>', views.member_bolton_form, name="member_bolton_form"),
     path('edit-member/<str:title>/<int:pk>', views.UpdateMember.as_view(), name="edit_member"),
+    path('edit-sub-comment/<int:id>', views.edit_sub_comment, name="edit_sub_comment"),
     path('member-payment/<str:title>/<int:pk>', views.MemberPaymentView.as_view(), name="member_payment"),
     path('update_membership_type/<str:title>/<int:pk>', views.update_membership_type, name="update_membership_type"),
     path('validate-card', views.validate_card, name="validate_card"),
