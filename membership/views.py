@@ -298,10 +298,11 @@ def get_members_detailed(request, title):
         all_members = Member.objects.filter(subscription__membership_package=membership_package,
                                             subscription__price__isnull=False).distinct()[start:start + end]
     else:
-        all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
-                                            Q(user_account__last_name__contains=search) |
-                                            Q(user_account__email__contains=search) |
-                                            Q(subscription__membership_number__contains=search),
+        all_members = Member.objects.filter(Q(user_account__first_name__icontains=search) |
+                                            Q(user_account__last_name__icontains=search) |
+                                            Q(user_account__email__icontains=search) |
+                                            Q(subscription__membership_number__icontains=search) |
+                                            Q(subscription__membership_number__icontains=search),
                                             subscription__membership_package=membership_package).distinct()[
                       start:start + end]
     total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
@@ -402,10 +403,11 @@ def get_members(request, title):
     if search == "":
         all_members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()[start:start+end]
     else:
-        all_members = Member.objects.filter(Q(user_account__first_name__contains=search) |
-                                            Q(user_account__last_name__contains=search) |
-                                            Q(user_account__email__contains=search) |
-                                            Q(subscription__membership_number__contains=search),
+        all_members = Member.objects.filter(Q(user_account__first_name__icontains=search) |
+                                            Q(user_account__last_name__icontains=search) |
+                                            Q(user_account__email__icontains=search) |
+                                            Q(subscription__membership_number__icontains=search) |
+                                            Q(subscription__comments__icontains=search),
                                             subscription__membership_package=membership_package).distinct()[start:start + end]
     total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
     if all_members.count() > 0:
@@ -1432,14 +1434,14 @@ def get_member_payments(request, title, pk):
     if search == "":
         all_payments = Payment.objects.filter(subscription=subscription)[start:start + end]
     else:
-        all_payments = Payment.objects.filter(Q(payment_method__payment_name__contains=search) |
-                                            Q(payment_number__contains=search) |
-                                            Q(type__contains=search) |
-                                            Q(comments__contains=search) |
-                                            Q(created__contains=search) |
-                                            Q(gift_aid_percentage__contains=search) |
-                                            Q(amount__contains=search),
-                                            subscription=subscription).distinct()[
+        all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
+                                              Q(payment_number__icontains=search) |
+                                              Q(type__icontains=search) |
+                                              Q(comments__icontains=search) |
+                                              Q(created__icontains=search) |
+                                              Q(gift_aid_percentage__icontains=search) |
+                                              Q(amount__icontains=search),
+                                              subscription=subscription).distinct()[
                       start:start + end]
     # get stripe payments
     total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
@@ -1463,7 +1465,7 @@ def get_member_payments(request, title, pk):
     if all_payments.count() > 0 or subscription.stripe_id:
         for payment in all_payments:
             # get the amount as a variable so it can be converted to the correct format to be displayed
-            temp_amount = int(payment.amount)/100
+            temp_amount = float(payment.amount)/100
             if payment.gift_aid:
                 giftaid = '<i class="fad fa-check text-success"></i>'
             else:
