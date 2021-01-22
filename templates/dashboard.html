@@ -166,7 +166,7 @@
     <script>
         $('#joinOrg').click(function() {
             if (($('#organisations').val() != "") && (orgs.includes($('#organisations').val()))) {
-                var url = "/membership/member-form/" + $('#organisations').val();
+                var url = "/membership/member-form/" + $('#organisations').val() + "/" + {{ membership.id }};
                 window.location.href = url;
             }
         });
