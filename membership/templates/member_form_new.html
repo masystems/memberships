@@ -49,7 +49,7 @@
                     </div>
                     <hr>
 
-                    <form id="memberForm" class="form-horizontal" action="{% url 'member_form' membership_package.organisation_name %}" method="POST">
+                    <form id="memberForm" class="form-horizontal" action="{% url 'member_form' membership_package.organisation_name member_id %}" method="POST">
                             {% include 'member_form.html' %}
                     </form>
                 {% else %}

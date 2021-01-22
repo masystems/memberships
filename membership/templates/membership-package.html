@@ -123,7 +123,7 @@
                                     <div class="ml-auto">
                                         <div class="btn-list">
                                             {% if not stripe_package_setup %}
-                                                <a href="{% url 'member_form' membership_package.organisation_name %}">
+                                                <a href="{% url 'member_form' membership_package.organisation_name 0 %}">
                                                     <button type="button" class="btn btn-success">
                                                         Add New Member
                                                     </button>

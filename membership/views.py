@@ -342,7 +342,7 @@ def get_members_detailed(request, title):
                                         </a>"""
                 member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
-                edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
+                edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
                 reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
@@ -439,7 +439,7 @@ def get_members(request, title):
                                         </a>"""
                 member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
-                edit_member_button = f"""<a href="{reverse('edit_member', kwargs={'title': membership_package.organisation_name,
+                edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
                 reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
@@ -853,174 +853,212 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         return self.context
 
 
-class MemberRegForm(LoginRequiredMixin, FormView):
-    template_name = 'member_form_new.html'
-    login_url = '/accounts/login/'
-    form_class = MemberForm
-    success_url = '/membership/'
+@login_required(login_url='/accounts/login/')
+def member_reg_form(request, title, pk):
+    """
+    user is admin/owner editing their own membership details
+    user is admin/owner create a new member
+    user is admin/owner editing an existing member
+    user is creating a membership for themself
+    user is editing their own membership
+    :param request:
+    :param title:
+    :param pk:
+    :return:
+    """
+    # get basic objects and validate if new membership
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    try:
+        member = Member.objects.get(id=pk)
+        new_membership = False
+    except Member.DoesNotExist:
+        # must be a new membership
+        new_membership = True
 
-    def get_initial(self):
-        """
-        Returns the initial data to use for forms on this view.
-        """
-        initial = super().get_initial()
-
-        # get membership title
-        decoded_url = unquote(self.request.get_full_path())
-        org = decoded_url.split('/')[3]
-
-        if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                Q(admins=self.request.user),
-                                                  organisation_name=org).exists():
-            initial['email'] = self.request.user.email
-            initial['first_name'] = self.request.user.first_name
-            initial['last_name'] = self.request.user.last_name
-
-        return initial
-
-    def get_context_data(self, **kwargs):
-        self.context = super().get_context_data(**kwargs)
-        self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-
-        # check to see if membership type exists
-        self.context['is_price'] = False
-        prices = None
-        try:
-            prices = Price.objects.filter(membership_package=self.context['membership_package'])
-        except Price.DoesNotExist:
-            pass
-        for price in prices:
-            if price.active:
-                self.context['is_price'] = True
-
-        # check to see if stripe has been set up
-        stripe.api_key = get_stripe_secret_key(self.request)
-        self.context['is_stripe'] = False
-        if self.context['membership_package'].stripe_acct_id:
-            try:
-                stripe.Account.create_login_link(self.context['membership_package'].stripe_acct_id)
-                self.context['is_stripe'] = True
-            except stripe.error.InvalidRequestError:
-                # stripe account created but not setup
-                pass
+    if request.method == "GET" and not new_membership:
+        # check if user is the same person as the member
+        if member.user_account == request.user:
+            # user is admin/owner editing their own membership details
+            # user is creating a membership for themself
+            # user is editing their own membership
+            member_id = member.id
+            form = MemberForm({'email': request.user.email,
+                               'first_name': request.user.first_name,
+                               'last_name': request.user.last_name}, instance=member)
         else:
-            # stripe account not setup
-            pass
-
-        return self.context
-
-    def form_valid(self, form, **kwargs):
-        self.context = self.get_context_data(**kwargs)
-        # validate user not already a member of package
-        try:
-            if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email'])),
-                                                     membership_package=self.context['membership_package']).exists():
-                form.add_error('email', f"This email address is already in use for {self.context['membership_package'].organisation_name}.")
-                return super(MemberRegForm, self).form_invalid(form)
-        except Member.DoesNotExist:
-            pass
-        except User.DoesNotExist:
-            pass
-
-        self.form = form
-        self.get_or_create_user()
-
-        # get or create member object
-        self.member, created = Member.objects.get_or_create(user_account=self.user)
-        self.member.title = self.form.cleaned_data['title']
-        self.member.address_line_1 = self.form.cleaned_data['address_line_1']
-        self.member.address_line_2 = self.form.cleaned_data['address_line_2']
-        self.member.town = self.form.cleaned_data['town']
-        self.member.county = self.form.cleaned_data['county']
-        self.member.postcode = self.form.cleaned_data['postcode']
-        self.member.contact_number = self.form.cleaned_data['contact_number']
-        self.member.save()
-
-        try:
-            subscription = MembershipSubscription.objects.get(member=self.member, membership_package=self.context['membership_package'])
-        except MembershipSubscription.DoesNotExist:
-            # check there are existing subscriptions
-            if MembershipSubscription.objects.exists():
-                # get latest membership number
-                latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
-                # check latest membership number is valid
-                if latest_valid_mem_num == None or latest_valid_mem_num == '':
-                    i = 1
-                    # check we haven't gone past the end of the subscriptions
-                    if i < MembershipSubscription.objects.all().count():
-                        # get membership number before last before last sub
-                        latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
-                        # go through subscription's membership numbers in reverse until we find a valid one
-                        while latest_valid_mem_num == None or latest_valid_mem_num == '':
-                            i += 1
-                            # check we haven't gone past the end of the subscriptions
-                            if i < MembershipSubscription.objects.all().count():
-                                latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
-                            # no valid membership numbers, so set variable to zero
-                            else:
-                                latest_valid_mem_num = 0
-                    # no valid membership numbers, so set variable to zero
-                    else:
-                        latest_valid_mem_num = 0
-                membership_number = int(latest_valid_mem_num) + 1
-                # check this membership number isn't taken
-                # if it is taken, increment by 1 then check that one
-                while True:
-                    if MembershipSubscription.objects.filter(membership_number=str(membership_number)).exists():
-                        membership_number += 1
-                    else:
-                        break
-            # there are no existing subscriptions, so this is the first
+            # user is not member, validate user is admin/owner
+            if request.user == membership_package.owner or request.user in membership_package.admins.all:
+                # user is admin/owner editing an existing member
+                member_id = pk
+                form = MemberForm({'email': member.user_account.email,
+                                   'first_name': member.user_account.first_name,
+                                   'last_name': member.user_account.last_name}, instance=member)
             else:
-                membership_number = 1
-            # use the membership number to make a new subscription
-            subscription = MembershipSubscription.objects.create(member=self.member,
-                                                                 membership_package=self.context['membership_package'],
-                                                                 membership_number=membership_number)
+                # user is not allowed to edit this member
+                return redirect('dashboard')
 
-        subscription.membership_package = self.context['membership_package']
-        subscription.member = self.member
-
-        # create/ update stripe customer
-        stripe.api_key = get_stripe_secret_key(self.request)
-        if subscription.stripe_id:
-            # stripe user already exists
-            stripe_customer = stripe.Customer.modify(
-                subscription.stripe_id,
-                name=self.member.user_account.get_full_name(),
-                email=self.member.user_account.email,
-                stripe_account=self.context['membership_package'].stripe_acct_id
-            )
+    if request.method == "GET" and new_membership:
+        # new user/membership
+        # validate user is owner/admin
+        if request.user == membership_package.owner or request.user in membership_package.admins.all():
+            # user is admin/owner create a new member
+            member_id = pk
+            form = MemberForm()
         else:
-            stripe_customer = stripe.Customer.create(
-                name=self.member.user_account.get_full_name(),
-                email=self.member.user_account.email,
-                stripe_account=self.context['membership_package'].stripe_acct_id
-            )
+            # user is not allowed to edit this member
+            return redirect('dashboard')
 
-        subscription.stripe_id = stripe_customer.id
-        subscription.save()
+    elif request.method == "POST":
+        # admin/owner can add any new/existing user
+        # admin/owner can edit any existing owner
+        # user can edit only themselves
 
-        if self.context['membership_package'].bolton != 'none' and MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                                    Q(admins=self.request.user),
-                                                                      organisation_name=self.context['membership_package'].organisation_name).exists():
-            return redirect(
-                f"member_bolton_form", self.context['membership_package'].organisation_name, self.member.id)
+        form = MemberForm(request.POST)
+        if form.is_valid():
+            user = get_or_create_user(form)
+
+            if pk == 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
+                # new member
+                # validate user not already a member of package
+                try:
+                    if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email'])),
+                                                             membership_package=membership_package).exists():
+                        form.add_error('email', f"This email address is already in use for {membership_package.organisation_name}.")
+                except Member.DoesNotExist:
+                    pass
+                except User.DoesNotExist:
+                    pass
+            else:
+                # new membership request but user is not admin/owner tut tut
+                redirect('dashboard')
+
+            # get or create member object
+            member, created = Member.objects.get_or_create(user_account=user)
+            member.title = form.cleaned_data['title']
+            member.address_line_1 = form.cleaned_data['address_line_1']
+            member.address_line_2 = form.cleaned_data['address_line_2']
+            member.town = form.cleaned_data['town']
+            member.county = form.cleaned_data['county']
+            member.postcode = form.cleaned_data['postcode']
+            member.contact_number = form.cleaned_data['contact_number']
+            member.save()
+
+            try:
+                subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+            except MembershipSubscription.DoesNotExist:
+                # check there are existing subscriptions
+                if MembershipSubscription.objects.exists():
+                    # get latest membership number
+                    latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
+                    # check latest membership number is valid
+                    if latest_valid_mem_num == None or latest_valid_mem_num == '':
+                        i = 1
+                        # check we haven't gone past the end of the subscriptions
+                        if i < MembershipSubscription.objects.all().count():
+                            # get membership number before last before last sub
+                            latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                            # go through subscription's membership numbers in reverse until we find a valid one
+                            while latest_valid_mem_num == None or latest_valid_mem_num == '':
+                                i += 1
+                                # check we haven't gone past the end of the subscriptions
+                                if i < MembershipSubscription.objects.all().count():
+                                    latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                                # no valid membership numbers, so set variable to zero
+                                else:
+                                    latest_valid_mem_num = 0
+                        # no valid membership numbers, so set variable to zero
+                        else:
+                            latest_valid_mem_num = 0
+                    membership_number = int(latest_valid_mem_num) + 1
+                    # check this membership number isn't taken
+                    # if it is taken, increment by 1 then check that one
+                    while True:
+                        if MembershipSubscription.objects.filter(membership_number=str(membership_number)).exists():
+                            membership_number += 1
+                        else:
+                            break
+                # there are no existing subscriptions, so this is the first
+                else:
+                    membership_number = 1
+                # use the membership number to make a new subscription
+                subscription = MembershipSubscription.objects.create(member=member,
+                                                                     membership_package=membership_package,
+                                                                     membership_number=membership_number)
+
+            subscription.membership_package = membership_package
+            subscription.member = member
+
+            # create/ update stripe customer
+            stripe.api_key = get_stripe_secret_key(request)
+            if subscription.stripe_id:
+                # stripe user already exists
+                stripe_customer = stripe.Customer.modify(
+                    subscription.stripe_id,
+                    name=member.user_account.get_full_name(),
+                    email=member.user_account.email,
+                    stripe_account=membership_package.stripe_acct_id
+                )
+            else:
+                stripe_customer = stripe.Customer.create(
+                    name=member.user_account.get_full_name(),
+                    email=member.user_account.email,
+                    stripe_account=membership_package.stripe_acct_id
+                )
+
+            subscription.stripe_id = stripe_customer.id
+            subscription.save()
+
+            if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
+                                                                        Q(admins=request.user),
+                                                                          organisation_name=membership_package.organisation_name).exists():
+                return redirect(
+                    f"member_bolton_form", membership_package.organisation_name, member.id)
+            else:
+                return redirect(
+                    f"member_payment", membership_package.organisation_name, member.id)
         else:
-            return redirect(
-                f"member_payment", self.context['membership_package'].organisation_name, self.member.id)
+            # form not valid
+            pass
+    # check membership type exists
+    is_price = False
+    prices = None
+    try:
+        prices = Price.objects.filter(membership_package=membership_package)
+    except Price.DoesNotExist:
+        pass
+    for price in prices:
+        if price.active:
+            is_price = True
+            break
+    # check stripe has been set up
+    stripe.api_key = get_stripe_secret_key(request)
+    is_stripe = False
+    if membership_package.stripe_acct_id:
+        try:
+            stripe.Account.create_login_link(membership_package.stripe_acct_id)
+            is_stripe = True
+        except stripe.error.InvalidRequestError:
+            # stripe account created but not setup
+            pass
 
-    def get_or_create_user(self):
-        """
-        Get or create a new user
-        :return:
-        """
-        self.user, created = User.objects.get_or_create(email=self.form.cleaned_data['email'])
-        if created:
-            self.user.username = generate_username(self.form.cleaned_data['first_name'], self.form.cleaned_data['last_name'])
-        self.user.first_name = self.form.cleaned_data['first_name']
-        self.user.last_name = self.form.cleaned_data['last_name']
-        self.user.save()
+    return render(request, 'member_form_new.html', {'form': form,
+                                                    'membership_package': membership_package,
+                                                    'is_price': is_price,
+                                                    'is_stripe': is_stripe,
+                                                    'member_id': member_id})
+
+def get_or_create_user(form):
+    """
+    Get or create a new user
+    :return:
+    """
+    user, created = User.objects.get_or_create(email=form.cleaned_data['email'])
+    if created:
+        user.username = generate_username(form.cleaned_data['first_name'], form.cleaned_data['last_name'])
+    user.first_name = form.cleaned_data['first_name']
+    user.last_name = form.cleaned_data['last_name']
+    user.save()
+    return user
 
 
 @login_required(login_url='/accounts/login/')
@@ -1078,103 +1116,6 @@ def member_bolton_form(request, title, pk):
                                                                'member': member})
         else:
             return redirect('membership')
-
-
-class UpdateMember(LoginRequiredMixin, UpdateView):
-    template_name = 'member_form_update.html'
-    login_url = '/accounts/login/'
-    form_class = MemberForm
-    model = Member
-    success_url = '/membership/'
-
-    def get_initial(self):
-        """
-        Returns the initial data to use for forms on this view.
-        """
-        initial = super().get_initial()
-
-        # get membership title
-        decoded_url = unquote(self.request.get_full_path())
-        member_id = decoded_url.split('/')[4]
-        member = Member.objects.get(id=member_id)
-        initial['email'] = member.user_account.email
-        initial['first_name'] = member.user_account.first_name
-        initial['last_name'] = member.user_account.last_name
-
-        return initial
-
-    def dispatch(self, request, *args, **kwargs):
-        # check user is logged in
-        if request.user.is_authenticated:
-            """
-            Only allow the owner and admins to view this page
-            :param request:
-            :param args:
-            :param kwargs:
-            :return:
-            """
-
-            if not MembershipPackage.objects.filter(Q(owner=self.request.user) |
-                                                    Q(admins=self.request.user),
-                                                    organisation_name=kwargs['title']).exists():
-                # disallow access to page
-                return HttpResponseRedirect('/')
-
-            #kwargs.update({'foo': 'bar'})  # inject the foo value
-            # now process dispatch as it otherwise normally would
-            return super().dispatch(request, *args, **kwargs)
-        # redirect to login page if user not logged in
-        else:
-            return HttpResponseRedirect(f"{get_login_url()}edit-member/{self.kwargs['title']}/{self.kwargs['pk']}")
-
-    def get_context_data(self, **kwargs):
-        self.context = super().get_context_data(**kwargs)
-        self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
-        self.context['member'] = Member.objects.get(id=self.kwargs['pk'])
-        return self.context
-
-    def form_valid(self, form, **kwargs):
-        self.context = self.get_context_data(**kwargs)
-        self.form = form
-        self.member = self.form.save()
-        self.update_user()
-        self.update_stripe_customer()
-
-        if self.context['membership_package'].bolton != 'none':
-            return redirect(
-                f"member_bolton_form", self.context['membership_package'].organisation_name, self.member.id)
-        else:
-            return super().form_valid(form)
-
-        # if self.request.user == self.context['membership_package'].owner or self.request.user in self.context[
-        #     'membership_package'].admins.all():
-        #     return redirect(f"member_sub_form", self.context['membership_package'].organisation_name, self.member.id)
-        # else:
-        #     return super().form_valid(form)
-
-    def update_user(self):
-        """
-        Update and link user
-        :return:
-        """
-        # update the user from the member id
-        self.member.user_account.email = self.form.cleaned_data['email']
-        self.member.user_account.first_name = self.form.cleaned_data['first_name']
-        self.member.user_account.last_name = self.form.cleaned_data['last_name']
-        self.member.save()
-
-    def update_stripe_customer(self):
-        stripe.api_key = get_stripe_secret_key(self.request)
-
-        subscription = MembershipSubscription.objects.get(member=self.member,
-                                                          membership_package=self.context['membership_package'])
-        if subscription.stripe_id:
-            stripe_customer = stripe.Customer.modify(
-                subscription.stripe_id,
-                name=self.member.user_account.get_full_name(),
-                email=self.member.user_account.email,
-                stripe_account=self.context['membership_package'].stripe_acct_id
-            )
 
 
 class MemberPaymentView(LoginRequiredMixin, MembershipBase):
@@ -1629,8 +1570,8 @@ def validate_card(request, type, pk=0):
     # add payment token to user
     try:
         payment_method = stripe.Customer.modify(
-          stripe_id,
-          source=request.POST.get('token[id]'),
+            stripe_id,
+            source=request.POST.get('token[id]'),
             stripe_account=account_id
         )
         return {'result': 'success',

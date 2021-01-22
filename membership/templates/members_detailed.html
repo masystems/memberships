@@ -198,7 +198,17 @@
                     },
                     targets: 9
                 }
-            ]
+            ],
+            action: function ( e, dt, button, conf ) {
+               var col = dt.columns( conf.columns );
+               var curr = col.visible();
+
+               col.visible( conf.visibility !== undefined ?
+                               conf.visibility :
+                               ! (curr.length ? curr[0] : false )
+               );
+               this.active( col.visible() );   // added this line
+            }
         });
 
 
