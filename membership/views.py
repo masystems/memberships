@@ -1040,11 +1040,11 @@ def member_reg_form(request, title, pk):
             # stripe account created but not setup
             pass
 
-    return render(request, 'member_form_new.html', {'form': form,
-                                                    'membership_package': membership_package,
-                                                    'is_price': is_price,
-                                                    'is_stripe': is_stripe,
-                                                    'member_id': member_id})
+    return render(request, 'member_form.html', {'form': form,
+                                                'membership_package': membership_package,
+                                                'is_price': is_price,
+                                                'is_stripe': is_stripe,
+                                                'member_id': member_id})
 
 def get_or_create_user(form):
     """

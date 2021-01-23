@@ -39,7 +39,7 @@ class MemberForm(forms.ModelForm):
         fields = '__all__'
         exclude = ('user_account',)
         help_texts = {
-            # 'service': _('If your query is not regarding a service, leave this blank.'),
+            # 'title': _('If your query is not regarding a service, leave this blank.'),
         }
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
