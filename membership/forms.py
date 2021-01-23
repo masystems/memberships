@@ -3,7 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from django import forms
 from django.core.validators import RegexValidator
 
-EMAIL_REGEX = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+EMAIL_REGEX = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-z-.]+$)"
 
 
 class MembershipPackageForm(forms.ModelForm):
@@ -29,8 +29,8 @@ class MembershipPackageForm(forms.ModelForm):
 
 
 class MemberForm(forms.ModelForm):
-
-    email = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
+    email = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}),
+                            validators=[RegexValidator(EMAIL_REGEX, message="Email address is invalid!")])
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
 
