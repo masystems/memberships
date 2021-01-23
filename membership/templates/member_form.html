@@ -1,36 +1,357 @@
-
+{% extends 'base.html' %}
+{% load static %}
 {% load widget_tweaks %}
 
-{% csrf_token %}
-<div class="card-body">
-    <h4 class="card-title">Details</h4>
+{% block header %}
+
+{% endblock %}
+        <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+{% block content %}
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
     <div class="row">
-        {% for field in form %}
-            <div class="col-sm-12 col-lg-6">
-                <div class="form-group row">
-                    <label for="{{ field.id }}" class="col-sm-3 text-right control-label col-form-label">{{ field.label }}{% if field.field.required %}*{% endif %}</label>
-                    <div class="col-sm-9">
-                        {% render_field field %}
-                        <small>{{ field.help_text }}</small>
-                        {% if field.errors %}
-                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
-                                <ul class="list-style-none">
-                                    {% for error in field.errors %}
-                                        <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">{{ membership_package }} Member Form</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
                         {% endif %}
-                    </div>
-                </div>
+                        <li class="breadcrumb-item active" aria-current="page">Member Form</li>
+                    </ol>
+                </nav>
             </div>
-        {% endfor %}
-    </div>
-    <hr>
-    <div class="card-body">
-        <div class="form-group mb-0 text-right">
-            <button id="save-member" class="btn btn-info waves-effect waves-light">Save</button>
-            <a href="{% url 'membership' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
         </div>
     </div>
 </div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <!-- Validate that membership package has been set up with stripe and has at least one membership type -->
+                {% if is_stripe and is_price %}
+                    <div class="card-body">
+                        <h4 class="card-title">Member Form</h4>
+                        <h6 class="card-subtitle">Fill out the form below to add a new member to your organisation.</h6>
+                    </div>
+                    <hr>
+
+                    <form id="memberForm" class="form-horizontal" action="{% url 'member_form' membership_package.organisation_name member_id %}" method="POST">
+                         {% csrf_token %}
+                        <div class="card-body">
+                            <h4 class="card-title">Details</h4>
+                            <div class="row">
+                                <!-- first name field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.first_name.label }}{% if form.first_name.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% if request.user.id == membership.user_account.id %}
+                                                {% render_field form.first_name|append_attr:"readonly:readonly" %}
+                                            {% else %}
+                                                {% render_field form.first_name %}
+                                            {% endif %}
+                                            <small>{{ form.first_name.help_text }}</small>
+                                            {% if form.first_name.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.first_name.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- last name field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.last_name.label }}{% if form.last_name.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% if request.user.id == membership.user_account.id %}
+                                                {% render_field form.last_name|append_attr:"readonly:readonly" %}
+                                            {% else %}
+                                                {% render_field form.last_name %}
+                                            {% endif %}
+                                            <small>{{ form.last_name.help_text }}</small>
+                                            {% if form.last_name.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.last_name.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Email field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.email.label }}{% if form.email.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% if request.user.id == membership.user_account.id %}
+                                                {% render_field form.email|append_attr:"readonly:readonly" %}
+                                            {% else %}
+                                                {% render_field form.email %}
+                                            {% endif %}
+                                            <small>{{ form.email.help_text }}</small>
+                                            {% if form.email.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.email.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- title field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.title.label }}{% if form.title.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.title %}
+                                            <small>{{ form.title.help_text }}</small>
+                                            {% if form.title.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.title.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- company field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.company.label }}{% if form.company.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.company %}
+                                            <small>{{ form.company.help_text }}</small>
+                                            {% if form.company.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.company.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- address_line_1 field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.address_line_1.label }}{% if form.address_line_1.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.address_line_1 %}
+                                            <small>{{ form.address_line_1.help_text }}</small>
+                                            {% if form.address_line_1.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.address_line_1.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- address_line_2 field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.address_line_2.label }}{% if form.address_line_2.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.address_line_2 %}
+                                            <small>{{ form.address_line_2.help_text }}</small>
+                                            {% if form.address_line_2.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.address_line_2.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- town field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.town.label }}{% if form.town.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.town %}
+                                            <small>{{ form.town.help_text }}</small>
+                                            {% if form.town.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.town.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- county field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.county.label }}{% if form.county.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.county %}
+                                            <small>{{ form.county.help_text }}</small>
+                                            {% if form.county.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.county.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- country field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.country.label }}{% if form.country.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.country %}
+                                            <small>{{ form.country.help_text }}</small>
+                                            {% if form.country.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.country.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- postcode field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.postcode.label }}{% if form.postcode.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.postcode %}
+                                            <small>{{ form.postcode.help_text }}</small>
+                                            {% if form.postcode.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.postcode.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- contact_number field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.contact_number.label }}{% if form.contact_number.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            {% render_field form.contact_number %}
+                                            <small>{{ form.contact_number.help_text }}</small>
+                                            {% if form.contact_number.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.contact_number.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr>
+                            <div class="card-body">
+                                <div class="form-group mb-0 text-right">
+                                    <button id="save-member" class="btn btn-info waves-effect waves-light">Save</button>
+                                    <a href="{% url 'membership' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                {% else %}
+                    <!-- Validate that request.user is owner/admin/ of subscription package -->
+                    {% if request.user == membership_package.owner or request.user in membership_package.admins.all %}
+                        <!-- membership types not set up -->
+                        {% if is_stripe %}
+                            <div class="card-body">
+                                <h4 class="card-title">Membership Package Not Ready</h4>
+                                <p>This membership package does not have any membership types, meaning members cannot be added.</p>
+                                <p>To allow members to be added, you can manage membership types from the <a href="{% url 'membership_package' membership_package.organisation_name %}">Membership</a> page.</p>
+                            </div>
+                        <!-- stripe not set up -->
+                        {% elif is_price %}
+                            <div class="card-body">
+                                <h4 class="card-title">Membership Package Not Ready</h4>
+                                <p>This membership package does not have stripe set up.</p>
+                                <p>To allow members to be added, you can set up stripe from the <a href="{% url 'membership_package' membership_package.organisation_name %}">Membership</a> page.</p>
+                            </div>
+                        <!-- neither set up -->
+                        {% else %}
+                            <div class="card-body">
+                                <h4 class="card-title">Membership Package Not Ready</h4>
+                                <p>This membership package does not have stripe set up and it does not have any membership types.</p>
+                                <p>To allow members to be added, you can manage membership types and set up stripe from the <a href="{% url 'membership_package' membership_package.organisation_name %}">Membership</a> page.</p>
+                            </div>
+                        {% endif %}
+                    <!-- user is not owner/admin -->
+                    {% else %}
+                        <div class="card-body">
+                            <h4 class="card-title">Membership Package Not Ready</h4>
+                            <p>Unfortuntely, the organisation you wish to join has not yet been completely set up, and so you can't yet become a member of it.</p>
+                            <p>You can, however, join other organisations or create your own from the <a href="{% url 'dashboard' %}">Home</a> page.</p>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <!-- End Row -->
+</div>
+{% endblock %}
+{% block footer %}
+    <script src="{% static 'assets/libs/moment/moment.js' %}"></script>
+    <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
+    <script>
+        // Date Picker
+        jQuery('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true
+        });
+    </script>
+{% endblock %}
