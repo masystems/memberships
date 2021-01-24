@@ -24,6 +24,7 @@ class MembershipPackage(models.Model):
     )
     business_type = models.CharField(max_length=19, choices=BUSINESS_TYPE, default='individual',
                                 help_text="Select your business type")
+    custom_fields = models.TextField(blank=True)
     cloud_lines_account = models.CharField(max_length=100, blank=True,
                                            help_text="Link your membership account to your cloud-lines account")
     enabled = models.BooleanField(default=False)
@@ -91,11 +92,11 @@ class MembershipSubscription(models.Model):
     stripe_id = models.CharField(max_length=255, blank=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
     validated = models.BooleanField(default=False)
-
     comments = models.TextField(blank=True)
     membership_start = models.DateField(null=True, blank=True)
     membership_expiry = models.DateField(null=True, blank=True)
     active = models.BooleanField(default=False)
+    custom_fields = models.TextField(blank=True)
 
     def __str__(self):
         return self.membership_package.organisation_name
