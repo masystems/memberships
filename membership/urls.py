@@ -8,6 +8,7 @@ urlpatterns = [
     path('org/<str:title>/manage-admins', views.manage_admins, name="manage_admins"),
     path('org/<str:title>/manage-membership-types', views.manage_membership_types, name="manage_membership_types"),
     path('org/<str:title>/manage-payment-methods', views.manage_payment_methods, name="manage_payment_methods"),
+    path('org/<str:title>/manage-custom-fields', views.manage_custom_fields, name="manage_custom_fields"),
     path('org/select-package', views.SelectMembershipPackageView.as_view(), name="select_package"),
     path('get-members/<str:title>', views.get_members, name="get_members"),
     path('get-members-detailed/<str:title>', views.get_members_detailed, name="get_members_detailed"),

@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect, get_object_or_404, reverse
 from django.views.generic.base import TemplateView
-from django.views.generic.edit import FormView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -9,10 +8,9 @@ from django.db.models import Q
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
-from json import dumps
+from json import dumps, loads, JSONDecodeError
 import stripe
-from re import search, match
-from urllib.parse import unquote
+from re import match
 from datetime import datetime
 
 
@@ -262,6 +260,123 @@ def manage_payment_methods(request, title):
         payment_methods = PaymentMethod.objects.filter(membership_package=membership_package)
         return render(request, 'manage-payment-methods.html', {'membership_package': membership_package,
                                                                 'payment_methods': payment_methods})
+
+
+@login_required(login_url='/accounts/login/')
+def manage_custom_fields(request, title):
+    # validate request user is owner or admin of org
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                            Q(admins=request.user),
+                                            organisation_name=title,
+                                            enabled=True).exists():
+        return redirect('dashboard')
+
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    visible_value = True
+    try:
+        custom_fields = loads(membership_package.custom_fields)
+    except JSONDecodeError:
+        custom_fields = None
+
+    if request.method == "POST":
+        # get visible var
+        if 'visible' not in request.POST:
+            visible_value = False
+
+        # field name validation
+        if request.POST.get('field_name') in ("", None) and request.POST.get('type') != "delete":
+            return HttpResponse(dumps({'status': "fail",
+                                       'message': "You must enter a valid field name"}),
+                                content_type='application/json')
+
+        if request.POST.get('type_id'):
+            # edit
+            if request.POST.get('type') == "delete":
+                # remove field type from json
+                custom_fields.pop(request.POST.get('type_id'), None)
+                membership_package.custom_fields = dumps(custom_fields)
+                membership_package.save()
+                # remove field from subs
+                subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)
+                for sub in subscriptions.all():
+                    custom_fields_updated = {}
+                    if sub.custom_fields:
+                        for key, val in loads(sub.custom_fields).items():
+                            if key in custom_fields:
+                                custom_fields_updated[key] = val
+
+                    sub.custom_fields = dumps(custom_fields_updated)
+                    sub.save()
+                return HttpResponse(dumps({'status': "success",
+                                           'message': "Field Deleted!"}), content_type='application/json')
+            else:
+                custom_fields[request.POST.get('type_id')] = {'id': request.POST.get('type_id'),
+                                                              'field_name': request.POST.get('field_name'),
+                                                              'field_type': request.POST.get('field_type'),
+                                                              'visible': visible_value}
+                membership_package.custom_fields = dumps(custom_fields)
+                membership_package.save()
+
+                # update sub objects
+                subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)
+                for sub in subscriptions.all():
+                    try:
+                        custom_fields = loads(sub.custom_fields)
+                    except JSONDecodeError:
+                        custom_fields = {}
+
+                    custom_fields[request.POST.get('type_id')] = {'id': request.POST.get('type_id'),
+                                                                  'field_name': request.POST.get('field_name'),
+                                                                  'field_type': request.POST.get('field_type'),
+                                                                  'visible': visible_value}
+
+                    sub.custom_fields = dumps(custom_fields)
+                    sub.save()
+                return HttpResponse(dumps({'status': "success",
+                                           'message': "Field successfully updated"}), content_type='application/json')
+
+        else:
+            # new custom field
+            # create unique key
+            for suffix in range(0, len(custom_fields) + 2):
+                if f'cf_{suffix}' not in custom_fields:
+                    field_key = f'cf_{suffix}'
+                    break
+
+            custom_fields[field_key] = {'id': field_key,
+                                        'field_name': request.POST.get('field_name'),
+                                        'field_type': request.POST.get('field_type'),
+                                        'visible': request.POST.get('visible')}
+            membership_package.custom_fields = dumps(custom_fields)
+            membership_package.save()
+
+            # update sub objects
+            subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)
+
+            for sub in subscriptions.all():
+                try:
+                    object_custom_fields = loads(sub.custom_fields)
+                except JSONDecodeError:
+                    object_custom_fields = {}
+
+                object_custom_fields[field_key] = {'id': field_key,
+                                                   'field_name': request.POST.get('field_name'),
+                                                   'field_type': request.POST.get('field_type'),
+                                                   'visible': request.POST.get('visible')}
+
+                sub.custom_fields = dumps(object_custom_fields)
+                sub.save()
+
+            return HttpResponse(dumps({'status': "success",
+                                       'message': "Custom field successfully added"}), content_type='application/json')
+            # except ValueError:
+            #     return HttpResponse(dumps({'status': "fail",
+            #                                'message': "You must enter a valid amount"}),
+            #                         content_type='application/json')
+
+    else:
+        return render(request, 'manage-custom-fields.html', {'membership_package': membership_package,
+                                                             'custom_fields': custom_fields})
 
 
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):

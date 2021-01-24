@@ -17,6 +17,7 @@ class MembershipPackageForm(forms.ModelForm):
                    'stripe_owner_id',
                    'stripe_product_id',
                    'bolton',
+                   'custom_fields',
                    'cloud_lines_account',
                    'enabled')
         help_texts = {
@@ -37,7 +38,7 @@ class MemberForm(forms.ModelForm):
     class Meta:
         model = Member
         fields = '__all__'
-        exclude = ('user_account',)
+        exclude = ('user_account', 'custom_fields')
         help_texts = {
             # 'title': _('If your query is not regarding a service, leave this blank.'),
         }
