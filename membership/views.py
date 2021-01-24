@@ -276,7 +276,7 @@ def manage_custom_fields(request, title):
     try:
         custom_fields = loads(membership_package.custom_fields)
     except JSONDecodeError:
-        custom_fields = None
+        custom_fields = {}
 
     if request.method == "POST":
         # get visible var
@@ -310,9 +310,18 @@ def manage_custom_fields(request, title):
                 return HttpResponse(dumps({'status': "success",
                                            'message': "Field Deleted!"}), content_type='application/json')
             else:
+                if request.POST.get('field_type') == "Text":
+                    field_type = "text_field"
+                elif request.POST.get('field_type') == "Text Area":
+                    field_type = "text_area"
+                elif request.POST.get('field_type') == "Date":
+                    field_type = "date"
+                else:
+                    # just in case
+                    field_type = "text_field"
                 custom_fields[request.POST.get('type_id')] = {'id': request.POST.get('type_id'),
                                                               'field_name': request.POST.get('field_name'),
-                                                              'field_type': request.POST.get('field_type'),
+                                                              'field_type': field_type,
                                                               'visible': visible_value}
                 membership_package.custom_fields = dumps(custom_fields)
                 membership_package.save()
@@ -326,7 +335,7 @@ def manage_custom_fields(request, title):
                         custom_fields = {}
 
                     custom_fields[request.POST.get('type_id')]['field_name'] = request.POST.get('field_name')
-                    custom_fields[request.POST.get('type_id')]['field_type'] = request.POST.get('field_type')
+                    custom_fields[request.POST.get('type_id')]['field_type'] = field_type
                     custom_fields[request.POST.get('type_id')]['visible'] = visible_value
 
                     sub.custom_fields = dumps(custom_fields)
