@@ -325,10 +325,9 @@ def manage_custom_fields(request, title):
                     except JSONDecodeError:
                         custom_fields = {}
 
-                    custom_fields[request.POST.get('type_id')] = {'id': request.POST.get('type_id'),
-                                                                  'field_name': request.POST.get('field_name'),
-                                                                  'field_type': request.POST.get('field_type'),
-                                                                  'visible': visible_value}
+                    custom_fields[request.POST.get('type_id')]['field_name'] = request.POST.get('field_name')
+                    custom_fields[request.POST.get('type_id')]['field_type'] = request.POST.get('field_type')
+                    custom_fields[request.POST.get('type_id')]['visible'] = visible_value
 
                     sub.custom_fields = dumps(custom_fields)
                     sub.save()
