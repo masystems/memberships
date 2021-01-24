@@ -989,6 +989,19 @@ def member_reg_form(request, title, pk):
         # must be a new membership
         new_membership = True
 
+    # custom fields
+    if not new_membership:
+        subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+        try:
+            # get custom fields
+            custom_fields = loads(subscription.custom_fields)
+        except JSONDecodeError:
+            # failed to get subscription custom fields, save package custom fields to sub custom fields
+            subscription.custom_fields = dumps(membership_package.custom_fields)
+            custom_fields = loads(subscription.custom_fields)
+    else:
+        custom_fields = membership_package.custom_fields
+
     if request.method == "GET" and not new_membership:
         # check if user is the same person as the member
         if member.user_account == request.user:
@@ -1120,6 +1133,11 @@ def member_reg_form(request, title, pk):
                 )
 
             subscription.stripe_id = stripe_customer.id
+
+            # save custom fields
+            for id, field in custom_fields.items():
+                custom_fields[id]['field_value'] = request.POST.get(custom_fields[id]['field_name'])
+            subscription.custom_fields = dumps(custom_fields)
             subscription.save()
 
             if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
@@ -1159,7 +1177,8 @@ def member_reg_form(request, title, pk):
                                                 'membership_package': membership_package,
                                                 'is_price': is_price,
                                                 'is_stripe': is_stripe,
-                                                'member_id': member_id})
+                                                'member_id': member_id,
+                                                'custom_fields': custom_fields})
 
 def get_or_create_user(form):
     """
