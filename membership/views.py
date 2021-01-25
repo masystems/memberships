@@ -1022,6 +1022,17 @@ def member_reg_form(request, title, pk):
         except JSONDecodeError:
             custom_fields = None
 
+    # if user is not owner/admin, remove invisible custom fields
+    custom_fields_displayed = custom_fields
+    if custom_fields:
+        if request.user != membership_package.owner and request.user not in membership_package.admins.all():
+            # iterate through each custom field dictionary
+            for key, custom_field in dict(custom_fields_displayed).items():
+                # if field invisible
+                if not custom_field['visible']:
+                    # remove field
+                    del(custom_fields_displayed[key])
+
     if request.method == "GET" and not new_membership:
         # check if user is the same person as the member
         if member.user_account == request.user:
@@ -1199,7 +1210,7 @@ def member_reg_form(request, title, pk):
                                                 'is_price': is_price,
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
-                                                'custom_fields': custom_fields})
+                                                'custom_fields': custom_fields_displayed})
 
 def get_or_create_user(form):
     """
