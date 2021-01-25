@@ -1146,9 +1146,10 @@ def member_reg_form(request, title, pk):
             subscription.stripe_id = stripe_customer.id
 
             # save custom fields
-            for id, field in custom_fields.items():
-                custom_fields[id]['field_value'] = request.POST.get(custom_fields[id]['field_name'])
-            subscription.custom_fields = dumps(custom_fields)
+            if custom_fields:
+                for id, field in custom_fields.items():
+                    custom_fields[id]['field_value'] = request.POST.get(custom_fields[id]['field_name'])
+                subscription.custom_fields = dumps(custom_fields)
             subscription.save()
 
             if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
