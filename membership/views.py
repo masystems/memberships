@@ -999,14 +999,23 @@ def member_reg_form(request, title, pk):
 
     # custom fields
     if not new_membership:
-        subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+        # there is an existing membership
         try:
-            # get custom fields
-            custom_fields = loads(subscription.custom_fields)
-        except JSONDecodeError:
-            # failed to get subscription custom fields, save package custom fields to sub custom fields
-            subscription.custom_fields = dumps(membership_package.custom_fields)
-            custom_fields = loads(subscription.custom_fields)
+            subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+            try:
+                # get custom fields
+                custom_fields = loads(subscription.custom_fields)
+            except JSONDecodeError:
+                # failed to get subscription custom fields, save package custom fields to sub custom fields
+                subscription.custom_fields = dumps(membership_package.custom_fields)
+                custom_fields = loads(subscription.custom_fields)
+        # subscription doesn't exist, but member does
+        except MembershipSubscription.DoesNotExist:
+            try:
+                custom_fields = loads(membership_package.custom_fields)
+            except JSONDecodeError:
+                custom_fields = None
+    # membership doesn't exist
     else:
         try:
             custom_fields = loads(membership_package.custom_fields)
