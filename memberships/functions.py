@@ -32,8 +32,6 @@ def send_email(subject, name, body,
     # check if the email adress to send the email to is a random one we generated
     pattern_to_ignore = re.compile("^\d+@masys\.co\.uk$")
     if not pattern_to_ignore.fullmatch(send_to):
-        print('email to be sent')
-
         html_content = render_to_string('account/email/email.html', {'name': name,
                                                             'body': body})
         text_content = strip_tags(html_content)
