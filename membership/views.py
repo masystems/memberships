@@ -1008,7 +1008,10 @@ def member_reg_form(request, title, pk):
             subscription.custom_fields = dumps(membership_package.custom_fields)
             custom_fields = loads(subscription.custom_fields)
     else:
-        custom_fields = loads(membership_package.custom_fields)
+        try:
+            custom_fields = loads(membership_package.custom_fields)
+        except JSONDecodeError:
+            custom_fields = None
 
     if request.method == "GET" and not new_membership:
         # check if user is the same person as the member
