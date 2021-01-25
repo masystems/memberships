@@ -1032,7 +1032,6 @@ def member_reg_form(request, title, pk):
                 if not custom_field['visible']:
                     # remove field
                     del(custom_fields_displayed[key])
-    print(custom_fields_displayed)
 
     if request.method == "GET" and not new_membership:
         # check if user is the same person as the member
