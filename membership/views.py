@@ -1396,6 +1396,10 @@ def update_membership_type(request, title, pk):
             return HttpResponse(dumps({'status': "success",
                                        'redirect': True}), content_type='application/json')
         else:
+            # validate card payment != £0.00
+            if price.amount == "0":
+                return HttpResponse(dumps({'status': "fail",
+                                           'message': f'You cannot select Card Payment with {price.nickname}'}), content_type='application/json')
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
                 price=price, payment_method=None)
 
