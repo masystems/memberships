@@ -359,8 +359,14 @@
                             <hr>
                             <div class="card-body">
                                 <div class="form-group mb-0 text-right">
-                                    <button id="save-member" class="btn btn-info waves-effect waves-light">Save</button>
-                                    <a href="{% url 'membership' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+                                    {% if request.user == membership_package.owner or request.user in membership_package.admins.all %}
+                                        <button name="exit" id="save-member" class="btn btn-light waves-effect waves-light">Save and Exit</button>    
+                                        <button name="continue" id="save-member" class="btn btn-info waves-effect waves-light">Save and Continue</button>
+                                        <a href="{% url 'membership_package' membership_package.organisation_name %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+                                    {% else %}
+                                        <button id="save-member" class="btn btn-info waves-effect waves-light">Save</button>
+                                        <a href="{% url 'membership' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
