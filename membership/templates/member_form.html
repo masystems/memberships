@@ -90,6 +90,15 @@
                                             {% else %}
                                                 <input type="text" name="email" class="form-control" required id="id_email" value="{{ user_form_fields.email }}">
                                             {% endif %}
+                                            {% if form.email.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.email.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>
