@@ -57,22 +57,12 @@
                                 <!-- first name field -->
                                 <div class="col-sm-12 col-lg-6">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.first_name.label }}{% if form.first_name.field.required %}*{% endif %}</label>
+                                        <label class="col-sm-3 text-right control-label col-form-label">First name*</label>
                                         <div class="col-sm-9">
                                             {% if membership.user_account.id == member_id %}
-                                                {% render_field form.first_name|append_attr:"readonly:readonly" %}
+                                                <input type="text" name="first_name" class="form-control" required id="id_first_name" value="{{ user_form_fields.first_name }}" readonly>
                                             {% else %}
-                                                {% render_field form.first_name %}
-                                            {% endif %}
-                                            <small>{{ form.first_name.help_text }}</small>
-                                            {% if form.first_name.errors %}
-                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
-                                                    <ul class="list-style-none">
-                                                        {% for error in form.first_name.errors %}
-                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                </div>
+                                                <input type="text" name="first_name" class="form-control" required id="id_first_name" value="{{ user_form_fields.first_name }}">
                                             {% endif %}
                                         </div>
                                     </div>
@@ -80,22 +70,12 @@
                                 <!-- last name field -->
                                 <div class="col-sm-12 col-lg-6">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.last_name.label }}{% if form.last_name.field.required %}*{% endif %}</label>
+                                        <label class="col-sm-3 text-right control-label col-form-label">Last name*</label>
                                         <div class="col-sm-9">
                                             {% if membership.user_account.id == member_id %}
-                                                {% render_field form.last_name|append_attr:"readonly:readonly" %}
+                                                <input type="text" name="last_name" class="form-control" required id="id_last_name" value="{{ user_form_fields.last_name }}" readonly>
                                             {% else %}
-                                                {% render_field form.last_name %}
-                                            {% endif %}
-                                            <small>{{ form.last_name.help_text }}</small>
-                                            {% if form.last_name.errors %}
-                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
-                                                    <ul class="list-style-none">
-                                                        {% for error in form.last_name.errors %}
-                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                </div>
+                                                <input type="text" name="last_name" class="form-control" required id="id_last_name" value="{{ user_form_fields.last_name }}">
                                             {% endif %}
                                         </div>
                                     </div>
@@ -103,22 +83,12 @@
                                 <!-- Email field -->
                                 <div class="col-sm-12 col-lg-6">
                                     <div class="form-group row">
-                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.email.label }}{% if form.email.field.required %}*{% endif %}</label>
+                                        <label class="col-sm-3 text-right control-label col-form-label">Email*</label>
                                         <div class="col-sm-9">
                                             {% if membership.user_account.id == member_id %}
-                                                {% render_field form.email|append_attr:"readonly:readonly" %}
+                                                <input type="text" name="email" class="form-control" required id="id_email" value="{{ user_form_fields.email }}" readonly>
                                             {% else %}
-                                                {% render_field form.email %}
-                                            {% endif %}
-                                            <small>{{ form.email.help_text }}</small>
-                                            {% if form.email.errors %}
-                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
-                                                    <ul class="list-style-none">
-                                                        {% for error in form.email.errors %}
-                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                </div>
+                                                <input type="text" name="email" class="form-control" required id="id_email" value="{{ user_form_fields.email }}">
                                             {% endif %}
                                         </div>
                                     </div>

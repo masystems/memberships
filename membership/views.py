@@ -1026,6 +1026,8 @@ def member_reg_form(request, title, pk):
     """
     # get basic objects and validate if new membership
     membership_package = MembershipPackage.objects.get(organisation_name=title)
+    # setting user_form_fields to none in cases where it's not set
+    user_form_fields = None
     try:
         member = Member.objects.get(id=pk)
         new_membership = False
@@ -1038,7 +1040,6 @@ def member_reg_form(request, title, pk):
         # there is an existing membership
         try:
             subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
-            print(subscription.id)
             try:
                 # get custom fields
                 custom_fields = loads(subscription.custom_fields)
@@ -1080,17 +1081,15 @@ def member_reg_form(request, title, pk):
             # user is creating a membership for themself
             # user is editing their own membership
             member_id = member.id
-            form = MemberForm({'email': request.user.email,
-                               'first_name': request.user.first_name,
-                               'last_name': request.user.last_name}, instance=member)
+            form = MemberForm(instance=member)
+            user_form_fields = User.objects.get(id=member.user_account.id)
         else:
             # user is not member, validate user is admin/owner
             if request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # user is admin/owner editing an existing member
                 member_id = pk
-                form = MemberForm({'email': member.user_account.email,
-                                   'first_name': member.user_account.first_name,
-                                   'last_name': member.user_account.last_name}, instance=member)
+                form = MemberForm(instance=member)
+                user_form_fields = User.objects.get(id=member.user_account.id)
             else:
                 # user is not allowed to edit this member
                 return redirect('dashboard')
@@ -1114,7 +1113,6 @@ def member_reg_form(request, title, pk):
         form = MemberForm(request.POST)
         if form.is_valid():
             user = get_or_create_user(form)
-
             if pk == 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # new member
                 # validate user not already a member of package
@@ -1274,7 +1272,8 @@ def member_reg_form(request, title, pk):
             # stripe account created but not setup
             pass
 
-    return render(request, 'member_form.html', {'form': form,
+    return render(request, 'member_form.html', {'user_form_fields': user_form_fields,
+                                                'form': form,
                                                 'membership_package': membership_package,
                                                 'is_price': is_price,
                                                 'is_stripe': is_stripe,
