@@ -3,9 +3,9 @@
 {% load widget_tweaks %}
 
 {% block header %}
-
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
 {% endblock %}
-        <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+
 {% block content %}
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
@@ -332,6 +332,19 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                         <input id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' class="form-control datepicker" type="text" value="{{ field_vals.field_value }}" placeholder="Enter Date">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% elif field_vals.field_type == 'bool' %}
+                                            <div class="col-sm-12 col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 text-right control-label col-form-label">{{ field_vals.field_name }}
+                                                        {% if not field_vals.visible %}
+                                                            <br/><small style="font-style: italic;" class="text-danger">Hidden from members</small>
+                                                        {% endif %}
+                                                    </label>
+                                                    <div class="col-sm-9">
+                                                        <input type="checkbox" id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' {% if field_vals.field_value == "on" %}checked{% endif %}>
                                                     </div>
                                                 </div>
                                             </div>

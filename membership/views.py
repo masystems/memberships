@@ -316,6 +316,8 @@ def manage_custom_fields(request, title):
                     field_type = "text_area"
                 elif request.POST.get('field_type') == "Date":
                     field_type = "date"
+                elif request.POST.get('field_type') == "Tick Box":
+                    field_type = "bool"
                 else:
                     # just in case
                     field_type = "text_field"
@@ -1002,6 +1004,7 @@ def member_reg_form(request, title, pk):
         # there is an existing membership
         try:
             subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+            print(subscription.id)
             try:
                 # get custom fields
                 custom_fields = loads(subscription.custom_fields)

@@ -3,6 +3,7 @@
 {% load custom_tags %}
 
 {% block header %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -56,6 +57,32 @@
                         Use this page to add or remove custom fields. These fields will be displayed to the members when
                         joining your organisation and displayed to admins when adding members.
                     </p>
+                    <hr>
+                    <h4>Fild Examples</h4>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right control-label col-form-label">Text</label>
+                        <div class="col-sm-9">
+                            <input class="form-control" type="text" value="This is a text field">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right control-label col-form-label">Text Area</label>
+                        <div class="col-sm-9">
+                            <textarea class="form-control">This is a text area field that allows multiple lines of text.</textarea>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right control-label col-form-label">Date</label>
+                        <div class="col-sm-9">
+                            <input class="form-control datepicker" type="text" value="09/05/2021" placeholder="Enter Date">
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-3 text-right control-label col-form-label">Tick Box</label>
+                        <div class="col-sm-9">
+                            <input type="checkbox" checked>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -80,6 +107,7 @@
                                                 <option {% if field_vals.field_type == 'text_field' %}selected{% endif %}>Text</option>
                                                 <option {% if field_vals.field_type == 'text_area' %}selected{% endif %}>Text Area</option>
                                                 <option {% if field_vals.field_type == 'date' %}selected{% endif %}>Date</option>
+                                                <option {% if field_vals.field_type == 'bool' %}selected{% endif %}>Tick Box</option>
                                             </select>
                                         </div>
                                     </div>
@@ -211,6 +239,7 @@
                                     <option value="text_field" selected>Text</option>
                                     <option value="text_area">Text Area</option>
                                     <option value="date">Date</option>
+                                    <option value="bool">Tick Box</option>
                                 </select>
                                 <small>What type of field would use like to use?</small>
                             </div>
@@ -274,6 +303,14 @@
                 error: function(jqXHR, textStatus, errorThrown){
                 }
             });
+        });
+    </script>
+    <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
+    <script>
+        // Date Picker
+        jQuery('.datepicker').datepicker({
+            autoclose: true,
+            todayHighlight: true
         });
     </script>
 {% endblock %}
