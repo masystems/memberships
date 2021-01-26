@@ -264,6 +264,19 @@ def manage_payment_methods(request, title):
 
 @login_required(login_url='/accounts/login/')
 def manage_custom_fields(request, title):
+    def get_field_type():
+        if request.POST.get('field_type') == "text_field":
+            return "text_field"
+        elif request.POST.get('field_type') == "text_area":
+            return "text_area"
+        elif request.POST.get('field_type') == "date":
+            return "date"
+        elif request.POST.get('field_type') == "bool":
+            return "bool"
+        else:
+            # just in case
+            return "text_field"
+
     # validate request user is owner or admin of org
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
                                             Q(admins=request.user),
@@ -286,7 +299,7 @@ def manage_custom_fields(request, title):
         # field name validation
         if request.POST.get('field_name') in ("", None) and request.POST.get('type') != "delete":
             return HttpResponse(dumps({'status': "fail",
-                                       'message': "You must enter a valid field name"}),
+                                       'message': "Field Name must not be blank"}),
                                 content_type='application/json')
 
         if request.POST.get('type_id'):
@@ -310,20 +323,11 @@ def manage_custom_fields(request, title):
                 return HttpResponse(dumps({'status': "success",
                                            'message': "Field Deleted!"}), content_type='application/json')
             else:
-                if request.POST.get('field_type') == "Text":
-                    field_type = "text_field"
-                elif request.POST.get('field_type') == "Text Area":
-                    field_type = "text_area"
-                elif request.POST.get('field_type') == "Date":
-                    field_type = "date"
-                elif request.POST.get('field_type') == "Tick Box":
-                    field_type = "bool"
-                else:
-                    # just in case
-                    field_type = "text_field"
+                field_type = get_field_type()
                 custom_fields[request.POST.get('type_id')] = {'id': request.POST.get('type_id'),
                                                               'field_name': request.POST.get('field_name'),
                                                               'field_type': field_type,
+                                                              'help_text': request.POST.get('help_text'),
                                                               'visible': visible_value}
                 membership_package.custom_fields = dumps(custom_fields)
                 membership_package.save()
@@ -338,6 +342,7 @@ def manage_custom_fields(request, title):
 
                     custom_fields[request.POST.get('type_id')]['field_name'] = request.POST.get('field_name')
                     custom_fields[request.POST.get('type_id')]['field_type'] = field_type
+                    custom_fields[request.POST.get('type_id')]['help_text'] = request.POST.get('help_text')
                     custom_fields[request.POST.get('type_id')]['visible'] = visible_value
 
                     sub.custom_fields = dumps(custom_fields)
@@ -353,9 +358,11 @@ def manage_custom_fields(request, title):
                     field_key = f'cf_{suffix}'
                     break
 
+            field_type = get_field_type()
             custom_fields[field_key] = {'id': field_key,
                                         'field_name': request.POST.get('field_name'),
-                                        'field_type': request.POST.get('field_type'),
+                                        'field_type': field_type,
+                                        'help_text': request.POST.get('help_text'),
                                         'visible': request.POST.get('visible')}
             membership_package.custom_fields = dumps(custom_fields)
             membership_package.save()
@@ -369,9 +376,11 @@ def manage_custom_fields(request, title):
                 except JSONDecodeError:
                     object_custom_fields = {}
 
+                field_type = get_field_type()
                 object_custom_fields[field_key] = {'id': field_key,
                                                    'field_name': request.POST.get('field_name'),
-                                                   'field_type': request.POST.get('field_type'),
+                                                   'field_type': field_type,
+                                                   'help_text': request.POST.get('help_text'),
                                                    'visible': request.POST.get('visible')}
 
                 sub.custom_fields = dumps(object_custom_fields)
@@ -379,10 +388,6 @@ def manage_custom_fields(request, title):
 
             return HttpResponse(dumps({'status': "success",
                                        'message': "Custom field successfully added"}), content_type='application/json')
-            # except ValueError:
-            #     return HttpResponse(dumps({'status': "fail",
-            #                                'message': "You must enter a valid amount"}),
-            #                         content_type='application/json')
 
     else:
         return render(request, 'manage-custom-fields.html', {'membership_package': membership_package,

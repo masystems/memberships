@@ -306,6 +306,7 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                         <input id="{{ field_vals.id }}" class="form-control" name='{{ field_vals.field_name }}' type="text" value="{{ field_vals.field_value }}">
+                                                        <small>{{ field_vals.help_text }}</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -319,6 +320,7 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                         <textarea id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' class="form-control">{{ field_vals.field_value }}</textarea>
+                                                        <small>{{ field_vals.help_text }}</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -332,6 +334,7 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                         <input id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' class="form-control datepicker" type="text" value="{{ field_vals.field_value }}" placeholder="Enter Date">
+                                                        <small>{{ field_vals.help_text }}</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -345,6 +348,7 @@
                                                     </label>
                                                     <div class="col-sm-9">
                                                         <input type="checkbox" id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' {% if field_vals.field_value == "on" %}checked{% endif %}>
+                                                        <br><small>{{ field_vals.help_text }}</small>
                                                     </div>
                                                 </div>
                                             </div>

@@ -63,24 +63,28 @@
                         <label class="col-sm-3 text-right control-label col-form-label">Text</label>
                         <div class="col-sm-9">
                             <input class="form-control" type="text" value="This is a text field">
+                            <small>This is the help text</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-3 text-right control-label col-form-label">Text Area</label>
                         <div class="col-sm-9">
                             <textarea class="form-control">This is a text area field that allows multiple lines of text.</textarea>
+                            <small>This is the help text</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-3 text-right control-label col-form-label">Date</label>
                         <div class="col-sm-9">
                             <input class="form-control datepicker" type="text" value="09/05/2021" placeholder="Enter Date">
+                            <small>This is the help text</small>
                         </div>
                     </div>
                     <div class="form-group row">
                         <label class="col-sm-3 text-right control-label col-form-label">Tick Box</label>
                         <div class="col-sm-9">
                             <input type="checkbox" checked>
+                            <br><small>This is the help text</small>
                         </div>
                     </div>
                 </div>
@@ -98,10 +102,10 @@
                                 <form id="editCustomFieldForm{{ forloop.counter }}" class="row">
                                     <div class="col-sm-2">
                                         <div class="form-group">
-                                            <input type="text" class="form-control" id="field_name{{ forloop.counter }}" name="field_name" value="{{ field_vals.field_name }}">
+                                            <input type="text" class="form-control" id="field_name{{ forloop.counter }}" name="field_name" value="{{ field_vals.field_name }}" placeholder="Field Name">
                                         </div>
                                     </div>
-                                    <div class="col-sm-4">
+                                    <div class="col-sm-3">
                                         <div class="form-group">
                                             <select class="custom-select" id="field_type{{ forloop.counter }}" name="field_type">
                                                 <option {% if field_vals.field_type == 'text_field' %}selected{% endif %}>Text</option>
@@ -111,7 +115,12 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col">
+                                    <div class="col-sm-2">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" id="help_text{{ forloop.counter }}" name="help_text" value="{{ field_vals.help_text }}" placeholder="Help Text">
+                                        </div>
+                                    </div>
+                                    <div class="col-2">
                                         <div class="form-group">
                                             <li class="list-group-item d-inline-flex align-items-center">
                                                 <div class="checkbox checkbox-success checkbox-circle">
@@ -121,7 +130,7 @@
                                             </li>
                                         </div>
                                     </div>
-                                    <div class="col-sm-3">
+                                    <div class="col-sm-2">
                                         <div class="form-group">
                                             <input type="hidden" id="type_id" name="type_id" value="{{ field_vals.id }}">
                                             <input type="hidden" id="type{{ forloop.counter }}" name="type" value="edit">
@@ -164,6 +173,9 @@
                                     $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
                                 });
                                 $('#field_type{{ forloop.counter }}').change(function(e){
+                                    $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
+                                });
+                                $('#help_text{{ forloop.counter }}').on('input',function(e){
                                     $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
                                 });
                                 $('#visible{{ forloop.counter }}').change(function(e){
@@ -233,7 +245,7 @@
                                 <small>Title the field e.g. Birth Weight</small>
                             </div>
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-3">
                             <div class="form-group">
                                 <select class="custom-select" id="field_type" name="field_type">
                                     <option value="text_field" selected>Text</option>
@@ -244,7 +256,13 @@
                                 <small>What type of field would use like to use?</small>
                             </div>
                         </div>
-                        <div class="col">
+                        <div class="col-2">
+                            <div class="form-group">
+                                <input type="text" class="form-control" id="help_text" name="help_text" placeholder="Help Text">
+                                <small>Help text to give specifics about the data in this field</small>
+                            </div>
+                        </div>
+                        <div class="col-2">
                             <div class="form-group">
                                 <li class="list-group-item d-inline-flex align-items-center">
                                     <div class="checkbox checkbox-success checkbox-circle">
@@ -254,9 +272,8 @@
                                 </li>
                                 <br><small>Visible to users?</small>
                             </div>
-
                         </div>
-                        <div class="col-sm-3">
+                        <div class="col-sm-2">
                             <div class="form-group">
                                 <button class="btn btn-success" id="saveTypeForm" type="button">
                                     <i class="fad fa-check"></i>
@@ -281,7 +298,7 @@
 {% block footer %}
     <script>
         function sleep (time) {
-          return new Promise((resolve) => setTimeout(resolve, time));
+            return new Promise((resolve) => setTimeout(resolve, time));
         }
 
         $("#saveTypeForm").click(function(e){
