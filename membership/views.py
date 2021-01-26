@@ -265,13 +265,13 @@ def manage_payment_methods(request, title):
 @login_required(login_url='/accounts/login/')
 def manage_custom_fields(request, title):
     def get_field_type():
-        if request.POST.get('field_type') == "text_field":
+        if request.POST.get('field_type') in ("text_field", "Text"):
             return "text_field"
-        elif request.POST.get('field_type') == "text_area":
+        elif request.POST.get('field_type') in ("text_area", "Text Area"):
             return "text_area"
-        elif request.POST.get('field_type') == "date":
+        elif request.POST.get('field_type') in ("date", "Date"):
             return "date"
-        elif request.POST.get('field_type') == "bool":
+        elif request.POST.get('field_type') in ("bool", "Tick Box"):
             return "bool"
         else:
             # just in case
@@ -523,6 +523,15 @@ def get_members_detailed(request, title):
     return HttpResponse(dumps(complete_data))
 
 
+def update_membership_status(request, pk, status):
+    member = Member.objects.get(id=pk)
+    subscription = member.subscription.get(member=member)
+
+    subscription.active = status
+    subscription.save()
+    return HttpResponseRedirect('/membership')
+
+
 def get_members(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     start = int(request.GET.get('start', 0))
@@ -547,11 +556,30 @@ def get_members(request, title):
                 if sub.membership_package == membership_package:
                     try:
                         membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+
+                        membership_status = f"""<div class="mb-4">
+                                                <input type="checkbox" value="{ member.id }" class="membership-status" 
+                                                data-on-color="success" 
+                                                data-off-color="danger" data-on-text="Active"
+                                                data-off-text="Inactive">
+                                            </div>
+                                            """
+
+                        if sub.active:
+                            membership_status = f"""<div class="mb-4">
+                                                        <input type="checkbox" value="{ member.id }" 
+                                                        class="membership-status" data-on-color="success" 
+                                                        data-off-color="danger" data-on-text="Active" 
+                                                        data-off-text="Inactive" checked>
+                                                    </div>
+                                                    """
                     except AttributeError:
                         membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
+                        membership_status = f"""<span class="badge py-1 badge-danger">No Membership</span>"""
                         break
                 else:
                     membership_type = ""
+                    membership_status = ""
 
             # buttons!
             for sub in member.subscription.all():
@@ -582,6 +610,7 @@ def get_members(request, title):
                             'email': f"{member.user_account.email}",
                             'comments': f"""{sub.comments}<a href="javascript:editComment('{sub.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                             'membership_type': membership_type,
+                            'membership_status': membership_status,
                             'action': f"""<div class="btn-group dropleft">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
@@ -997,6 +1026,8 @@ def member_reg_form(request, title, pk):
     """
     # get basic objects and validate if new membership
     membership_package = MembershipPackage.objects.get(organisation_name=title)
+    # setting user_form_fields to none in cases where it's not set
+    user_form_fields = None
     try:
         member = Member.objects.get(id=pk)
         new_membership = False
@@ -1009,7 +1040,6 @@ def member_reg_form(request, title, pk):
         # there is an existing membership
         try:
             subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
-            print(subscription.id)
             try:
                 # get custom fields
                 custom_fields = loads(subscription.custom_fields)
@@ -1041,6 +1071,9 @@ def member_reg_form(request, title, pk):
                     # remove field
                     del(custom_fields_displayed[key])
 
+    # initialise member_id so it can be accessed by code that handles POST request
+    member_id = 0
+
     if request.method == "GET" and not new_membership:
         # check if user is the same person as the member
         if member.user_account == request.user:
@@ -1048,17 +1081,15 @@ def member_reg_form(request, title, pk):
             # user is creating a membership for themself
             # user is editing their own membership
             member_id = member.id
-            form = MemberForm({'email': request.user.email,
-                               'first_name': request.user.first_name,
-                               'last_name': request.user.last_name}, instance=member)
+            form = MemberForm(instance=member)
+            user_form_fields = User.objects.get(id=member.user_account.id)
         else:
             # user is not member, validate user is admin/owner
-            if request.user == membership_package.owner or request.user in membership_package.admins.all:
+            if request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # user is admin/owner editing an existing member
                 member_id = pk
-                form = MemberForm({'email': member.user_account.email,
-                                   'first_name': member.user_account.first_name,
-                                   'last_name': member.user_account.last_name}, instance=member)
+                form = MemberForm(instance=member)
+                user_form_fields = User.objects.get(id=member.user_account.id)
             else:
                 # user is not allowed to edit this member
                 return redirect('dashboard')
@@ -1082,7 +1113,6 @@ def member_reg_form(request, title, pk):
         form = MemberForm(request.POST)
         if form.is_valid():
             user = get_or_create_user(form)
-
             if pk == 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # new member
                 # validate user not already a member of package
@@ -1090,6 +1120,19 @@ def member_reg_form(request, title, pk):
                     if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email'])),
                                                              membership_package=membership_package).exists():
                         form.add_error('email', f"This email address is already in use for {membership_package.organisation_name}.")
+                except Member.DoesNotExist:
+                    pass
+                except User.DoesNotExist:
+                    pass
+            elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
+                # edit member
+                # validate user not already a member of package
+                try:
+                    if MembershipSubscription.objects.filter(
+                            member=Member.objects.get(id=pk),
+                            membership_package=membership_package).exists():
+                        form.add_error('email',
+                                       f"This email address is already in use for {membership_package.organisation_name}.")
                 except Member.DoesNotExist:
                     pass
                 except User.DoesNotExist:
@@ -1180,14 +1223,44 @@ def member_reg_form(request, title, pk):
                 subscription.custom_fields = dumps(custom_fields)
             subscription.save()
 
-            if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                                        Q(admins=request.user),
-                                                                          organisation_name=membership_package.organisation_name).exists():
-                return redirect(
-                    f"member_bolton_form", membership_package.organisation_name, member.id)
-            else:
-                return redirect(
-                    f"member_payment", membership_package.organisation_name, member.id)
+            # direct user to correct next location
+            # if user is owner/admin...
+            if not form.errors:
+                if request.user == membership_package.owner or request.user in membership_package.admins.all():
+                    # save and continue
+                    if request.POST.get('continue') == '':
+                        if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
+                                                                                    Q(admins=request.user),
+                                                                                    organisation_name=membership_package.organisation_name).exists():
+                            return redirect(
+                                f"member_bolton_form", membership_package.organisation_name, member.id)
+                        else:
+                            return redirect(
+                                f"member_payment", membership_package.organisation_name, member.id)
+                    # save and exit to org page
+                    elif request.POST.get('exit') == '':
+                        return redirect('membership_package', membership_package.organisation_name)
+                    # just in case, continue
+                    else:
+                        if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
+                                                                                    Q(admins=request.user),
+                                                                                    organisation_name=membership_package.organisation_name).exists():
+                            return redirect(
+                                f"member_bolton_form", membership_package.organisation_name, member.id)
+                        else:
+                            return redirect(
+                                f"member_payment", membership_package.organisation_name, member.id)
+                # user is a member who has clicked Save, so continue
+                else:
+                    if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
+                                                                                Q(admins=request.user),
+                                                                                organisation_name=membership_package.organisation_name).exists():
+                        return redirect(
+                            f"member_bolton_form", membership_package.organisation_name, member.id)
+                    else:
+                        return redirect(
+                            f"member_payment", membership_package.organisation_name, member.id)
+        
         else:
             # form not valid
             pass
@@ -1213,7 +1286,8 @@ def member_reg_form(request, title, pk):
             # stripe account created but not setup
             pass
 
-    return render(request, 'member_form.html', {'form': form,
+    return render(request, 'member_form.html', {'user_form_fields': user_form_fields,
+                                                'form': form,
                                                 'membership_package': membership_package,
                                                 'is_price': is_price,
                                                 'is_stripe': is_stripe,
@@ -1398,14 +1472,15 @@ def update_membership_type(request, title, pk):
 
         package = MembershipPackage.objects.get(organisation_name=title)
         member = Member.objects.get(id=pk)
-        subscription = member.subscription.get(member=member)
+        subscription = member.subscription.get(member=member, membership_package=package)
         price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
         if request.POST.get('payment_method') != 'Card Payment':
-            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price,
+            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price, active=True,
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
                                                                                                                                              membership_package=package))
-            
+
             stripe.api_key = get_stripe_secret_key(request)
+
             # cancel stripe subscription
             if subscription.stripe_subscription_id:
                 stripe.Subscription.delete(subscription.stripe_subscription_id,
