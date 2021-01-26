@@ -1225,7 +1225,6 @@ def member_reg_form(request, title, pk):
 
             # direct user to correct next location
             # if user is owner/admin...
-            print(form.errors)
             if not form.errors:
                 if request.user == membership_package.owner or request.user in membership_package.admins.all():
                     # save and continue
