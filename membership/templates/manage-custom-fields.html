@@ -280,8 +280,19 @@
 
 {% block footer %}
     <script>
-        $("#saveTypeForm").click(function(){
-            $('#overlay-spinner').modal('toggle');
+        function sleep (time) {
+          return new Promise((resolve) => setTimeout(resolve, time));
+        }
+
+        $("#saveTypeForm").click(function(e){
+            $('#overlay-spinner').modal();
+                e.preventDefault();
+                sleep(2000).then(() => {
+                    addNewField()
+                });
+        });
+
+        function addNewField() {
             $.ajax({
                 url: '{% url 'manage_custom_fields' membership_package.organisation_name %}',
                 enctype: 'multipart/form-data',
@@ -294,6 +305,7 @@
                 success: function(data) {
                     var result = JSON.parse(data);
                     if (result['status'] == "fail") {
+                        $('#overlay-spinner').modal('toggle');
                         errorMsg(result['message']);
                     } else {
                         infoMsg(result.message);
@@ -303,7 +315,7 @@
                 error: function(jqXHR, textStatus, errorThrown){
                 }
             });
-        });
+        }
     </script>
     <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
     <script>
