@@ -3,9 +3,9 @@
 {% load widget_tweaks %}
 
 {% block header %}
-
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
 {% endblock %}
-        <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+
 {% block content %}
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
@@ -296,35 +296,62 @@
                                 </div>
                                 {% if custom_fields %}
                                     {% for field_key, field_vals in custom_fields.items %}
-                                        {% if field_vals.visible %}
-                                            {% if field_vals.field_type == 'text_field' %}
-                                                <div class="col-sm-12 col-lg-6">
-                                                    <div class="form-group row">
-                                                        <label class="col-sm-3 text-right control-label col-form-label">{{ field_vals.field_name }}</label>
-                                                        <div class="col-sm-9">
-                                                            <input id="{{ field_vals.id }}" class="form-control" name='{{ field_vals.field_name }}' type="text" value="{{ field_vals.field_value }}">
-                                                        </div>
+                                        {% if field_vals.field_type == 'text_field' %}
+                                            <div class="col-sm-12 col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 text-right control-label col-form-label">{{ field_vals.field_name }}
+                                                        {% if not field_vals.visible %}
+                                                            <br/><small style="font-style: italic;" class="text-danger">Hidden from members</small>
+                                                        {% endif %}
+                                                    </label>
+                                                    <div class="col-sm-9">
+                                                        <input id="{{ field_vals.id }}" class="form-control" name='{{ field_vals.field_name }}' type="text" value="{{ field_vals.field_value }}">
+                                                        <small>{{ field_vals.help_text }}</small>
                                                     </div>
                                                 </div>
-                                            {% elif field_vals.field_type == 'text_area' %}
-                                                <div class="col-sm-12 col-lg-6">
-                                                    <div class="form-group row">
-                                                        <label class="col-sm-3 text-right control-label col-form-label">{{ field_vals.field_name }}</label>
-                                                        <div class="col-sm-9">
-                                                            <textarea id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' class="form-control">{{ field_vals.field_value }}</textarea>
-                                                        </div>
+                                            </div>
+                                        {% elif field_vals.field_type == 'text_area' %}
+                                            <div class="col-sm-12 col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 text-right control-label col-form-label">{{ field_vals.field_name }}
+                                                        {% if not field_vals.visible %}
+                                                            <br/><small style="font-style: italic;" class="text-danger">Hidden from members</small>
+                                                        {% endif %}
+                                                    </label>
+                                                    <div class="col-sm-9">
+                                                        <textarea id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' class="form-control">{{ field_vals.field_value }}</textarea>
+                                                        <small>{{ field_vals.help_text }}</small>
                                                     </div>
                                                 </div>
-                                            {% elif field_vals.field_type == 'date' %}
-                                                <div class="col-sm-12 col-lg-6">
-                                                    <div class="form-group row">
-                                                        <label class="col-sm-3 text-right control-label col-form-label">{{ field_vals.field_name }}</label>
-                                                        <div class="col-sm-9">
-                                                            <input id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' class="form-control datepicker" type="text" value="{{ field_vals.field_value }}" placeholder="Enter Date">
-                                                        </div>
+                                            </div>
+                                        {% elif field_vals.field_type == 'date' %}
+                                            <div class="col-sm-12 col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 text-right control-label col-form-label">{{ field_vals.field_name }}
+                                                        {% if not field_vals.visible %}
+                                                            <br/><small style="font-style: italic;" class="text-danger">Hidden from members</small>
+                                                        {% endif %}
+                                                    </label>
+                                                    <div class="col-sm-9">
+                                                        <input id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' class="form-control datepicker" type="text" value="{{ field_vals.field_value }}" placeholder="Enter Date">
+                                                        <small>{{ field_vals.help_text }}</small>
                                                     </div>
                                                 </div>
-                                            {% endif %}
+                                            </div>
+                                        {% elif field_vals.field_type == 'bool' %}
+                                            <div class="col-sm-12 col-lg-6">
+                                                <div class="form-group row">
+                                                    <label class="col-sm-3 text-right control-label col-form-label">{{ field_vals.field_name }}
+                                                        {% if not field_vals.visible %}
+                                                            <br/><small style="font-style: italic;" class="text-danger">Hidden from members</small>
+                                                        {% endif %}
+                                                    </label>
+                                                    <div class="col-sm-9">
+                                                        <input type="checkbox" id="{{ field_vals.id }}" name='{{ field_vals.field_name }}' {% if field_vals.field_value == "on" %}checked{% endif %}>
+                                                        <br><small>{{ field_vals.help_text }}</small>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         {% endif %}
                                     {% endfor %}
                                 {% endif %}
