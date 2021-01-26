@@ -1398,7 +1398,7 @@ def update_membership_type(request, title, pk):
 
         package = MembershipPackage.objects.get(organisation_name=title)
         member = Member.objects.get(id=pk)
-        subscription = member.subscription.get(member=member)
+        subscription = member.subscription.get(member=member, membership_package=package)
         price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
         if request.POST.get('payment_method') != 'Card Payment':
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price,
