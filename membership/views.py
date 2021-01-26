@@ -265,13 +265,13 @@ def manage_payment_methods(request, title):
 @login_required(login_url='/accounts/login/')
 def manage_custom_fields(request, title):
     def get_field_type():
-        if request.POST.get('field_type') == "text_field":
+        if request.POST.get('field_type') in ("text_field", "Text"):
             return "text_field"
-        elif request.POST.get('field_type') == "text_area":
+        elif request.POST.get('field_type') in ("text_area", "Text Area"):
             return "text_area"
-        elif request.POST.get('field_type') == "date":
+        elif request.POST.get('field_type') in ("date", "Date"):
             return "date"
-        elif request.POST.get('field_type') == "bool":
+        elif request.POST.get('field_type') in ("bool", "Tick Box"):
             return "bool"
         else:
             # just in case
