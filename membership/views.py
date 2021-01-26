@@ -516,6 +516,15 @@ def get_members_detailed(request, title):
     return HttpResponse(dumps(complete_data))
 
 
+def update_membership_status(request, pk, status):
+    member = Member.objects.get(id=pk)
+    subscription = member.subscription.get(member=member)
+
+    subscription.active = status
+    subscription.save()
+    return HttpResponseRedirect('/membership')
+
+
 def get_members(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     start = int(request.GET.get('start', 0))
@@ -540,11 +549,30 @@ def get_members(request, title):
                 if sub.membership_package == membership_package:
                     try:
                         membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+
+                        membership_status = f"""<div class="mb-4">
+                                                <input type="checkbox" value="{ member.id }" class="membership-status" 
+                                                data-on-color="success" 
+                                                data-off-color="danger" data-on-text="Active"
+                                                data-off-text="Inactive">
+                                            </div>
+                                            """
+
+                        if sub.active:
+                            membership_status = f"""<div class="mb-4">
+                                                        <input type="checkbox" value="{ member.id }" 
+                                                        class="membership-status" data-on-color="success" 
+                                                        data-off-color="danger" data-on-text="Active" 
+                                                        data-off-text="Inactive" checked>
+                                                    </div>
+                                                    """
                     except AttributeError:
                         membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
+                        membership_status = f"""<span class="badge py-1 badge-danger">No Membership</span>"""
                         break
                 else:
                     membership_type = ""
+                    membership_status = ""
 
             # buttons!
             for sub in member.subscription.all():
@@ -575,6 +603,7 @@ def get_members(request, title):
                             'email': f"{member.user_account.email}",
                             'comments': f"""{sub.comments}<a href="javascript:editComment('{sub.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                             'membership_type': membership_type,
+                            'membership_status': membership_status,
                             'action': f"""<div class="btn-group dropleft">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
@@ -1008,7 +1037,10 @@ def member_reg_form(request, title, pk):
             subscription.custom_fields = dumps(membership_package.custom_fields)
             custom_fields = loads(subscription.custom_fields)
     else:
-        custom_fields = loads(membership_package.custom_fields)
+        try:
+            custom_fields = loads(membership_package.custom_fields)
+        except JSONDecodeError:
+            custom_fields = None
 
     if request.method == "GET" and not new_membership:
         # check if user is the same person as the member
@@ -1143,8 +1175,8 @@ def member_reg_form(request, title, pk):
             subscription.stripe_id = stripe_customer.id
 
             # save custom fields
-            for id, field in custom_fields.items():
-                custom_fields[id]['field_value'] = request.POST.get(custom_fields[id]['field_name'])
+            # for id, field in custom_fields.items():
+            #     custom_fields[id]['field_value'] = request.POST.get(custom_fields[id]['field_name'])
             subscription.custom_fields = dumps(custom_fields)
             subscription.save()
 
@@ -1338,13 +1370,15 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             ],
             stripe_account=package.stripe_acct_id,
         )
-        subscription.stripe_subscription_id = subscription_details.id
-        subscription.active = True
-        subscription.save()
+
         if subscription_details['status'] != 'active':
             result = {'result': 'fail',
                       'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
             return HttpResponse(dumps(result))
+
+        subscription.stripe_subscription_id = subscription_details.id
+        subscription.active = True
+        subscription.save()
 
         invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription.stripe_subscription_id,
                                       limit=1, stripe_account=package.stripe_acct_id,)
@@ -1369,17 +1403,19 @@ def update_membership_type(request, title, pk):
         subscription = member.subscription.get(member=member)
         price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
         if request.POST.get('payment_method') != 'Card Payment':
-            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price,
+            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price, active=True,
                                                                                                     payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
                                                                                                                                              membership_package=package))
-            
+
             stripe.api_key = get_stripe_secret_key(request)
+
             # cancel stripe subscription
             if subscription.stripe_subscription_id:
                 stripe.Subscription.delete(subscription.stripe_subscription_id,
                                         stripe_account=package.stripe_acct_id)
                 subscription.stripe_subscription_id = ''
                 subscription.save()
+
                 
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 

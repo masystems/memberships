@@ -4,7 +4,7 @@
 {% load custom_tags %}
 
 {% block header %}
-
+<link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -23,6 +23,27 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
                 <a id="removeUserUrl" href="">
+                    <button type="button" class="btn btn-danger">Continue</button>
+                </a>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!-- Modal to update membership status -->
+<div id="update-membership-status-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="update-membership-statusLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-danger">
+                <h4 class="modal-title text-white" id="update-membership-statusLabel">Update Membership Status</h4>
+                <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip" title="Exit Window" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to update the status of the membership for this member?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="cancelStatusModal" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <a id="updateStatusUrl" href="">
                     <button type="button" class="btn btn-danger">Continue</button>
                 </a>
             </div>
@@ -158,6 +179,7 @@
                                                 <th>Email</th>
                                                 <th>Comments</th>
                                                 <th>Membership Type</th>
+                                                <th>Membership Status</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -371,6 +393,7 @@
 
 {% block footer %}
     <script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'assets/libs/bootstrap-switch/dist/js/bootstrap-switch.min.js' %}"></script>
     <script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
     <script>
         $(document).ready(function() {
@@ -388,7 +411,7 @@
             "processing": true,
             "serverSide": true,
             "bSort": false,
-            responsive: true,
+            "responsive": true,
             "ajax": "{% url 'get_members' membership_package.organisation_name %}",
             "columns": [
                 { data: "id"},
@@ -396,8 +419,27 @@
                 { data: "email", "width": 20 },
                 { data: "comments" },
                 { data: "membership_type" },
+                { data: "membership_status" },
                 { data: "action" },
             ],
+            drawCallback: function () {
+                $('.membership-status').bootstrapSwitch({
+                    onSwitchChange: function() {
+                        var memberId = parseInt($(this).attr('value'));
+                        var status = 'False';
+                        if($(this).is(':checked')){
+                            var status = 'True';
+                        }
+
+                        $('#update-membership-status-modal').modal('show');
+                        $('#updateStatusUrl').attr("href", "/membership/update-membership-status/"+memberId+"/"+status);
+
+                        $(this).bootstrapSwitch('toggleState', true, true);
+
+
+                    }
+                });
+            },
             colReorder: true,
             columnDefs: [
                 {
@@ -408,10 +450,10 @@
                 }
             ]
         });
+
     </script>
 
     <script>
-
         var removeMember = function (user_id) {
             $('#remove-member-modal').modal('show');
             $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id);
