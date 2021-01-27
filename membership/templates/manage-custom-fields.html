@@ -210,6 +210,8 @@
                                     $('#delete-field-modal{{ forloop.counter }}').modal('toggle');
                                 });
                                 function deleteField(forloop_counter) {
+                                    $('.btn-danger').prop('disabled', true);
+                                    $('.btn-success').prop('disabled', true);
                                     $('#delete-field-modal' + forloop_counter).modal('toggle');
                                     $('#type' + forloop_counter).val('delete')
                                     $('#delTypeForm' + forloop_counter).html('<i class="fad fa-spinner-third fa-spin"></i> Deleting')
@@ -234,6 +236,8 @@
                                         error: function(jqXHR, textStatus, errorThrown){
                                         }
                                     });
+                                    $('.btn-danger').prop('disabled', false);
+                                    $('.btn-success').prop('disabled', false);
                                 }
                             </script>
                         {% endfor %}
