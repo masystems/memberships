@@ -314,6 +314,8 @@
         });
 
         function addNewField() {
+            $('.btn-danger').prop('disabled', true);
+            $('.btn-success').prop('disabled', true);
             $.ajax({
                 url: '{% url 'manage_custom_fields' membership_package.organisation_name %}',
                 enctype: 'multipart/form-data',
@@ -336,6 +338,8 @@
                 error: function(jqXHR, textStatus, errorThrown){
                 }
             });
+            $('.btn-danger').prop('disabled', false);
+            $('.btn-success').prop('disabled', false);
         }
     </script>
     <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
