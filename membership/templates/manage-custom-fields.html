@@ -229,6 +229,7 @@
                                             } else {
                                                 $('#editCustomFieldForm{{ forloop.counter }}').addClass('d-none')
                                                 infoMsg(result.message);
+                                                location.reload();
                                             }
                                         },
                                         error: function(jqXHR, textStatus, errorThrown){
