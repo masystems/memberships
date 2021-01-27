@@ -162,7 +162,7 @@
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-light"
                                                 data-dismiss="modal">Close</button>
-                                            <button type="button" class="btn btn-outline-light" onclick="deleteField()">Confirm Deletion</button>
+                                            <button type="button" class="btn btn-outline-light" onclick="deleteField({{ forloop.counter }})">Confirm Deletion</button>
                                         </div>
                                     </div><!-- /.modal-content -->
                                 </div><!-- /.modal-dialog -->
@@ -182,6 +182,8 @@
                                     $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
                                 });
                                 $("#saveTypeForm{{ forloop.counter }}").click(function(){
+                                    $('.btn-danger').prop('disabled', true);
+                                    $('.btn-success').prop('disabled', true);
                                     $('#saveTypeForm{{ forloop.counter }}').html('<i class="fad fa-spinner-third fa-spin"></i> Updating')
                                     $.ajax({
                                         url: '{% url 'manage_custom_fields' membership_package.organisation_name %}',
@@ -204,22 +206,26 @@
                                         error: function(jqXHR, textStatus, errorThrown){
                                         }
                                     });
+                                    $('.btn-danger').prop('disabled', false);
+                                    $('.btn-success').prop('disabled', false);
                                 });
 
                                 $("#delTypeForm{{ forloop.counter }}").click(function(){
                                     $('#delete-field-modal{{ forloop.counter }}').modal('toggle');
                                 });
-                                function deleteField() {
-                                    $('#delete-field-modal{{ forloop.counter }}').modal('toggle');
-                                    $("#type{{ forloop.counter }}").val('delete')
-                                    $('#delTypeForm{{ forloop.counter }}').html('<i class="fad fa-spinner-third fa-spin"></i> Deleting')
+                                function deleteField(forloop_counter) {
+                                    $('.btn-danger').prop('disabled', true);
+                                    $('.btn-success').prop('disabled', true);
+                                    $('#delete-field-modal' + forloop_counter).modal('toggle');
+                                    $('#type' + forloop_counter).val('delete')
+                                    $('#delTypeForm' + forloop_counter).html('<i class="fad fa-spinner-third fa-spin"></i> Deleting')
                                     $.ajax({
                                         url: '{% url 'manage_custom_fields' membership_package.organisation_name %}',
                                         enctype: 'multipart/form-data',
                                         type: 'POST',
                                         dataType: 'text',
                                         headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                                        data: $('#editCustomFieldForm{{ forloop.counter }}').serialize(),
+                                        data: $('#editCustomFieldForm' + forloop_counter).serialize(),
                                         beforeSend: function() {
                                         },
                                         success: function(data) {
@@ -227,13 +233,15 @@
                                             if (result['status'] == "fail") {
                                                 errorMsg(result['message']);
                                             } else {
-                                                $('#editCustomFieldForm{{ forloop.counter }}').addClass('d-none')
+                                                $('#editCustomFieldForm' + forloop_counter).addClass('d-none')
                                                 infoMsg(result.message);
                                             }
                                         },
                                         error: function(jqXHR, textStatus, errorThrown){
                                         }
                                     });
+                                    $('.btn-danger').prop('disabled', false);
+                                    $('.btn-success').prop('disabled', false);
                                 }
                             </script>
                         {% endfor %}
@@ -310,6 +318,8 @@
         });
 
         function addNewField() {
+            $('.btn-danger').prop('disabled', true);
+            $('.btn-success').prop('disabled', true);
             $.ajax({
                 url: '{% url 'manage_custom_fields' membership_package.organisation_name %}',
                 enctype: 'multipart/form-data',
@@ -332,6 +342,8 @@
                 error: function(jqXHR, textStatus, errorThrown){
                 }
             });
+            $('.btn-danger').prop('disabled', false);
+            $('.btn-success').prop('disabled', false);
         }
     </script>
     <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
