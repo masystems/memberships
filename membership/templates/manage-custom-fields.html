@@ -182,6 +182,8 @@
                                     $('#saveTypeForm{{ forloop.counter }}').removeClass('d-none')
                                 });
                                 $("#saveTypeForm{{ forloop.counter }}").click(function(){
+                                    $('.btn-danger').prop('disabled', true);
+                                    $('.btn-success').prop('disabled', true);
                                     $('#saveTypeForm{{ forloop.counter }}').html('<i class="fad fa-spinner-third fa-spin"></i> Updating')
                                     $.ajax({
                                         url: '{% url 'manage_custom_fields' membership_package.organisation_name %}',
@@ -204,6 +206,8 @@
                                         error: function(jqXHR, textStatus, errorThrown){
                                         }
                                     });
+                                    $('.btn-danger').prop('disabled', false);
+                                    $('.btn-success').prop('disabled', false);
                                 });
 
                                 $("#delTypeForm{{ forloop.counter }}").click(function(){
