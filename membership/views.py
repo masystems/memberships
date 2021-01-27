@@ -1126,13 +1126,11 @@ def member_reg_form(request, title, pk):
                     pass
             elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # edit member
-                # validate user not already a member of package
+                # validate email not already in use
                 try:
-                    if MembershipSubscription.objects.filter(
-                            member=Member.objects.get(id=pk),
-                            membership_package=membership_package).exists():
+                    if member != Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email'])):
                         form.add_error('email',
-                                       f"This email address is already in use for {membership_package.organisation_name}.")
+                                   f"This email address is already in use for {membership_package.organisation_name}.")
                 except Member.DoesNotExist:
                     pass
                 except User.DoesNotExist:
@@ -1144,10 +1142,12 @@ def member_reg_form(request, title, pk):
             # get or create member object
             member, created = Member.objects.get_or_create(user_account=user)
             member.title = form.cleaned_data['title']
+            member.company = form.cleaned_data['company']
             member.address_line_1 = form.cleaned_data['address_line_1']
             member.address_line_2 = form.cleaned_data['address_line_2']
             member.town = form.cleaned_data['town']
             member.county = form.cleaned_data['county']
+            member.country = form.cleaned_data['country']
             member.postcode = form.cleaned_data['postcode']
             member.contact_number = form.cleaned_data['contact_number']
             member.save()
