@@ -1246,7 +1246,7 @@ def member_reg_form(request, title, pk):
         else:
             # form not valid
             pass
-    # check membership type exists
+    # check there is a membership type which is active
     is_price_active = False
     prices = None
     try:
@@ -1257,6 +1257,8 @@ def member_reg_form(request, title, pk):
         if price.active:
             is_price_active = True
             break
+    # check there is a membership type which is both active and visible
+    is_price_active_visible = False
     for price in prices:
         if price.active and price.visible:
             is_price_active_visible = True
