@@ -457,7 +457,6 @@ def get_members_detailed(request, title):
                     payment_method = "Card Payment"
 
             # buttons!
-            #for sub in member.subscription.all():
             for sub in member.subscription.filter(membership_package=membership_package):
                 if sub.membership_package == membership_package:
                     if sub.payment_method or sub.stripe_subscription_id:
