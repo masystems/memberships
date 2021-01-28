@@ -1229,37 +1229,19 @@ def member_reg_form(request, title, pk):
                 if request.user == membership_package.owner or request.user in membership_package.admins.all():
                     # save and continue
                     if request.POST.get('continue') == '':
-                        if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                                                    Q(admins=request.user),
-                                                                                    organisation_name=membership_package.organisation_name).exists():
-                            return redirect(
-                                f"member_bolton_form", membership_package.organisation_name, member.id)
-                        else:
-                            return redirect(
-                                f"member_payment", membership_package.organisation_name, member.id)
+                        return redirect(
+                            f"member_payment", membership_package.organisation_name, member.id)
                     # save and exit to org page
                     elif request.POST.get('exit') == '':
                         return redirect('membership_package', membership_package.organisation_name)
                     # just in case, continue
                     else:
-                        if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                                                    Q(admins=request.user),
-                                                                                    organisation_name=membership_package.organisation_name).exists():
-                            return redirect(
-                                f"member_bolton_form", membership_package.organisation_name, member.id)
-                        else:
-                            return redirect(
-                                f"member_payment", membership_package.organisation_name, member.id)
-                # user is a member who has clicked Save, so continue
-                else:
-                    if membership_package.bolton != 'none' and MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                                                Q(admins=request.user),
-                                                                                organisation_name=membership_package.organisation_name).exists():
-                        return redirect(
-                            f"member_bolton_form", membership_package.organisation_name, member.id)
-                    else:
                         return redirect(
                             f"member_payment", membership_package.organisation_name, member.id)
+                # user is a member who has clicked Save, so continue
+                else:
+                    return redirect(
+                        f"member_payment", membership_package.organisation_name, member.id)
         
         else:
             # form not valid
