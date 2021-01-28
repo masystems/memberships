@@ -1257,6 +1257,10 @@ def member_reg_form(request, title, pk):
         if price.active:
             is_price_active = True
             break
+    for price in prices:
+        if price.active and price.visible:
+            is_price_active_visible = True
+            break
     # check stripe has been set up
     stripe.api_key = get_stripe_secret_key(request)
     is_stripe = False
