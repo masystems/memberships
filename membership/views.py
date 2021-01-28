@@ -582,7 +582,7 @@ def get_members(request, title):
                     membership_status = ""
 
             # buttons!
-            for sub in member.subscription.all():
+            for sub in member.subscription.filter(membership_package=membership_package):
                 if sub.membership_package == membership_package:
                     if sub.payment_method or sub.stripe_subscription_id:
                         pass
