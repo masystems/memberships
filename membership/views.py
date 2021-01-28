@@ -1276,6 +1276,7 @@ def member_reg_form(request, title, pk):
                                                 'form': form,
                                                 'membership_package': membership_package,
                                                 'is_price_active': is_price_active,
+                                                'is_price_active_visible': is_price_active_visible,
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
                                                 'custom_fields': custom_fields_displayed})
