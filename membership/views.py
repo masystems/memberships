@@ -1246,8 +1246,8 @@ def member_reg_form(request, title, pk):
         else:
             # form not valid
             pass
-    # check membership type exists
-    is_price = False
+    # check there is a membership type which is active
+    is_price_active = False
     prices = None
     try:
         prices = Price.objects.filter(membership_package=membership_package)
@@ -1255,7 +1255,13 @@ def member_reg_form(request, title, pk):
         pass
     for price in prices:
         if price.active:
-            is_price = True
+            is_price_active = True
+            break
+    # check there is a membership type which is both active and visible
+    is_price_active_visible = False
+    for price in prices:
+        if price.active and price.visible:
+            is_price_active_visible = True
             break
     # check stripe has been set up
     stripe.api_key = get_stripe_secret_key(request)
@@ -1271,7 +1277,8 @@ def member_reg_form(request, title, pk):
     return render(request, 'member_form.html', {'user_form_fields': user_form_fields,
                                                 'form': form,
                                                 'membership_package': membership_package,
-                                                'is_price': is_price,
+                                                'is_price_active': is_price_active,
+                                                'is_price_active_visible': is_price_active_visible,
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
                                                 'custom_fields': custom_fields_displayed})
