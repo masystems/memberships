@@ -538,77 +538,102 @@ def get_members(request, title):
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
+    print(search)
+    # desc or asc
+    if request.GET.get('order[0][dir]') == 'asc':
+        direction = ""
+    else:
+        direction = "-"
+    # sort map
+    if sort_by == "id":
+        sort_by_col = f"{direction}membership_number"
+    elif sort_by == "name":
+        sort_by_col = f"member__user_account__first_name"
+    elif sort_by == "email":
+        sort_by_col = f"member__user_account__email"
+    elif sort_by == "comments":
+        sort_by_col = f"{direction}comments"
+    elif sort_by == "membership_type":
+        sort_by_col = f"{direction}price"
+    else:
+        # this will result in the a page error...
+        sort_by_col = None
+
     members = []
     if search == "":
-        all_members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()[start:start+end]
+        all_subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package, price__isnull=False).distinct().order_by(sort_by_col)[start:start+end]
     else:
-        all_members = Member.objects.filter(Q(user_account__first_name__icontains=search) |
-                                            Q(user_account__last_name__icontains=search) |
-                                            Q(user_account__email__icontains=search) |
-                                            Q(subscription__membership_number__icontains=search) |
-                                            Q(subscription__comments__icontains=search),
-                                            subscription__membership_package=membership_package).distinct()[start:start + end]
-    total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
-    if all_members.count() > 0:
-        for member in all_members:
-            # get membership type
-            for sub in member.subscription.filter(membership_package=membership_package):
-                if sub.membership_package == membership_package:
-                    try:
-                        membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
+        all_subscriptions = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
+                                            Q(member__user_account__last_name__icontains=search) |
+                                            Q(member__user_account__email__icontains=search) |
+                                            Q(membership_number__icontains=search) |
+                                            Q(comments__icontains=search),
+                                            membership_package=membership_package).order_by(sort_by_col)[start:start + end]
+    if search == "":
+        total_members = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
+    else:
+        total_members = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
+                                            Q(member__user_account__last_name__icontains=search) |
+                                            Q(member__user_account__email__icontains=search) |
+                                            Q(membership_number__icontains=search) |
+                                            Q(comments__icontains=search),
+                                            membership_package=membership_package).distinct().order_by(f"{direction}{sort_by_col}").count()
 
-                        membership_status = f"""<div class="mb-4">
-                                                <input type="checkbox" value="{ member.id }" class="membership-status" 
-                                                data-on-color="success" 
-                                                data-off-color="danger" data-on-text="Active"
-                                                data-off-text="Inactive">
+    if all_subscriptions.count() > 0:
+        print(all_subscriptions.count())
+        for subscription in all_subscriptions.all():
+            print(subscription)
+            # get membership type
+            try:
+                membership_type = f"""<span class="badge py-1 badge-info">{subscription.price.nickname}</span>"""
+
+                membership_status = f"""<div class="mb-4">
+                                        <input type="checkbox" value="{ subscription.member.id }" class="membership-status" 
+                                        data-on-color="success" 
+                                        data-off-color="danger" data-on-text="Active"
+                                        data-off-text="Inactive">
+                                    </div>
+                                    """
+
+                if subscription.active:
+                    membership_status = f"""<div class="mb-4">
+                                                <input type="checkbox" value="{ subscription.member.id }" 
+                                                class="membership-status" data-on-color="success" 
+                                                data-off-color="danger" data-on-text="Active" 
+                                                data-off-text="Inactive" checked>
                                             </div>
                                             """
-
-                        if sub.active:
-                            membership_status = f"""<div class="mb-4">
-                                                        <input type="checkbox" value="{ member.id }" 
-                                                        class="membership-status" data-on-color="success" 
-                                                        data-off-color="danger" data-on-text="Active" 
-                                                        data-off-text="Inactive" checked>
-                                                    </div>
-                                                    """
-                    except AttributeError:
-                        membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
-                        membership_status = f"""<span class="badge py-1 badge-danger">No Membership</span>"""
-                        break
-                else:
-                    membership_type = ""
-                    membership_status = ""
+            except AttributeError:
+                membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
+                membership_status = f"""<span class="badge py-1 badge-danger">No Membership</span>"""
+                break
 
             # buttons!
-            for sub in member.subscription.filter(membership_package=membership_package):
-                if sub.membership_package == membership_package:
-                    if sub.payment_method or sub.stripe_subscription_id:
-                        pass
-                        card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                        'pk': member.id})}" class="dropdown-item">
-                                                <i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page
-                                        </a>"""
-                    else:
-                        card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                        'pk': member.id})}" class="dropdown-item">
-                                                <i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page
-                                        </a>"""
-                member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
-                edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
-                reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
-                payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
-                remove_member_button = f"""<a href="javascript:removeMember({ member.id });" value="{ member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
+            if subscription.payment_method or subscription.stripe_subscription_id:
+                pass
+                card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                'pk': subscription.member.id})}" class="dropdown-item">
+                                        <i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page
+                                </a>"""
+            else:
+                card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                'pk': subscription.member.id})}" class="dropdown-item">
+                                        <i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page
+                                </a>"""
+            member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
+                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
+            edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
+                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
+            reset_password_button = f"""<a href="javascript:resetMemberPwd('{ subscription.member.user_account.email }');" value="{ subscription.member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
+            payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                        'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+            remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id });" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # # set member id, name, email, mambership_type and buttons
-            members.append({'id': sub.membership_number,
-                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
-                            'email': f"{member.user_account.email}",
-                            'comments': f"""{sub.comments}<a href="javascript:editComment('{sub.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+            members.append({'id': subscription.membership_number,
+                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
+                            'email': f"{subscription.member.user_account.email}",
+                            'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                             'membership_type': membership_type,
                             'membership_status': membership_status,
                             'action': f"""<div class="btn-group dropleft">
@@ -624,14 +649,12 @@ def get_members(request, title):
                                                     <li>{remove_member_button}</li>
                                                 </ul>
                                             </div>"""})
-            # sorting
-            members_sorted = members
-            #members_sorted = sorted(members, key=lambda k: k[sort_by])
+
         complete_data = {
           "draw": 0,
-          "recordsTotal": all_members.count(),
+          "recordsTotal": all_subscriptions.count(),
           "recordsFiltered": total_members,
-          "data": members_sorted
+          "data": members
         }
     else:
         complete_data = {
