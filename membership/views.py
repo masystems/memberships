@@ -423,74 +423,131 @@ def get_members_detailed(request, title):
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
+    print(sort_by)
+    # desc or asc
+    if request.GET.get('order[0][dir]') == 'asc':
+        direction = ""
+    else:
+        direction = "-"
+    # sort map
+    if sort_by == "id":
+        sort_by_col = f"{direction}membership_number"
+    elif sort_by == "name":
+        sort_by_col = f"{direction}member__user_account__first_name"
+    elif sort_by == "email":
+        sort_by_col = f"{direction}member__user_account__email"
+    elif sort_by == "address":
+        sort_by_col = f"{direction}member__address_line_1"
+    elif sort_by == "contact":
+        sort_by_col = f"{direction}member__contact_number"
+    elif sort_by == "membership_type":
+        sort_by_col = f"{direction}price"
+    elif sort_by == "payment_method":
+        sort_by_col = f"{direction}payment_method__payment_name"
+    elif sort_by == "billing_interval":
+        sort_by_col = f"{direction}price__interval"
+    elif sort_by == "comments":
+        sort_by_col = f"{direction}comments"
+    elif sort_by == "membership_start":
+        sort_by_col = f"{direction}membership_start"
+    elif sort_by == "membership_expiry":
+        sort_by_col = f"{direction}membership_expiry"
+    else:
+        sort_by_col = f"{direction}membership_number"
+
     members = []
     if search == "":
-        all_members = Member.objects.filter(subscription__membership_package=membership_package,
-                                            subscription__price__isnull=False).distinct()[start:start + end]
+        all_subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package,
+                                                                  price__isnull=False).order_by(sort_by_col).distinct()[
+                            start:start + end]
     else:
-        all_members = Member.objects.filter(Q(user_account__first_name__icontains=search) |
-                                            Q(user_account__last_name__icontains=search) |
-                                            Q(user_account__email__icontains=search) |
-                                            Q(subscription__membership_number__icontains=search) |
-                                            Q(subscription__membership_number__icontains=search),
-                                            subscription__membership_package=membership_package).distinct()[
-                      start:start + end]
-    total_members = Member.objects.filter(subscription__membership_package=membership_package).distinct().count()
+        all_subscriptions = MembershipSubscription.objects.filter(
+            Q(member__user_account__first_name__icontains=search) |
+            Q(member__user_account__last_name__icontains=search) |
+            Q(member__user_account__email__icontains=search) |
+            Q(membership_number__icontains=search) |
+            Q(comments__icontains=search),
+            membership_package=membership_package).order_by(sort_by_col)[start:start + end]
+    if search == "":
+        total_members = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
+    else:
+        total_members = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
+                                                              Q(member__user_account__last_name__icontains=search) |
+                                                              Q(member__user_account__email__icontains=search) |
+                                                              Q(membership_number__icontains=search) |
+                                                              Q(comments__icontains=search),
+                                                              membership_package=membership_package).order_by(
+            sort_by_col).count()
 
-    if all_members.count() > 0:
-        for member in all_members:
-            # get membership type and payment method
-            for sub in member.subscription.filter(membership_package=membership_package):
-                if sub.membership_package == membership_package:
-                    if sub.price.nickname:
-                        membership_type = f"""<span class="badge py-1 badge-info">{sub.price.nickname}</span>"""
-                    else:
-                        membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
+    if all_subscriptions.count() > 0:
+        for subscription in all_subscriptions.all():
+            # get membership type
+            try:
+                membership_type = f"""<span class="badge py-1 badge-info">{subscription.price.nickname}</span>"""
 
-                    if sub.payment_method:
-                        payment_method = sub.payment_method.payment_name
-                    else:
-                        payment_method = "Card Payment"
-                    break
-                else:
-                    membership_type = ""
-                    payment_method = "Card Payment"
+                membership_status = f"""<div class="mb-4">
+                                        <input type="checkbox" value="{subscription.member.id}" class="membership-status" 
+                                        data-on-color="success" 
+                                        data-off-color="danger" data-on-text="Active"
+                                        data-off-text="Inactive">
+                                    </div>
+                                    """
+
+                if subscription.active:
+                    membership_status = f"""<div class="mb-4">
+                                                <input type="checkbox" value="{subscription.member.id}" 
+                                                class="membership-status" data-on-color="success" 
+                                                data-off-color="danger" data-on-text="Active" 
+                                                data-off-text="Inactive" checked>
+                                            </div>
+                                            """
+            except AttributeError:
+                membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
+                membership_status = f"""<span class="badge py-1 badge-danger">No Membership</span>"""
+
+            if subscription.payment_method:
+                payment_method = subscription.payment_method.payment_name
+            else:
+                payment_method = "Card Payment"
+
+            if subscription.price:
+                billing_interval = subscription.price.interval.title()
+            else:
+                billing_interval = ""
 
             # buttons!
-            for sub in member.subscription.filter(membership_package=membership_package):
-                if sub.membership_package == membership_package:
-                    if sub.payment_method or sub.stripe_subscription_id:
-                        pass
-                        card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                        'pk': member.id})}" class="dropdown-item">
-                                                <i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page
-                                        </a>"""
-                    else:
-                        card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
-                                                        'pk': member.id})}" class="dropdown-item">
-                                                <i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page
-                                        </a>"""
-                member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
-                edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
-                reset_password_button = f"""<a href="javascript:resetMemberPwd('{ member.user_account.email }');" value="{ member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
-                payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
-                remove_member_button = f"""<a href="javascript:removeMember({ member.id });" value="{ member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
+            if subscription.payment_method or subscription.stripe_subscription_id:
+                pass
+                card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                                              'pk': subscription.member.id})}" class="dropdown-item">
+                                        <i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page
+                                </a>"""
+            else:
+                card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
+                                                                              'pk': subscription.member.id})}" class="dropdown-item">
+                                        <i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page
+                                </a>"""
+            member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
+                                                                                      'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
+            edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
+                                                                              'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
+            reset_password_button = f"""<a href="javascript:resetMemberPwd('{subscription.member.user_account.email}');" value="{subscription.member.user_account.email}" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
+            payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                        'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+            remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id});" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # # set member id, name, email, mambership_type and buttons
-            members.append({'id': sub.membership_number,
-                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{member.user_account.get_full_name()}</button></a>""",
-                            'email': member.user_account.email,
-                            'address': f'{member.address_line_1}</br>{member.address_line_2}<br>{member.town}<br>{member.county}<br>{member.postcode}',
-                            'contact': member.contact_number,
+            members.append({'id': subscription.membership_number,
+                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
+                            'email': subscription.member.user_account.email,
+                            'address': f'{subscription.member.company and "</br>"}{subscription.member.address_line_1 and "</br>"}{subscription.member.address_line_2 and "</br>"}{subscription.member.town and "</br>"}{subscription.member.county and "</br>"}{subscription.member.postcode and "</br>"}',
+                            'contact': subscription.member.contact_number,
                             'membership_type': membership_type,
                             'payment_method': payment_method,
-                            'billing_interval': sub.price.interval.title(),
-                            'comments': f"""{sub.comments}<a href="javascript:editComment('{sub.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
-                            'membership_start': f"{sub.membership_start if sub.membership_start != None else ''}",
-                            'membership_expiry': f"{sub.membership_expiry if sub.membership_expiry != None else ''}",
+                            'billing_interval': billing_interval,
+                            'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+                            'membership_start': f'{subscription.membership_start or ""}',
+                            'membership_expiry': f'{subscription.membership_expiry  or ""}',
                             'action': f"""<div class="btn-group">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
@@ -504,14 +561,12 @@ def get_members_detailed(request, title):
                                                     {remove_member_button}
                                                 </div>
                                             </div>"""})
-        # sorting
-        members_sorted = members
-        #members_sorted = sorted(members, key=lambda k: k[sort_by])
+
         complete_data = {
             "draw": 0,
-            "recordsTotal": all_members.count(),
-            "recordsFiltered": total_members,
-            "data": members_sorted
+            "recordsTotal": all_subscriptions.count(),
+              "recordsFiltered": total_members,
+            "data": members
         }
     else:
         complete_data = {
@@ -556,7 +611,7 @@ def get_members(request, title):
         sort_by_col = f"{direction}price"
     else:
         # this will result in the a page error...
-        sort_by_col = None
+        sort_by_col = f"{direction}membership_number"
 
     members = []
     if search == "":

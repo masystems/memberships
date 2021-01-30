@@ -57,13 +57,14 @@
                         <a href="#!" class="toggle-vis" data-column="8"><button class="btn btn-info" onclick="$(this).toggleClass('btn-info btn-dark');">Billing Interval</button></a>
                         <a href="#!" class="toggle-vis" data-column="9"><button class="btn btn-info" onclick="$(this).toggleClass('btn-info btn-dark');">Comments</button></a>
                         <a href="#!" class="toggle-vis" data-column="10"><button class="btn btn-info" onclick="$(this).toggleClass('btn-info btn-dark');">Date Created</button></a>
+                        <a href="#!" class="toggle-vis" data-column="11"><button class="btn btn-info" onclick="$(this).toggleClass('btn-info btn-dark');">Membership Expiry</button></a>
                     </div>
                     <div class="table-responsive">
                         <table id="show_hide_col" class="table table-striped table-bordered display no-wrap"
                             style="width:100%">
                             <thead>
                                 <tr>
-                                    <th>Action</th>
+                                    <th class="no-sort">Action</th>
                                     <th>ID</th>
                                     <th>Name</th>
                                     <th>Email</th>
@@ -96,54 +97,6 @@
                             </tfoot>
                         </table>
                     </div>
-<!--                    {% if membership_package.bolton != "none" %}-->
-<!--                    <hr>-->
-<!--                    <h4>{{ membership_package.bolton|title }} Bolton Data</h4>-->
-<!--                    {% endif %}-->
-<!--                    <div class="table-responsive">-->
-<!--                        <table id="show_hide_col" class="table table-striped table-bordered display no-wrap"-->
-<!--                            style="width:100%">-->
-<!--                            <thead>-->
-<!--                                <tr>-->
-<!--                                    <th>Member Name</th>-->
-<!--                                    {% for col in bolton_columns %}-->
-<!--                                        <th>{{ col.verbose_name|title }}</th>-->
-<!--                                    {% endfor %}-->
-<!--                                </tr>-->
-<!--                            </thead>-->
-<!--                            <tbody>-->
-<!--                                {% for member in bolton %}-->
-<!--                                    <tr>-->
-<!--                                        <td>{{ member.subscription.member.user_account.get_full_name }}</td>-->
-<!--                                        {% for item, value in member.attrs %}-->
-<!--                                            {% if forloop.first or item == 'id' or item == 'subscription_id' %}-->
-<!--                                            {% else %}-->
-<!--                                                <td>-->
-<!--                                                    {% if value == True %}-->
-<!--                                                        <i class="fad fa-check text-success"></i>-->
-<!--                                                    {% elif value == False %}-->
-<!--                                                        <i class="fad fa-times text-danger"></i>-->
-<!--                                                    {% elif value == None %}-->
-<!--                                                        &lt;!&ndash; Blank &ndash;&gt;-->
-<!--                                                    {% else %}-->
-<!--                                                        {{ value }}-->
-<!--                                                    {% endif %}-->
-<!--                                                </td>-->
-<!--                                            {% endif %}-->
-<!--                                        {% endfor %}-->
-<!--                                    </tr>-->
-<!--                                {% endfor %}-->
-<!--                            </tbody>-->
-<!--                            <tfoot>-->
-<!--                                <tr>-->
-<!--                                    <th>Member Name</th>-->
-<!--                                    {% for col in bolton_columns %}-->
-<!--                                        <th>{{ col.verbose_name|title }}</th>-->
-<!--                                    {% endfor %}-->
-<!--                                </tr>-->
-<!--                            </tfoot>-->
-<!--                        </table>-->
-<!--                    </div>-->
                 </div>
             </div>
         </div>
@@ -170,7 +123,7 @@
         var members_table = $('#show_hide_col').DataTable({
             "processing": true,
             "serverSide": true,
-            "bSort": false,
+            "responsive": true,
             "ajax": "{% url 'get_members_detailed' membership_package.organisation_name %}",
             "columns": [
                 { data: "action" },
@@ -186,12 +139,12 @@
                 { data: "membership_start" },
                 { data: "membership_expiry" },
             ],
-            colReorder: true,
             dom: "Bfrltip",
             buttons: [
                 'copy', 'csv', 'excel', 'pdf', 'print'
             ],
             columnDefs: [
+                { targets: 'no-sort', orderable: false },
                 {
                     render: function (data, type, full, meta) {
                         return "<div class='text-wrap width-200'>" + data + "</div>";
