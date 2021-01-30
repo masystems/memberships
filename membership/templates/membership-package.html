@@ -180,8 +180,8 @@
                                                 <th>Email</th>
                                                 <th>Comments</th>
                                                 <th>Membership Type</th>
-                                                <th>Membership Status</th>
-                                                <th>Action</th>
+                                                <th class="no-sort">Membership Status</th>
+                                                <th class="no-sort">Action</th>
                                             </tr>
                                         </thead>
                                     </table>
@@ -411,12 +411,11 @@
         var members_table = $('#default_order').DataTable({
             "processing": true,
             "serverSide": true,
-            "bSort": false,
             "responsive": true,
             "ajax": "{% url 'get_members' membership_package.organisation_name %}",
             "columns": [
                 { data: "id"},
-                { data: "name" },
+                { data: "name",},
                 { data: "email", "width": 20 },
                 { data: "comments" },
                 { data: "membership_type" },
@@ -443,6 +442,7 @@
             },
             colReorder: true,
             columnDefs: [
+                { targets: 'no-sort', orderable: false },
                 {
                     render: function (data, type, full, meta) {
                         return "<div class='text-wrap width-200'>" + data + "</div>";

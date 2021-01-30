@@ -42,7 +42,7 @@
         <div class="col-12">
             <div class="card">
                 <!-- Validate that membership package has been set up with stripe and has at least one membership type -->
-                {% if is_stripe and is_price %}
+                {% if is_stripe and is_price_active and request.user == membership_package.owner or request.user in membership_package.admins.all or is_stripe and is_price_active_visible %}
                     <div class="card-body">
                         <h4 class="card-title">Member Form</h4>
                         <h6 class="card-subtitle">Fill out the form below to add a new member to your organisation.</h6>
@@ -361,7 +361,7 @@
                                 <p>To allow members to be added, you can manage membership types from the <a href="{% url 'membership_package' membership_package.organisation_name %}">Membership</a> page.</p>
                             </div>
                         <!-- stripe not set up -->
-                        {% elif is_price %}
+                        {% elif is_price_active %}
                             <div class="card-body">
                                 <h4 class="card-title">Membership Package Not Ready</h4>
                                 <p>This membership package does not have stripe set up.</p>

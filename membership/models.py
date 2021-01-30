@@ -84,7 +84,7 @@ class Member(models.Model):
 
 
 class MembershipSubscription(models.Model):
-    membership_number = models.CharField(max_length=255, blank=True)
+    membership_number = models.IntegerField(blank=True)
     member = models.ForeignKey(Member, on_delete=models.CASCADE, related_name='subscription', verbose_name="Membership Subscription")
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='membership_package', verbose_name="Membership Package")
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=True, null=True, related_name='spayment_method', verbose_name="Payment Method")
