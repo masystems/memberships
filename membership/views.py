@@ -538,7 +538,6 @@ def get_members(request, title):
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
-    print(search)
     # desc or asc
     if request.GET.get('order[0][dir]') == 'asc':
         direction = ""
@@ -548,9 +547,9 @@ def get_members(request, title):
     if sort_by == "id":
         sort_by_col = f"{direction}membership_number"
     elif sort_by == "name":
-        sort_by_col = f"member__user_account__first_name"
+        sort_by_col = f"{direction}member__user_account__first_name"
     elif sort_by == "email":
-        sort_by_col = f"member__user_account__email"
+        sort_by_col = f"{direction}member__user_account__email"
     elif sort_by == "comments":
         sort_by_col = f"{direction}comments"
     elif sort_by == "membership_type":
@@ -561,7 +560,7 @@ def get_members(request, title):
 
     members = []
     if search == "":
-        all_subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package, price__isnull=False).distinct().order_by(sort_by_col)[start:start+end]
+        all_subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package, price__isnull=False).order_by(sort_by_col).distinct()[start:start+end]
     else:
         all_subscriptions = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
                                             Q(member__user_account__last_name__icontains=search) |
@@ -577,12 +576,10 @@ def get_members(request, title):
                                             Q(member__user_account__email__icontains=search) |
                                             Q(membership_number__icontains=search) |
                                             Q(comments__icontains=search),
-                                            membership_package=membership_package).distinct().order_by(f"{direction}{sort_by_col}").count()
+                                            membership_package=membership_package).order_by(sort_by_col).count()
 
     if all_subscriptions.count() > 0:
-        print(all_subscriptions.count())
         for subscription in all_subscriptions.all():
-            print(subscription)
             # get membership type
             try:
                 membership_type = f"""<span class="badge py-1 badge-info">{subscription.price.nickname}</span>"""
@@ -606,7 +603,6 @@ def get_members(request, title):
             except AttributeError:
                 membership_type = f"""<span class="badge py-1 badge-danger">No Membership Type</span>"""
                 membership_status = f"""<span class="badge py-1 badge-danger">No Membership</span>"""
-                break
 
             # buttons!
             if subscription.payment_method or subscription.stripe_subscription_id:
