@@ -578,9 +578,10 @@ def get_members_detailed(request, title):
     return HttpResponse(dumps(complete_data))
 
 
-def update_membership_status(request, pk, status):
+def update_membership_status(request, pk, status, title):
     member = Member.objects.get(id=pk)
-    subscription = member.subscription.get(member=member)
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    subscription = member.subscription.get(member=member, membership_package=membership_package)
 
     subscription.active = status
     subscription.save()
