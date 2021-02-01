@@ -559,13 +559,13 @@ def get_members_detailed(request, title):
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
                             'email': subscription.member.user_account.email,
                             'address': address_string,
-                            'contact': subscription.member.contact_number,
+                            'contact': f'{subscription.member.contact_number or "NULL"}',
                             'membership_type': membership_type,
                             'payment_method': payment_method,
                             'billing_interval': billing_interval,
                             'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
-                            'membership_start': f'{subscription.membership_start or ""}',
-                            'membership_expiry': f'{subscription.membership_expiry  or ""}',
+                            'membership_start': f'{subscription.membership_start or "NULL"}',
+                            'membership_expiry': f'{subscription.membership_expiry  or "NULL"}',
                             'action': f"""<div class="btn-group">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
