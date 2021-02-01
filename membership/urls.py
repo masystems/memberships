@@ -29,7 +29,7 @@ urlpatterns = [
     path('member-profile/<int:pk>', views.MemberProfileView.as_view(), name="member_profile"),
     path('delete-membership-package/<str:title>', views.delete_membership_package, name="delete_membership_package"),
     path('remove-member/<str:title>/<int:pk>', views.remove_member, name="remove_member"),
-    path('update-membership-status/<int:pk>/<str:status>', views.update_membership_status, name="update_membership_status"),
+    path('update-membership-status/<int:pk>/<str:status>/<str:title>', views.update_membership_status, name="update_membership_status"),
     path('update_user/<int:pk>', views.update_user, name='update_user'),
     path('payment-reminder/<str:title>/<int:pk>', views.payment_reminder, name='payment_reminder'),
 ]
