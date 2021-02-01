@@ -536,11 +536,26 @@ def get_members_detailed(request, title):
                                                                                         'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
             remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id});" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
+            # create a string for address to avoid including extra line breaks
+            address_string = ""
+            if subscription.member.company != '':
+                address_string += f'{subscription.member.company}<br/>'
+            if subscription.member.address_line_1 != '':
+                address_string += f'{subscription.member.address_line_1}<br/>'
+            if subscription.member.address_line_2 != '':
+                address_string += f'{subscription.member.address_line_2}<br/>'
+            if subscription.member.town != '':
+                address_string += f'{subscription.member.town}<br/>'
+            if subscription.member.county != '':
+                address_string += f'{subscription.member.county}<br/>'
+            if subscription.member.postcode != '':
+                address_string += f'{subscription.member.postcode}<br/>'
+
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': subscription.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
                             'email': subscription.member.user_account.email,
-                            'address': f'{subscription.member.company and "</br>"}{subscription.member.address_line_1 and "</br>"}{subscription.member.address_line_2 and "</br>"}{subscription.member.town and "</br>"}{subscription.member.county and "</br>"}{subscription.member.postcode and "</br>"}',
+                            'address': address_string,
                             'contact': subscription.member.contact_number,
                             'membership_type': membership_type,
                             'payment_method': payment_method,
