@@ -550,6 +550,9 @@ def get_members_detailed(request, title):
                 address_string += f'{subscription.member.county}<br/>'
             if subscription.member.postcode != '':
                 address_string += f'{subscription.member.postcode}<br/>'
+            # if all of the above values are empty, display NULL to user instead of an empty box
+            if address_string == "":
+                address_string = 'NULL'
 
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': subscription.membership_number,
