@@ -585,7 +585,7 @@ def update_membership_status(request, pk, status, title):
 
     subscription.active = status
     subscription.save()
-    return HttpResponseRedirect('/membership')
+    return HttpResponseRedirect('/membership/org/' + membership_package.organisation_name)
 
 
 def get_members(request, title):
