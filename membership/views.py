@@ -554,6 +554,13 @@ def get_members_detailed(request, title):
             if address_string == "":
                 address_string = 'NULL'
 
+            # set start date based on whether it is a stripe subscription
+            stripe.api_key = get_stripe_secret_key(request)
+            membership_start_date = subscription.membership_start
+            if subscription.stripe_subscription_id:
+                stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
+                membership_start_date = datetime.fromtimestamp(stripe_subscription.start_date).strftime("%d/%m/%Y<br/>%H:%M")
+
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': subscription.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
@@ -564,7 +571,7 @@ def get_members_detailed(request, title):
                             'payment_method': payment_method,
                             'billing_interval': billing_interval,
                             'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
-                            'membership_start': f'{subscription.membership_start or "NULL"}',
+                            'membership_start': f'{membership_start_date or "NULL"}',
                             'membership_expiry': f'{subscription.membership_expiry  or "NULL"}',
                             'action': f"""<div class="btn-group">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
