@@ -1881,6 +1881,7 @@ def update_user(request, pk):
         member.county = request.POST.get('user-settings-county')
         member.postcode = request.POST.get('user-settings-postcode')
         member.contact_number = request.POST.get('user-settings-phone')
+        member.company = request.POST.get('user-settings-company')
         member.save()
 
         return HttpResponse(True)
