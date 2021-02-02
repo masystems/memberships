@@ -390,6 +390,12 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
+                                    <label class="col-md-12">Company</label>
+                                    <div class="col-md-12">
+                                        <input type="text" value="{{ member.company }}" name="user-settings-company" id="user-company" class="form-control form-control-line">
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <label class="col-md-12">Address 1</label>
                                     <div class="col-md-12">
                                         <input type="text" value="{{ member.address_line_1 }}" name="user-settings-address1" class="form-control form-control-line">
@@ -425,14 +431,6 @@
                                         <input type="text" value="{{ member.contact_number }}" name="user-settings-phone" id="user-phone" class="form-control form-control-line">
                                     </div>
                                 </div>
-                                {% if member.company %}
-                                    <div class="form-group">
-                                        <label class="col-md-12">Company</label>
-                                        <div class="col-md-12">
-                                            <input type="text" value="{{ member.company }}" name="user-settings-company" id="user-company" class="form-control form-control-line">
-                                        </div>
-                                    </div>
-                                {% endif %}
                                 {% if request.user == member.user_account %}
                                     <div class="form-group">
                                         <label class="col-md-12">Password</label>
