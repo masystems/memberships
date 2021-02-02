@@ -23,6 +23,12 @@ def generate_site_vars(request):
 
         context['public_api_key'] = get_stripe_public_key(request)
         context['all_packages'] = MembershipPackage.objects.filter(enabled=True)
+
+        # if this is a donation link, add the organisation to context
+        if request.GET.get('donation', ''):
+            context['donation'] = request.GET.get('donation', '')
+        else:
+            context['donation'] = None
     else:
         context['authenticated'] = False
 
