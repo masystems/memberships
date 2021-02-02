@@ -491,7 +491,7 @@
             var email = $("#user-email").val();
             var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             var emailCheck = emailRegex.test(email);
-            var emailExists = emails.includes($('#user-email').val());
+            var emailExists = emails.includes(email) && email != '{{ member.user_account.email }}';
             console.log(emailExists);
 
             if (emailCheck == false){
