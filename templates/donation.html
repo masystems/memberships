@@ -35,12 +35,13 @@
     
     <div class="container-fluid">
         <div class="row mt-4">
+            <div class="col-lg-3 col-xlg-2 mb-4 mx-auto">
             <form id="donationForm">
-                <div class="col-lg-11 col-xlg-2 mb-4">
+                <!-- <div class="col-lg-11 col-xlg-2 mb-4"> -->
                     <h4 class="mb-3">Donation Form</h4>
                     <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
-                </div>
-                <div class="col-lg-11  mb-4">
+                <!-- </div>
+                <div class="col-lg-11  mb-4"> -->
                     <div class="form-group">
                         <div class="input-group mb-3">
                             <div class="input-group-prepend">
@@ -50,20 +51,20 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <input id="donator-full-name" type="text" class="form-control" name="full_name" value="{{ request.user.get_full_name }}">
+                        <input id="donator-full-name" type="text" class="form-control" name="full_name" placeholder="Name">
                     </div>
                     <div class="form-group">
-                        <input id="donator-email" type="email" class="form-control" name="email_address" value="{{ request.user.email }}">
+                        <input id="donator-email" type="email" class="form-control" name="email_address" placeholder="Email Address">
                     </div>
                     <div class="form-group">
                         <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
                     </div>
-                </div>
+                <!-- </div> -->
             </form>
-            <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
+            <!-- <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0"> -->
                 <form id="donation-payment-form">
                     <label>Card Holders Name:</label>
-                    <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
+                    <input id="cardholder-name" type="text" class="form-control">
                     <!-- placeholder for Elements -->
                     <div id="donation-card-element"></div>
                     <!-- Used to display Element errors. -->
@@ -87,6 +88,7 @@
 
                     <a href="#" target="_blank" id="donationReceipt"><button type="button" id="donationReceiptBtn" class="btn btn-dark mb-2">View Receipt</button></a>
                 </div>
+            <!-- </div> -->
             </div>
         </div>
     </div>
@@ -101,10 +103,6 @@
 
         $("#donation-button").click(function(e){
             e.preventDefault();
-            // Define organisation checks
-            var isOrganisation = $('#organisation-donation').val() != "";
-            var organisationExists = orgs.includes($('#organisation-donation').val());
-
             // Define float checks
             var amount = $("#donation-amount").val();
             var floatRegex = /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/;
@@ -116,16 +114,12 @@
             var emailCheck = emailRegex.test(email);
 
 
-            // Check organisation field
-            if (isOrganisation && organisationExists && amountCheck && emailCheck) {
+            // If amount and email are okay, submit donation form
+            if (amountCheck && emailCheck) {
                 $('#donation-overlay-spinner').modal();
                 sleep(2000).then(() => {
                     submitDonationForm()
                 });
-            } else if (isOrganisation == false){
-                errorMsg("Please fill the organisation name!");
-            } else if (organisationExists == false){
-                errorMsg("Oganisation does not exist!");
             }
 
             if(emailCheck == false){
