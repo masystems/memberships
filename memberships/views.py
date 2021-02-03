@@ -180,7 +180,10 @@ def donation_payment(request):
 
 
 def donation(request):
-    return render(request, 'donation.html')
+
+    org_name = request.GET.get('org-name', '')
+
+    return render(request, 'donation.html', {'org_name': org_name})
 
 
 def send_payment_error(error):
