@@ -299,7 +299,7 @@
 <!--                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/" aria-expanded="false"><i class="fad fa-home-alt mr-1"></i> <span class="hide-menu">Overview</span></a></li>-->
                         {% if membership_packages %}
                             {% for package in membership_packages.all %}
-                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'membership_package' package.organisation_name %}" aria-expanded="false"><i class="fad fa-users mr-1"></i> <span class="hide-menu">
+                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'membership_package' package.organisation_name %}" aria-expanded="false"><i class="fad fa-globe mr-1"></i> <span class="hide-menu">
                                     {{ package.organisation_name }}
                                 </span></a></li>
                             {% endfor %}
