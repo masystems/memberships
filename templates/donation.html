@@ -1,0 +1,282 @@
+
+{% load static %}
+{% load custom_tags %}
+
+<!DOCTYPE html>
+<html dir="ltr" lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <!-- Favicon icon -->
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/images/favicon.png' %}">
+    <script src="https://kit.fontawesome.com/e1cfa067bf.js" crossorigin="anonymous"></script>
+    <title>Memberships</title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
+    <link href="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.css' %}" rel="stylesheet">
+    <link href="{% static 'dist/css/style.min.css' %}" rel="stylesheet">
+
+    <script src="{% static 'assets/libs/jquery/dist/jquery.min.js' %}"></script>
+
+    {% include 'css.html' %}
+</head>
+
+{% block content %}
+
+<body>
+
+    {% csrf_token %}
+    
+    <div class="container-fluid">
+        <div class="row mt-4">
+            <form id="donationForm">
+                <div class="col-lg-11 col-xlg-2 mb-4">
+                    <h4 class="mb-3">Donation Form</h4>
+                    <p>Donate to an organisation by filling out the below fields.</p>
+                    <div class="input-group">
+                        <div id="orgs">
+                            <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-11  mb-4">
+                    <div class="form-group">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
+                            </div>
+                            <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <input id="donator-full-name" type="text" class="form-control" name="full_name" value="{{ request.user.get_full_name }}">
+                    </div>
+                    <div class="form-group">
+                        <input id="donator-email" type="email" class="form-control" name="email_address" value="{{ request.user.email }}">
+                    </div>
+                    <div class="form-group">
+                        <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
+                    </div>
+                </div>
+            </form>
+            <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
+                <form id="donation-payment-form">
+                    <label>Card Holders Name:</label>
+                    <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
+                    <!-- placeholder for Elements -->
+                    <div id="donation-card-element"></div>
+                    <!-- Used to display Element errors. -->
+                    <div id="donation-card-errors" role="alert"></div>
+                    <div class="text-center mt-3" id="cardTypes" style="margin:0 auto;">
+                        <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
+                        <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
+                        <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
+                    </div>
+                    <div class="card-body" id="donation-payment-buttons">
+                        <div class="form-group mb-0 text-right">
+                            <button id="donation-button" class="btn btn-success waves-effect waves-light">Donate</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="donationResult" class="d-none text-center">
+                    <h2>Success!</h2>
+                    <h6>Your donation was successful!</h6>
+                    <p>Your selected organisation has been notified of your kind donation.
+                    You should receive an email shortly confirming your donation.</p>
+
+                    <a href="#" target="_blank" id="donationReceipt"><button type="button" id="donationReceiptBtn" class="btn btn-dark mb-2">View Receipt</button></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+
+        function sleep (time) {
+          return new Promise((resolve) => setTimeout(resolve, time));
+        }
+
+        $("#donation-button").click(function(e){
+            e.preventDefault();
+            // Define organisation checks
+            var isOrganisation = $('#organisation-donation').val() != "";
+            var organisationExists = orgs.includes($('#organisation-donation').val());
+
+            // Define float checks
+            var amount = $("#donation-amount").val();
+            var floatRegex = /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/;
+            var amountCheck = floatRegex.test(amount);
+
+            // Define email checks
+            var email = $("#donator-email").val();
+            var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            var emailCheck = emailRegex.test(email);
+
+
+            // Check organisation field
+            if (isOrganisation && organisationExists && amountCheck && emailCheck) {
+                $('#donation-overlay-spinner').modal();
+                sleep(2000).then(() => {
+                    submitDonationForm()
+                });
+            } else if (isOrganisation == false){
+                errorMsg("Please fill the organisation name!");
+            } else if (organisationExists == false){
+                errorMsg("Oganisation does not exist!");
+            }
+
+            if(emailCheck == false){
+               errorMsg("The Email is invalid!");
+            }
+
+            if(amountCheck == false){
+               errorMsg("The amount is invalid!");
+            }
+        });
+
+        function submitDonationForm() {
+            // submit donation form
+            // Get form
+            var form = $('#donationForm')[0];
+
+            // Create an FormData object
+            var data = new FormData(form);
+
+            $.ajax({
+                url: '{% url 'donation_payment' %}',
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                cache: false,
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: data,
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        $('#formError').removeClass('d-none');
+                        $('#donation-overlay-spinner').modal('hide');
+                    } else {
+                        $('#formError').addClass('d-none');
+                        generateCardToken(data);
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                    console.log('jqXHR:');
+                    console.log(jqXHR);
+                    console.log('textStatus:');
+                    console.log(textStatus);
+                    console.log('errorThrown:');
+                    console.log(errorThrown);
+                }
+            });
+        }
+
+        // STRIPE STUFF
+        var stripe = Stripe('{{ public_api_key }}');
+        var elements = stripe.elements();
+
+        // Custom styling can be passed to options when creating an Element.
+        var style = {
+          base: {
+            color: '#32325d',
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '24px',
+            '::placeholder': {
+              color: '#aab7c4'
+            }
+          },
+          invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+          }
+        };
+
+        // Create an instance of the card Element.
+        var card = elements.create('card', {style: style});
+
+        // Add an instance of the card Element into the `card-element` <div>.
+        card.mount('#donation-card-element');
+
+
+        card.addEventListener('change', function(event) {
+          var displayError = document.getElementById('donation-card-errors');
+          if (event.error) {
+            displayError.textContent = event.error.message;
+          } else {
+            displayError.textContent = '';
+          }
+        });
+
+        // Create a token or display an error when the form is submitted.
+        function generateCardToken() {
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    // Inform the customer that there was an error.
+                    var errorElement = document.getElementById('donation-card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    // Send the token to your server.
+                    donationStripeTokenHandler(result.token);
+                }
+            });
+        }
+
+        function donationStripeTokenHandler(token) {
+            // Submit the token
+            $.ajax({
+                url: '{% url 'donation_payment' %}',
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: {
+                    'token': token,
+                    },
+                beforeSend: function() {
+                    $('#paymentSuccess').addClass('d-none');
+                    $('#paymentFail').addClass('d-none');
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result.result == 'fail') {
+                        $('#donation-overlay-spinner').modal('hide');
+                        $('#donation-card-errors').html(result.feedback);
+                    } else {
+                        $('#donation-payment-form').addClass('d-none');
+                        $('#donation-payment-buttons').addClass('d-none');
+                        loadSuccessPage(result);
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                    console.log('jqXHR:');
+                    console.log(jqXHR);
+                    console.log('textStatus:');
+                    console.log(textStatus);
+                    console.log('errorThrown:');
+                    console.log(errorThrown);
+                }
+            });
+        }
+
+        function loadSuccessPage(result) {
+            $('#donation-overlay-spinner').modal('hide');
+
+            //update layout
+            $('#donationResult').removeClass('d-none');
+            $('#donationReceipt').attr("href", result.receipt);
+        }
+    </script>
+</body>
+{% endblock %}
+</html>
