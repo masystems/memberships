@@ -7,6 +7,7 @@ urlpatterns = [
     path('', views.Dashboard.as_view(), name="dashboard"),
     path('api/', include('api.urls')),
     path('donation-payment', views.donation_payment, name='donation_payment'),
+    path('donation/', views.donation, name='donation'),
     path('membership/', include('membership.urls')),
     path('accounts/', include('allauth.urls')),
 ]
