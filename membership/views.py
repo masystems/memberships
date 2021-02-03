@@ -536,18 +536,43 @@ def get_members_detailed(request, title):
                                                                                         'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
             remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id});" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
+            # create a string for address to avoid including extra line breaks
+            address_string = ""
+            if subscription.member.company != '':
+                address_string += f'{subscription.member.company}<br/>'
+            if subscription.member.address_line_1 != '':
+                address_string += f'{subscription.member.address_line_1}<br/>'
+            if subscription.member.address_line_2 != '':
+                address_string += f'{subscription.member.address_line_2}<br/>'
+            if subscription.member.town != '':
+                address_string += f'{subscription.member.town}<br/>'
+            if subscription.member.county != '':
+                address_string += f'{subscription.member.county}<br/>'
+            if subscription.member.postcode != '':
+                address_string += f'{subscription.member.postcode}<br/>'
+            # if all of the above values are empty, display NULL to user instead of an empty box
+            if address_string == "":
+                address_string = 'NULL'
+
+            # set start date based on whether it is a stripe subscription
+            stripe.api_key = get_stripe_secret_key(request)
+            membership_start_date = subscription.membership_start
+            if subscription.stripe_subscription_id:
+                stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
+                membership_start_date = datetime.fromtimestamp(stripe_subscription.start_date).strftime("%d/%m/%Y<br/>%H:%M")
+
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': subscription.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
                             'email': subscription.member.user_account.email,
-                            'address': f'{subscription.member.company and "</br>"}{subscription.member.address_line_1 and "</br>"}{subscription.member.address_line_2 and "</br>"}{subscription.member.town and "</br>"}{subscription.member.county and "</br>"}{subscription.member.postcode and "</br>"}',
-                            'contact': subscription.member.contact_number,
+                            'address': address_string,
+                            'contact': f'{subscription.member.contact_number or "NULL"}',
                             'membership_type': membership_type,
                             'payment_method': payment_method,
                             'billing_interval': billing_interval,
                             'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
-                            'membership_start': f'{subscription.membership_start or ""}',
-                            'membership_expiry': f'{subscription.membership_expiry  or ""}',
+                            'membership_start': f'{membership_start_date or "NULL"}',
+                            'membership_expiry': f'{subscription.membership_expiry  or "NULL"}',
                             'action': f"""<div class="btn-group">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
@@ -578,13 +603,14 @@ def get_members_detailed(request, title):
     return HttpResponse(dumps(complete_data))
 
 
-def update_membership_status(request, pk, status):
+def update_membership_status(request, pk, status, title):
     member = Member.objects.get(id=pk)
-    subscription = member.subscription.get(member=member)
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    subscription = member.subscription.get(member=member, membership_package=membership_package)
 
     subscription.active = status
     subscription.save()
-    return HttpResponseRedirect('/membership')
+    return HttpResponseRedirect('/membership/org/' + membership_package.organisation_name)
 
 
 def get_members(request, title):
@@ -1877,6 +1903,7 @@ def update_user(request, pk):
         member.county = request.POST.get('user-settings-county')
         member.postcode = request.POST.get('user-settings-postcode')
         member.contact_number = request.POST.get('user-settings-phone')
+        member.company = request.POST.get('user-settings-company')
         member.save()
 
         return HttpResponse(True)
