@@ -1220,7 +1220,7 @@ def member_reg_form(request, title, pk):
                         form.add_error('email', f"This email address is already in use for "
                                                 f"{membership_package.organisation_name}.")
                 except Member.DoesNotExist:
-                    Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
+                    user_account = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
                                           title=form.cleaned_data['title'],
                                           company=form.cleaned_data['company'],
                                           address_line_1=form.cleaned_data['address_line_1'],
@@ -1232,13 +1232,13 @@ def member_reg_form(request, title, pk):
                                           contact_number=form.cleaned_data['contact_number'])
                     pass
                 except User.DoesNotExist:
-                    User.objects.create(first_name=form.cleaned_data['first_name'],
+                    user = User.objects.create(first_name=form.cleaned_data['first_name'],
                                         last_name=form.cleaned_data['last_name'],
                                         email=form.cleaned_data['email'],
                                         username=generate_username(form.cleaned_data['first_name'],
                                                                    form.cleaned_data['last_name']))
 
-                    Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
+                    user_account = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
                                           title=form.cleaned_data['title'],
                                           company=form.cleaned_data['company'],
                                           address_line_1=form.cleaned_data['address_line_1'],
@@ -1259,7 +1259,7 @@ def member_reg_form(request, title, pk):
                         form.add_error('email',
                                        f"This email address is already in use for {membership_package.organisation_name}.")
                     else:
-                        Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
+                        user_account = Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
                                                             company=form.cleaned_data['company'],
                                                             address_line_1=form.cleaned_data['address_line_1'],
                                                             address_line_2=form.cleaned_data['address_line_2'],
@@ -1269,7 +1269,7 @@ def member_reg_form(request, title, pk):
                                                             postcode=form.cleaned_data['postcode'],
                                                             contact_number=form.cleaned_data['contact_number'])
                 except User.DoesNotExist:
-                    user.update(email=form.cleaned_data['email'],
+                    user = user.update(email=form.cleaned_data['email'],
                                 first_name=form.cleaned_data['first_name'],
                                 last_name=form.cleaned_data['last_name'])
                     pass
