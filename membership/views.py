@@ -1204,7 +1204,6 @@ def member_reg_form(request, title, pk):
             # user is not allowed to edit this member
             return redirect('dashboard')
 
-
     elif request.method == "POST":
         # admin/owner can add any new/existing user
         # admin/owner can edit any existing owner
@@ -1212,13 +1211,6 @@ def member_reg_form(request, title, pk):
         form = MemberForm(request.POST)
         if form.is_valid():
             if pk == 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
-                userExists = User.objects.filter(email=form.cleaned_data['email']).exists()
-                if userExists == False:
-                    User.objects.create(first_name=form.cleaned_data['first_name'],
-                                        last_name=form.cleaned_data['last_name'],
-                                        email=form.cleaned_data['email'],
-                                        username=generate_username(form.cleaned_data['first_name'],
-                                                                   form.cleaned_data['last_name']))
                 # new member
                 # validate user not already a member of package
                 try:
@@ -1228,31 +1220,42 @@ def member_reg_form(request, title, pk):
                         form.add_error('email', f"This email address is already in use for "
                                                 f"{membership_package.organisation_name}.")
                 except Member.DoesNotExist:
+                    Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
+                                          title=form.cleaned_data['title'],
+                                          company=form.cleaned_data['company'],
+                                          address_line_1=form.cleaned_data['address_line_1'],
+                                          address_line_2=form.cleaned_data['address_line_2'],
+                                          town=form.cleaned_data['town'],
+                                          county=form.cleaned_data['county'],
+                                          country=form.cleaned_data['country'],
+                                          postcode=form.cleaned_data['postcode'],
+                                          contact_number=form.cleaned_data['contact_number'])
                     pass
                 except User.DoesNotExist:
+                    User.objects.create(first_name=form.cleaned_data['first_name'],
+                                        last_name=form.cleaned_data['last_name'],
+                                        email=form.cleaned_data['email'],
+                                        username=generate_username(form.cleaned_data['first_name'],
+                                                                   form.cleaned_data['last_name']))
+
+                    Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
+                                          title=form.cleaned_data['title'],
+                                          company=form.cleaned_data['company'],
+                                          address_line_1=form.cleaned_data['address_line_1'],
+                                          address_line_2=form.cleaned_data['address_line_2'],
+                                          town=form.cleaned_data['town'],
+                                          county=form.cleaned_data['county'],
+                                          country=form.cleaned_data['country'],
+                                          postcode=form.cleaned_data['postcode'],
+                                          contact_number=form.cleaned_data['contact_number'])
                     pass
-
-                user = User.objects.get(email=form.cleaned_data['email'])
-
-                Member.objects.create(user_account=user,
-                                      title=form.cleaned_data['title'],
-                                      company=form.cleaned_data['company'],
-                                      address_line_1=form.cleaned_data['address_line_1'],
-                                      address_line_2=form.cleaned_data['address_line_2'],
-                                      town=form.cleaned_data['town'],
-                                      county=form.cleaned_data['county'],
-                                      country=form.cleaned_data['country'],
-                                      postcode=form.cleaned_data['postcode'],
-                                      contact_number=form.cleaned_data['contact_number'])
             elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # edit member
                 # validate email not already in use
                 member = Member.objects.get(pk=pk)
                 user = User.objects.filter(username=member.user_account.username)
-                isEmail = User.objects.filter(email=form.cleaned_data['email'])
-
                 try:
-                    if isEmail:
+                    if Member.objects.filter(user_account=User.objects.get(email=form.cleaned_data['email'])):
                         form.add_error('email',
                                        f"This email address is already in use for {membership_package.organisation_name}.")
                     else:
@@ -1265,19 +1268,14 @@ def member_reg_form(request, title, pk):
                                                             country=form.cleaned_data['country'],
                                                             postcode=form.cleaned_data['postcode'],
                                                             contact_number=form.cleaned_data['contact_number'])
-                        user.update(email=form.cleaned_data['email'],
-                                    first_name=form.cleaned_data['first_name'],
-                                    last_name=form.cleaned_data['last_name'])
-
-                except Member.DoesNotExist:
-                    pass
                 except User.DoesNotExist:
+                    user.update(email=form.cleaned_data['email'],
+                                first_name=form.cleaned_data['first_name'],
+                                last_name=form.cleaned_data['last_name'])
                     pass
             else:
                 # new membership request but user is not admin/owner tut tut
                 redirect('dashboard')
-
-            member = Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email']))
 
             try:
                 subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
