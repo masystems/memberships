@@ -179,6 +179,10 @@ def donation_payment(request):
             return HttpResponse(dumps(result))
 
 
+def donation(request):
+    return render(request, 'donation.html')
+
+
 def send_payment_error(error):
     body = error.json_body
     err = body.get('error', {})
