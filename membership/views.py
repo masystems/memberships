@@ -423,7 +423,7 @@ def get_members_detailed(request, title):
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
-    print(sort_by)
+
     # desc or asc
     if request.GET.get('order[0][dir]') == 'asc':
         direction = ""
@@ -1519,7 +1519,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
         member = Member.objects.get(id=self.kwargs['pk'])
         subscription = MembershipSubscription.objects.get(member=member, membership_package=package)
 
-        result = validate_card(request, 'member', subscription.pk)
+        result = validate_card(request, 'member', subscription)
         if result['result'] == 'fail':
             return HttpResponse(dumps(result))
 
@@ -1541,7 +1541,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                       'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
             return HttpResponse(dumps(result))
 
-        invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription.stripe_subscription_id,
+        invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription_details.id,
                                       limit=1, stripe_account=package.stripe_acct_id,)
         receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
 
@@ -1897,7 +1897,7 @@ def update_user(request, pk):
 
 
 @login_required(login_url="/accounts/login")
-def validate_card(request, type, pk=0):
+def validate_card(request, type, subscription=None):
     # get strip secret key
     stripe.api_key = get_stripe_secret_key(request)
 
@@ -1906,10 +1906,12 @@ def validate_card(request, type, pk=0):
         stripe_id = membership_package.stripe_owner_id
         account_id = membership_package.stripe_acct_id
     else:
-        subscription = MembershipSubscription.objects.get(id=pk)
         stripe_id = subscription.stripe_id
         account_id = subscription.membership_package.stripe_acct_id
     # add payment token to user
+    if not stripe_id:
+        return {'result': 'fail',
+                'feedback': "There has been a problem with this Stripe payment, you have not been charged, please try again. If this problem persists, email contact@masys.co.uk"}
     try:
         payment_method = stripe.Customer.modify(
             stripe_id,
