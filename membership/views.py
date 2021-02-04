@@ -1169,11 +1169,10 @@ def member_reg_form(request, title, pk):
                 # if field invisible
                 if not custom_field['visible']:
                     # remove field
-                    del(custom_fields_displayed[key])
+                    del (custom_fields_displayed[key])
 
     # initialise member_id so it can be accessed by code that handles POST request
     member_id = 0
-
     if request.method == "GET" and not new_membership:
         # check if user is the same person as the member
         if member.user_account == request.user:
@@ -1209,48 +1208,74 @@ def member_reg_form(request, title, pk):
         # admin/owner can add any new/existing user
         # admin/owner can edit any existing owner
         # user can edit only themselves
-
         form = MemberForm(request.POST)
         if form.is_valid():
-            user = get_or_create_user(form)
             if pk == 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # new member
                 # validate user not already a member of package
                 try:
-                    if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email'])),
-                                                             membership_package=membership_package).exists():
-                        form.add_error('email', f"This email address is already in use for {membership_package.organisation_name}.")
+                    if MembershipSubscription.objects.filter(member=Member.objects.get(
+                            user_account=User.objects.get(email=form.cleaned_data['email'])),
+                            membership_package=membership_package).exists():
+                        form.add_error('email', f"This email address is already in use for "
+                                                f"{membership_package.organisation_name}.")
                 except Member.DoesNotExist:
+                    user_account = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
+                                          title=form.cleaned_data['title'],
+                                          company=form.cleaned_data['company'],
+                                          address_line_1=form.cleaned_data['address_line_1'],
+                                          address_line_2=form.cleaned_data['address_line_2'],
+                                          town=form.cleaned_data['town'],
+                                          county=form.cleaned_data['county'],
+                                          country=form.cleaned_data['country'],
+                                          postcode=form.cleaned_data['postcode'],
+                                          contact_number=form.cleaned_data['contact_number'])
                     pass
                 except User.DoesNotExist:
+                    user = User.objects.create(first_name=form.cleaned_data['first_name'],
+                                        last_name=form.cleaned_data['last_name'],
+                                        email=form.cleaned_data['email'],
+                                        username=generate_username(form.cleaned_data['first_name'],
+                                                                   form.cleaned_data['last_name']))
+
+                    user_account = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
+                                          title=form.cleaned_data['title'],
+                                          company=form.cleaned_data['company'],
+                                          address_line_1=form.cleaned_data['address_line_1'],
+                                          address_line_2=form.cleaned_data['address_line_2'],
+                                          town=form.cleaned_data['town'],
+                                          county=form.cleaned_data['county'],
+                                          country=form.cleaned_data['country'],
+                                          postcode=form.cleaned_data['postcode'],
+                                          contact_number=form.cleaned_data['contact_number'])
                     pass
             elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # edit member
                 # validate email not already in use
+                member = Member.objects.get(pk=pk)
+                user = User.objects.filter(username=member.user_account.username)
                 try:
-                    if member != Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email'])):
+                    if Member.objects.filter(user_account=User.objects.get(email=form.cleaned_data['email'])):
                         form.add_error('email',
-                                   f"This email address is already in use for {membership_package.organisation_name}.")
-                except Member.DoesNotExist:
-                    pass
+                                       f"This email address is already in use for {membership_package.organisation_name}.")
+                    else:
+                        user_account = Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
+                                                            company=form.cleaned_data['company'],
+                                                            address_line_1=form.cleaned_data['address_line_1'],
+                                                            address_line_2=form.cleaned_data['address_line_2'],
+                                                            town=form.cleaned_data['town'],
+                                                            county=form.cleaned_data['county'],
+                                                            country=form.cleaned_data['country'],
+                                                            postcode=form.cleaned_data['postcode'],
+                                                            contact_number=form.cleaned_data['contact_number'])
                 except User.DoesNotExist:
+                    user = user.update(email=form.cleaned_data['email'],
+                                first_name=form.cleaned_data['first_name'],
+                                last_name=form.cleaned_data['last_name'])
                     pass
             else:
                 # new membership request but user is not admin/owner tut tut
                 redirect('dashboard')
-
-            # get or create member object
-            member, created = Member.objects.get_or_create(user_account=user)
-            member.title = form.cleaned_data['title']
-            member.company = form.cleaned_data['company']
-            member.address_line_1 = form.cleaned_data['address_line_1']
-            member.address_line_2 = form.cleaned_data['address_line_2']
-            member.town = form.cleaned_data['town']
-            member.county = form.cleaned_data['county']
-            member.country = form.cleaned_data['country']
-            member.postcode = form.cleaned_data['postcode']
-            member.contact_number = form.cleaned_data['contact_number']
-            member.save()
 
             try:
                 subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
@@ -1271,7 +1296,8 @@ def member_reg_form(request, title, pk):
                                 i += 1
                                 # check we haven't gone past the end of the subscriptions
                                 if i < MembershipSubscription.objects.all().count():
-                                    latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                                    latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[
+                                        i].membership_number
                                 # no valid membership numbers, so set variable to zero
                                 else:
                                     latest_valid_mem_num = 0
@@ -1342,7 +1368,7 @@ def member_reg_form(request, title, pk):
                 else:
                     return redirect(
                         f"member_payment", membership_package.organisation_name, member.id)
-        
+
         else:
             # form not valid
             pass
@@ -1382,19 +1408,6 @@ def member_reg_form(request, title, pk):
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
                                                 'custom_fields': custom_fields_displayed})
-
-def get_or_create_user(form):
-    """
-    Get or create a new user
-    :return:
-    """
-    user, created = User.objects.get_or_create(email=form.cleaned_data['email'])
-    if created:
-        user.username = generate_username(form.cleaned_data['first_name'], form.cleaned_data['last_name'])
-    user.first_name = form.cleaned_data['first_name']
-    user.last_name = form.cleaned_data['last_name']
-    user.save()
-    return user
 
 
 @login_required(login_url='/accounts/login/')
