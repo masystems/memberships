@@ -196,13 +196,25 @@
             var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             var emailCheck = emailRegex.test(email);
 
+            // If a valid organisation name was not given, validate the organisation name given in the text field
+            var isOrganisation = true;
+            var organisationExists = true;
+            if ('{{ org_name }}' == 'not_given' | '{{ org_name }}' == 'not_given') {
+                // Define organisation checks
+                var isOrganisation = $('#organisation-donation').val() != "";
+                var organisationExists = orgs.includes($('#organisation-donation').val());
+            }
 
             // If amount and email are okay, submit donation form
-            if (amountCheck && emailCheck) {
+            if (isOrganisation && organisationExists && amountCheck && emailCheck) {
                 $('#donation-overlay-spinner').modal();
                 sleep(2000).then(() => {
                     submitDonationForm()
                 });
+            } else if (isOrganisation == false){
+                errorMsg("Please fill the organisation name!");
+            } else if (organisationExists == false){
+                errorMsg("Organisation does not exist!");
             }
 
             if(emailCheck == false){
