@@ -58,9 +58,30 @@
             <div class="col-lg-3 col-xlg-2 mb-4 mx-auto">
                 <form id="donationForm">
                     <h4 class="mb-3">Donation Form</h4>
-                    <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
-                    <!-- hidden form input of organisation name -->
-                    <input type="hidden" name="membership_package" value="{{ org_name }}">
+                    {% if org_name != 'not_given' and org_name != 'not_given' %}
+                        <!-- valid organisation given -->
+                        <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
+                        <!-- hidden form input of organisation name -->
+                        <input type="hidden" name="membership_package" value="{{ org_name }}">
+                    {% elif org_name == 'not_given' %}
+                        <!-- no organisation given -->
+                        <p>The organisation you are trying to donate to was not given.</p>
+                        <p>Type or select the name of the organisation below, and fill out the other fields, to make your donation.</p>
+                        <div class="input-group mb-3">
+                            <div id="orgs">
+                                <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                            </div>
+                        </div>
+                    {% elif org_name == 'not_match' %}
+                        <!-- no organisation matches the given organisation -->
+                        <p>The organisation you are trying to donate to was not recognised.</p>
+                        <p>Type or select the name of the organisation below, and fill out the other fields, to make your donation.</p>
+                        <div class="input-group mb-3">
+                            <div id="orgs">
+                                <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                            </div>
+                        </div>
+                    {% endif %}
                     <div class="form-group">
                         <div class="input-group mb-3">
                             <div class="input-group-prepend">
@@ -111,6 +132,49 @@
 
     <!-- Bootstrap tether Core JavaScript -->
     <script src="{% static 'assets/libs/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+    <!-- Type Head JavaScript -->
+    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
+
+    <!-- Javascript for the organisation name text field -->
+    <script>
+        var substringMatcher = function(strs) {
+            return function findMatches(q, cb) {
+                var matches, substringRegex;
+    
+                // an array that will be populated with substring matches
+                matches = [];
+    
+                // regex used to determine if a string contains the substring `q`
+                substrRegex = new RegExp(q, 'i');
+    
+                // iterate through the pool of strings and for any string that
+                // contains the substring `q`, add it to the `matches` array
+                $.each(strs, function(i, str) {
+                  if (substrRegex.test(str)) {
+                    matches.push(str);
+                  }
+                });
+    
+                cb(matches);
+                  };
+        };
+        //console.log({{ all_packages.all }})
+        var orgs = [{% for org in all_packages.all %}
+                            '{{ org.organisation_name }}',
+                            {% endfor %}];
+        $('#orgs .typeahead,#orgs .typeahead1').typeahead({
+          hint: true,
+          highlight: true,
+          minLength: 0
+        },
+        {
+          name: 'organisations',
+          source: substringMatcher(orgs)
+        });
+        $('.typeahead, .typeahead1').bind('typeahead:active', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "Type organisation name");
+        });
+    </script>
 
     <!--Stripe JS -->
     <script src="https://js.stripe.com/v3/"></script>
