@@ -36,12 +36,11 @@
     <div class="container-fluid">
         <div class="row mt-4">
             <div class="col-lg-3 col-xlg-2 mb-4 mx-auto">
-            <form id="donationForm">
-                <!-- <div class="col-lg-11 col-xlg-2 mb-4"> -->
+                <form id="donationForm">
                     <h4 class="mb-3">Donation Form</h4>
                     <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
-                <!-- </div>
-                <div class="col-lg-11  mb-4"> -->
+                    <!-- hidden form input of organisation name -->
+                    <input type="hidden" name="membership_package" value="{{ org_name }}">
                     <div class="form-group">
                         <div class="input-group mb-3">
                             <div class="input-group-prepend">
@@ -59,9 +58,7 @@
                     <div class="form-group">
                         <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
                     </div>
-                <!-- </div> -->
-            </form>
-            <!-- <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0"> -->
+                </form>
                 <form id="donation-payment-form">
                     <label>Card Holders Name:</label>
                     <input id="cardholder-name" type="text" class="form-control">
@@ -88,7 +85,6 @@
 
                     <a href="#" target="_blank" id="donationReceipt"><button type="button" id="donationReceiptBtn" class="btn btn-dark mb-2">View Receipt</button></a>
                 </div>
-            <!-- </div> -->
             </div>
         </div>
     </div>
@@ -102,6 +98,7 @@
         }
 
         $("#donation-button").click(function(e){
+            console.log('hello');
             e.preventDefault();
             // Define float checks
             var amount = $("#donation-amount").val();
