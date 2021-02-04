@@ -35,6 +35,22 @@
 
 <body>
 
+    <!-- Spinner Overlay -->
+    <div id="donation-overlay-spinner" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content modal-filled bg-info">
+                <div class="modal-body p-4">
+                    <div class="text-center">
+                        <div id="spinner">
+                            <div class="spinner-border" role="status"></div>
+                                <h3 class="text-white mt-2">Processing donation...</h3>
+                            </div>
+                    </div>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
     {% csrf_token %}
     
     <div class="container-fluid">
@@ -93,6 +109,7 @@
         </div>
     </div>
 
+    <!-- Bootstrap tether Core JavaScript -->
     <script src="{% static 'assets/libs/bootstrap/dist/js/bootstrap.min.js' %}"></script>
 
     <!--Stripe JS -->
