@@ -561,6 +561,7 @@
                     // Inform the customer that there was an error.
                     var errorElement = document.getElementById('donation-card-errors');
                     errorElement.textContent = result.error.message;
+                    $('#donation-overlay-spinner').modal('hide');
                 } else {
                     // Send the token to your server.
                     donationStripeTokenHandler(result.token);
