@@ -172,7 +172,7 @@
                                             <p>Donate to an organisation but filling out the below fields.</p>
                                             <div class="input-group">
                                                 <div id="orgs">
-                                                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                                                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name*">
                                                 </div>
                                             </div>
                                         </div>
@@ -182,7 +182,7 @@
                                                     <div class="input-group-prepend">
                                                         <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
                                                     </div>
-                                                    <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount">
+                                                    <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount*">
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -198,7 +198,7 @@
                                     </form>
                                     <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
                                         <form id="donation-payment-form">
-                                            <label>Card Holders Name:</label>
+                                            <label>Card Holders Name*:</label>
                                             <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
                                             <!-- placeholder for Elements -->
                                             <div id="donation-card-element"></div>
