@@ -24,6 +24,10 @@
 
     <script src="{% static 'assets/libs/jquery/dist/jquery.min.js' %}"></script>
 
+    {% block header %}
+
+    {% endblock %}
+
     {% include 'css.html' %}
 </head>
 
@@ -89,6 +93,8 @@
         </div>
     </div>
 
+    <script src="{% static 'assets/libs/bootstrap/dist/js/bootstrap.min.js' %}"></script>
+
     <!--Stripe JS -->
     <script src="https://js.stripe.com/v3/"></script>
     <script>
@@ -98,7 +104,6 @@
         }
 
         $("#donation-button").click(function(e){
-            console.log('hello');
             e.preventDefault();
             // Define float checks
             var amount = $("#donation-amount").val();
@@ -241,6 +246,7 @@
                     } else {
                         $('#donation-payment-form').addClass('d-none');
                         $('#donation-payment-buttons').addClass('d-none');
+                        $('#donationForm').addClass('d-none');
                         loadSuccessPage(result);
                     }
                  },
@@ -262,6 +268,44 @@
             $('#donationResult').removeClass('d-none');
             $('#donationReceipt').attr("href", result.receipt);
         }
+    </script>
+
+    <!--Page Messages -->
+    <script src="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.js' %}"></script>
+    <script>
+        function infoMsg(msg) {
+            toastr.info(msg, 'Information', { "progressBar": true });
+        }
+
+        function warningMsg(msg) {
+            toastr.warning(msg, 'Warning', { "progressBar": true });
+        }
+        function errorMsg(msg) {
+            toastr.error(msg, 'Error', { "progressBar": true });
+        }
+
+        {% if info_message %}
+            toastr.info({{ info_message }}, 'Information', { "progressBar": true });
+        {% endif %}
+
+        {% if warning_message %}
+            toastr.warning({{ warning_message }}, 'Warning', { "progressBar": true });
+        {% endif %}
+
+        {% if error_message %}
+            toastr.error({{ error_message }}, 'Error', { "progressBar": true });
+        {% endif %}
+
+        $(document).ready(function(){
+            // get the tab from url
+            var hash = window.location.hash;
+
+            // if a hash is present (when you come to this page)
+            if (hash !='') {
+                // show the tab
+                $('a[href="' + hash + '"]').tab('show');
+            }
+        });
     </script>
 </body>
 {% endblock %}
