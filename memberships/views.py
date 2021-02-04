@@ -183,7 +183,15 @@ def donation(request):
 
     org_name = request.GET.get('org-name', '')
 
-    return render(request, 'donation.html', {'org_name': org_name})
+    # check that an organisation name was given
+    if org_name != '':
+        # check the organisation name matches an organisation
+        for package in MembershipPackage.objects.filter(enabled=True):
+            if org_name == package.organisation_name:
+                return render(request, 'donation.html', {'org_name': org_name})
+    else:
+        return render(request, 'donation.html', {'org_name': 'NO NAME'})
+    return render(request, 'donation.html', {'org_name': 'NO MATCH'})
 
 
 def send_payment_error(error):
