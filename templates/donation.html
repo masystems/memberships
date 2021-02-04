@@ -171,7 +171,7 @@
                 },
                 success: function(data) {
                     var result = JSON.parse(data);
-                    if (result['status'] == "fail") {
+                    if (result['result'] == "fail") {
                         $('#formError').removeClass('d-none');
                         $('#donation-overlay-spinner').modal('hide');
                     } else {
@@ -234,6 +234,7 @@
                     // Inform the customer that there was an error.
                     var errorElement = document.getElementById('donation-card-errors');
                     errorElement.textContent = result.error.message;
+                    $('#donation-overlay-spinner').modal('hide');
                 } else {
                     // Send the token to your server.
                     donationStripeTokenHandler(result.token);
