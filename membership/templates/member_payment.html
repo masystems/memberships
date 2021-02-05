@@ -53,7 +53,7 @@
                                 <div class="row pt-3">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <h4 class="card-title">Select Membership Type</h4>
+                                            <h4 class="card-title">Select Membership Type*</h4>
                                             {% for type in membership_types_list %}
                                                 <div class="custom-control custom-radio">
                                                     <input type="radio" id="{{ type.id }}" name="membership_type" class="custom-control-input" value="{{ type.id }}"{% if subscription.price.stripe_price_id == type.id %}checked{% endif %}>
@@ -64,7 +64,7 @@
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <h4 class="card-title">Select Payment Method</h4>
+                                            <h4 class="card-title">Select Payment Method*</h4>
                                             <div class="custom-control custom-radio">
                                                 <input type="radio" id="card-payment" name="payment_method" class="custom-control-input payment_method" value="Card Payment"{% if not subscription.payment_method %}checked{% endif %}>
                                                 <label class="custom-control-label" for="card-payment"><span class="text-info">Card Payment</span></label>

@@ -172,7 +172,7 @@
                                             <p>Donate to an organisation by filling out the below fields.</p>
                                             <div class="input-group">
                                                 <div id="orgs">
-                                                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                                                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name*">
                                                 </div>
                                             </div>
                                         </div>
@@ -182,7 +182,7 @@
                                                     <div class="input-group-prepend">
                                                         <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
                                                     </div>
-                                                    <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount">
+                                                    <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount*">
                                                 </div>
                                             </div>
                                             <div class="form-group">
@@ -198,7 +198,7 @@
                                     </form>
                                     <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
                                         <form id="donation-payment-form">
-                                            <label>Card Holders Name:</label>
+                                            <label>Card Holders Name*:</label>
                                             <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
                                             <!-- placeholder for Elements -->
                                             <div id="donation-card-element"></div>
@@ -299,7 +299,7 @@
 <!--                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/" aria-expanded="false"><i class="fad fa-home-alt mr-1"></i> <span class="hide-menu">Overview</span></a></li>-->
                         {% if membership_packages %}
                             {% for package in membership_packages.all %}
-                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'membership_package' package.organisation_name %}" aria-expanded="false"><i class="fad fa-users mr-1"></i> <span class="hide-menu">
+                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'membership_package' package.organisation_name %}" aria-expanded="false"><i class="fad fa-globe mr-1"></i> <span class="hide-menu">
                                     {{ package.organisation_name }}
                                 </span></a></li>
                             {% endfor %}
@@ -561,6 +561,7 @@
                     // Inform the customer that there was an error.
                     var errorElement = document.getElementById('donation-card-errors');
                     errorElement.textContent = result.error.message;
+                    $('#donation-overlay-spinner').modal('hide');
                 } else {
                     // Send the token to your server.
                     donationStripeTokenHandler(result.token);

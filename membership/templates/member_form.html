@@ -59,7 +59,7 @@
                                     <div class="form-group row">
                                         <label class="col-sm-3 text-right control-label col-form-label">First name*</label>
                                         <div class="col-sm-9">
-                                            {% if membership.user_account.id == member_id %}
+                                            {% if membership.user_account.id == member_id and request.user != membership_package.owner %}
                                                 <input type="text" name="first_name" class="form-control" required id="id_first_name" value="{{ user_form_fields.first_name }}" readonly>
                                             {% else %}
                                                 <input type="text" name="first_name" class="form-control" required id="id_first_name" value="{{ user_form_fields.first_name }}">
@@ -72,7 +72,7 @@
                                     <div class="form-group row">
                                         <label class="col-sm-3 text-right control-label col-form-label">Last name*</label>
                                         <div class="col-sm-9">
-                                            {% if membership.user_account.id == member_id %}
+                                            {% if membership.user_account.id == member_id and request.user != membership_package.owner %}
                                                 <input type="text" name="last_name" class="form-control" required id="id_last_name" value="{{ user_form_fields.last_name }}" readonly>
                                             {% else %}
                                                 <input type="text" name="last_name" class="form-control" required id="id_last_name" value="{{ user_form_fields.last_name }}">
@@ -85,7 +85,7 @@
                                     <div class="form-group row">
                                         <label class="col-sm-3 text-right control-label col-form-label">Email*</label>
                                         <div class="col-sm-9">
-                                            {% if membership.user_account.id == member_id %}
+                                            {% if membership.user_account.id == member_id and request.user != membership_package.owner %}
                                                 <input type="text" name="email" class="form-control" required id="id_email" value="{{ user_form_fields.email }}" readonly>
                                             {% else %}
                                                 <input type="text" name="email" class="form-control" required id="id_email" value="{{ user_form_fields.email }}">
