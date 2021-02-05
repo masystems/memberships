@@ -395,24 +395,24 @@
                                 </p>
                                 <!-- pink -->
                                 <div class="mb-3">
-                                    <button id="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
                                 </div>
                                 <!-- teal -->
                                 <div class="mb-3">
-                                    <button id="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
                                 </div>
                                 <!-- light grey -->
                                 <div class="mb-3">
-                                    <button id="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
-                                    <button id="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button class="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
                                 </div>
                                 <p>
                                     Alternatively, if you would like to share your donation link in another way, here it is:<br/>
@@ -574,12 +574,12 @@
         });
     </script>
     <script>
-        $('#copy-btn').on('click',function(e){
+        $('.copy-btn').on('click',function(e){
             giveSnippet();
         });
-
-        function giveSnippet(){
-            var snippet = "Yes indeed, good sir."
+//https://memberships.cloud-lines.com
+        function giveSnippet(colour, bgColour, fontSize){
+            var snippet = '<a href="https://memberships.cloud-lines.com/donation/?org-name={{ membership_package.organisation_name }}"><button style="border:none; background-color:#44AAAC; color:white; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button></a>'
             var textArea = document.createElement("textarea");
             textArea.display = 'none';
             textArea.value = snippet;
