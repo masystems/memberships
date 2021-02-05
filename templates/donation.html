@@ -58,15 +58,15 @@
             <div class="col-lg-3 col-xlg-2 mb-4 mx-auto">
                 <form id="donationForm">
                     <h4 class="mb-3">Donation Form</h4>
-                    {% if org_name != 'not_given' and org_name != 'not_given' %}
+                    {% if org_name != 'not_given' and org_name != 'not_match' %}
                         <!-- valid organisation given -->
                         <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
                         <!-- hidden form input of organisation name -->
                         <input type="hidden" name="membership_package" value="{{ org_name }}">
                     {% elif org_name == 'not_given' %}
                         <!-- no organisation given -->
-                        <p>The organisation you are trying to donate to was not given.</p>
-                        <p>Type or select the name of the organisation below, and fill out the other fields, to make your donation.</p>
+                        <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not given.</p>
+                        <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
                         <div class="input-group mb-3">
                             <div id="orgs">
                                 <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
@@ -74,8 +74,8 @@
                         </div>
                     {% elif org_name == 'not_match' %}
                         <!-- no organisation matches the given organisation -->
-                        <p>The organisation you are trying to donate to was not recognised.</p>
-                        <p>Type or select the name of the organisation below, and fill out the other fields, to make your donation.</p>
+                        <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not recognised.</p>
+                        <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
                         <div class="input-group mb-3">
                             <div id="orgs">
                                 <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
