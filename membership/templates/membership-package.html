@@ -574,10 +574,12 @@
         });
     </script>
     <script>
+        // call giveSnippet function based on which button the user as clicked
         $('.copy-btn').on('click',function(e){
-            giveSnippet();
+            giveSnippet($(this).attr('bgColour'), $(this).attr('colour'), $(this).attr('fontSize'));
         });
 
+        // copy snippet to user's clipboard
         function giveSnippet(bgColour, colour, fontSize){
             var snippet = '<a href="https://memberships.cloud-lines.com/donation/?org-name={{ membership_package.organisation_name }}"><button style="border: none; background-color: ' + bgColour + '; color: ' + colour + '; font-size: ' + fontSize + '; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button></a>'
             var textArea = document.createElement("textarea");
