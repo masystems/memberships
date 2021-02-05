@@ -391,9 +391,29 @@
                             <div class="card-body">
                                 <h4 class="card-title">Donation Button</h4>
                                 <p>
-                                    To insert a button in your website that allows your viewers to easily make a donation to {{ membership_package.organisation_name }}, click here to copy a code snippet to clipboard so it can be pasted into the code of your site.
+                                    To insert a button in your website that allows your viewers to easily make a donation to {{ membership_package.organisation_name }}, choose which of the buttons below would fit well into your website. Then, click that button to copy a code snippet to clipboard so it can be pasted into your website HTML.
                                 </p>
-                                <p>Here is what the button looks like:</p>
+                                <!-- pink -->
+                                <div class="mb-3">
+                                    <button id="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#AD4675; color:white; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
+                                <!-- teal -->
+                                <div class="mb-3">
+                                    <button id="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#44AAAC; color:white; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
+                                <!-- light grey -->
+                                <div class="mb-3">
+                                    <button id="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button id="copy-btn" style="border:none; background-color:#E8F3F5; color:black; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
                                 <p>
                                     Alternatively, if you would like to share your donation link in another way, here it is:<br/>
                                     <a href="https://memberships.cloud-lines.com/?donation={{ membership_package.organisation_name }}">https://memberships.cloud-lines.com/?donation={{ membership_package.organisation_name }}</a>
@@ -552,5 +572,21 @@
                 }
             });
         });
+    </script>
+    <script>
+        $('#copy-btn').on('click',function(e){
+            giveSnippet();
+        });
+
+        function giveSnippet(){
+            var snippet = "Yes indeed, good sir."
+            var textArea = document.createElement("textarea");
+            textArea.display = 'none';
+            textArea.value = snippet;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("Copy");
+            textArea.remove();
+        }
     </script>
 {% endblock %}
