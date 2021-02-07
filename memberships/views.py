@@ -188,12 +188,15 @@ def donation(request):
         # check the organisation name matches an organisation
         for package in MembershipPackage.objects.filter(enabled=True):
             if org_name == package.organisation_name:
-                return render(request, 'donation.html', {'org_name': org_name})
+                return render(request, 'donation.html', {'org_name': org_name,
+                                                         'public_api_key': get_stripe_public_key(request)})
     # nothing given for oganisation name
     else:
-        return render(request, 'donation.html', {'org_name': 'not_given'})
+        return render(request, 'donation.html', {'org_name': 'not_given',
+                                                 'public_api_key': get_stripe_public_key(request)})
     # organisation name given did not match an enabled organisation
-    return render(request, 'donation.html', {'org_name': 'not_match'})
+    return render(request, 'donation.html', {'org_name': 'not_match',
+                                             'public_api_key': get_stripe_public_key(request)})
 
 
 def send_payment_error(error):

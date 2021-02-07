@@ -807,7 +807,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
                 context['stripe_members'] += 1
         
         # url for donation page
-        context['donation_url'] = f"https://memberships.cloud-lines.com/donation/?org-name={context['membership_package'].organisation_name}"
+        context['donation_url'] = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={context['membership_package'].organisation_name}"
 
         return context
 
