@@ -136,6 +136,12 @@
                                 <i class="fad fa-clipboard d-lg-none d-block mr-1"></i>
                                 <span class="d-none d-lg-block"><i class="fad fa-clipboard-list-check mr-2"></i>Account</span></a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="pills-account-tab" data-toggle="pill"
+                               href="#donation" role="tab" aria-controls="pills-account-tab" aria-selected="false">
+                                <i class="fad fa-clipboard d-lg-none d-block mr-1"></i>
+                                <span class="d-none d-lg-block"><i class="fad fa-envelope-open-dollar mr-2"></i>Donation</span></a>
+                        </li>
                     </ul>
                     <!-- Tabs -->
                     <div class="tab-content" id="pills-tabContent">
@@ -380,6 +386,40 @@
                                 {% endif %}
                             </div>
                         </div>
+                        <!-- Tabs -->
+                        <div class="tab-pane" id="donation" role="tabpanel">
+                            <div class="card-body">
+                                <h4 class="card-title">Donation Button</h4>
+                                <p>
+                                    To insert a button in your website that allows your viewers to easily make a donation to {{ membership_package.organisation_name }}, choose which of the buttons below would fit well into your website. Then, click that button to copy a code snippet to clipboard so it can be pasted into your website HTML.
+                                </p>
+                                <!-- pink -->
+                                <div class="mb-3">
+                                    <button bgColour="#AD4675" colour="#FFFFFF" fontSize="25px" class="copy-btn" style="border:none; background-color:#AD4675; color:#FFFFFF; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#AD4675" colour="#FFFFFF" fontSize="21px" class="copy-btn" style="border:none; background-color:#AD4675; color:#FFFFFF; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#AD4675" colour="#FFFFFF" fontSize="18px" class="copy-btn" style="border:none; background-color:#AD4675; color:#FFFFFF; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#AD4675" colour="#FFFFFF" fontSize="15px" class="copy-btn" style="border:none; background-color:#AD4675; color:#FFFFFF; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
+                                <!-- teal -->
+                                <div class="mb-3">
+                                    <button bgColour="#44AAAC" colour="#FFFFFF" fontSize="25px" class="copy-btn" style="border:none; background-color:#44AAAC; color:#FFFFFF; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#44AAAC" colour="#FFFFFF" fontSize="21px" class="copy-btn" style="border:none; background-color:#44AAAC; color:#FFFFFF; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#44AAAC" colour="#FFFFFF" fontSize="18px" class="copy-btn" style="border:none; background-color:#44AAAC; color:#FFFFFF; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#44AAAC" colour="#FFFFFF" fontSize="15px" class="copy-btn" style="border:none; background-color:#44AAAC; color:#FFFFFF; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
+                                <!-- light grey -->
+                                <div class="mb-3">
+                                    <button bgColour="#E8F3F5" colour="#000000" fontSize="25px" class="copy-btn" style="border:none; background-color:#E8F3F5; color:#000000; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#E8F3F5" colour="#000000" fontSize="21px" class="copy-btn" style="border:none; background-color:#E8F3F5; color:#000000; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#E8F3F5" colour="#000000" fontSize="18px" class="copy-btn" style="border:none; background-color:#E8F3F5; color:#000000; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#E8F3F5" colour="#000000" fontSize="15px" class="copy-btn" style="border:none; background-color:#E8F3F5; color:#000000; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
+                                <p>
+                                    Alternatively, if you would like to share your donation link in another way, here it is:<br/>
+                                    <a href="{{ donation_url }}">{{ donation_url }}</a>
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -532,5 +572,23 @@
                 }
             });
         });
+    </script>
+    <script>
+        // call giveSnippet function based on which button the user as clicked
+        $('.copy-btn').on('click',function(e){
+            giveSnippet($(this).attr('bgColour'), $(this).attr('colour'), $(this).attr('fontSize'));
+        });
+
+        // copy snippet to user's clipboard
+        function giveSnippet(bgColour, colour, fontSize){
+            var snippet = '<a href="{{ donation_url }}"><button style="border: none; background-color: ' + bgColour + '; color: ' + colour + '; font-size: ' + fontSize + '; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button></a>'
+            var textArea = document.createElement("textarea");
+            textArea.display = 'none';
+            textArea.value = snippet;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("Copy");
+            textArea.remove();
+        }
     </script>
 {% endblock %}
