@@ -1,40 +1,12 @@
-
+{% extends "account/base.html" %}
 {% load static %}
-{% load custom_tags %}
 
-<!DOCTYPE html>
-<html dir="ltr" lang="en">
-
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <!-- Tell the browser to be responsive to screen width -->
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
-    <!-- Favicon icon -->
-    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/images/favicon.png' %}">
-    <script src="https://kit.fontawesome.com/e1cfa067bf.js" crossorigin="anonymous"></script>
-    <title>Memberships</title>
-
-    <!-- CSS -->
-    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
-    <link href="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.css' %}" rel="stylesheet">
-    <link href="{% static 'dist/css/style.min.css' %}" rel="stylesheet">
-
+{% block header %}
     <script src="{% static 'assets/libs/jquery/dist/jquery.min.js' %}"></script>
-
-    {% block header %}
-
-    {% endblock %}
-
     {% include 'css.html' %}
-</head>
+{% endblock %}
 
 {% block content %}
-
-<body>
-
     <!-- Spinner Overlay -->
     <div id="donation-overlay-spinner" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-sm">
@@ -43,99 +15,90 @@
                     <div class="text-center">
                         <div id="spinner">
                             <div class="spinner-border" role="status"></div>
-                                <h3 class="text-white mt-2">Processing donation...</h3>
-                            </div>
+                            <h3 class="text-white mt-2">Processing donation...</h3>
+                        </div>
                     </div>
                 </div>
             </div><!-- /.modal-content -->
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
-    {% csrf_token %}
-    
-    <div class="container-fluid">
-        <div class="row mt-4">
-            <div class="col-md-6 col-lg-3 col-xlg-3 mb-4 mx-auto">
-                <form id="donationForm">
-                    <h4 class="mb-3">Donation Form</h4>
-                    {% if org_name != 'not_given' and org_name != 'not_match' %}
-                        <!-- valid organisation given -->
-                        <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
-                        <!-- hidden form input of organisation name -->
-                        <input type="hidden" name="membership_package" value="{{ org_name }}">
-                    {% elif org_name == 'not_given' %}
-                        <!-- no organisation given -->
-                        <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not given.</p>
-                        <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
-                        <div class="input-group mb-3">
-                            <div id="orgs">
-                                <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
-                            </div>
-                        </div>
-                    {% elif org_name == 'not_match' %}
-                        <!-- no organisation matches the given organisation -->
-                        <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not recognised.</p>
-                        <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
-                        <div class="input-group mb-3">
-                            <div id="orgs">
-                                <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
-                            </div>
-                        </div>
-                    {% endif %}
-                    <div class="form-group">
-                        <div class="input-group mb-3">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
-                            </div>
-                            <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <input id="donator-full-name" type="text" class="form-control" name="full_name" placeholder="Name">
-                    </div>
-                    <div class="form-group">
-                        <input id="donator-email" type="email" class="form-control" name="email_address" placeholder="Email Address">
-                    </div>
-                    <div class="form-group">
-                        <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
-                    </div>
-                </form>
-                <form id="donation-payment-form">
-                    <label>Card Holders Name:</label>
-                    <input id="cardholder-name" type="text" class="form-control">
-                    <!-- placeholder for Elements -->
-                    <div id="donation-card-element"></div>
-                    <!-- Used to display Element errors. -->
-                    <div id="donation-card-errors" role="alert"></div>
-                    <div class="text-center mt-3" id="cardTypes" style="margin:0 auto;">
-                        <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
-                        <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
-                        <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
-                    </div>
-                    <div class="card-body" id="donation-payment-buttons">
-                        <div class="form-group mb-0 text-right">
-                            <button id="donation-button" class="btn btn-success waves-effect waves-light">Donate</button>
-                        </div>
-                    </div>
-                </form>
-                <div id="donationResult" class="d-none text-center">
-                    <h2>Success!</h2>
-                    <h6>Your donation was successful!</h6>
-                    <p>Your selected organisation has been notified of your kind donation.
-                    You should receive an email shortly confirming your donation.</p>
-
-                    <a href="#" target="_blank" id="donationReceipt"><button type="button" id="donationReceiptBtn" class="btn btn-dark mb-2">View Receipt</button></a>
+    <form id="donationForm">
+        <h4 class="mb-3">Donation Form</h4>
+        {% if org_name != 'not_given' and org_name != 'not_match' %}
+            <!-- valid organisation given -->
+            <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
+            <!-- hidden form input of organisation name -->
+            <input type="hidden" name="membership_package" value="{{ org_name }}">
+        {% elif org_name == 'not_given' %}
+            <!-- no organisation given -->
+            <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not given.</p>
+            <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
+            <div class="input-group mb-3">
+                <div id="orgs">
+                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
                 </div>
             </div>
+        {% elif org_name == 'not_match' %}
+            <!-- no organisation matches the given organisation -->
+            <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not recognised.</p>
+            <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
+            <div class="input-group mb-3">
+                <div id="orgs">
+                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                </div>
+            </div>
+        {% endif %}
+        <div class="form-group">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
+                </div>
+                <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount">
+            </div>
         </div>
+        <div class="form-group">
+            <input id="donator-full-name" type="text" class="form-control" name="full_name" placeholder="Name">
+        </div>
+        <div class="form-group">
+            <input id="donator-email" type="email" class="form-control" name="email_address" placeholder="Email Address">
+        </div>
+        <div class="form-group">
+            <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
+        </div>
+    </form>
+    <form id="donation-payment-form">
+        <label>Card Holders Name:</label>
+        <input id="cardholder-name" type="text" class="form-control">
+        <!-- placeholder for Elements -->
+        <div id="donation-card-element"></div>
+        <!-- Used to display Element errors. -->
+        <div id="donation-card-errors" role="alert"></div>
+        <div class="text-center mt-3" id="cardTypes" style="margin:0 auto;">
+            <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
+            <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
+            <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
+        </div>
+        <div class="card-body" id="donation-payment-buttons">
+            <div class="form-group mb-0 text-right">
+                <button id="donation-button" class="btn btn-success waves-effect waves-light">Donate</button>
+            </div>
+        </div>
+    </form>
+    <div id="donationResult" class="d-none text-center">
+        <h2>Success!</h2>
+        <h6>Your donation was successful!</h6>
+        <p>Your selected organisation has been notified of your kind donation.
+        You should receive an email shortly confirming your donation.</p>
+
+        <a href="#" target="_blank" id="donationReceipt"><button type="button" id="donationReceiptBtn" class="btn btn-dark mb-2">View Receipt</button></a>
     </div>
+{% endblock %}
 
-    <!-- Bootstrap tether Core JavaScript -->
-    <script src="{% static 'assets/libs/bootstrap/dist/js/bootstrap.min.js' %}"></script>
-    <!-- Type Head JavaScript -->
-    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
-
+{% block footer %}
+    {% include 'toastr.html' %}
     <!-- Javascript for the organisation name text field -->
+    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
     <script>
         var substringMatcher = function(strs) {
             return function findMatches(q, cb) {
@@ -158,18 +121,17 @@
                 cb(matches);
                   };
         };
-        //console.log({{ all_packages.all }})
         var orgs = [{% for org in all_packages.all %}
                             '{{ org.organisation_name }}',
                             {% endfor %}];
         $('#orgs .typeahead,#orgs .typeahead1').typeahead({
-          hint: true,
-          highlight: true,
-          minLength: 0
-        },
-        {
-          name: 'organisations',
-          source: substringMatcher(orgs)
+              hint: true,
+              highlight: true,
+              minLength: 0
+            },
+            {
+              name: 'organisations',
+              source: substringMatcher(orgs)
         });
         $('.typeahead, .typeahead1').bind('typeahead:active', function(ev, suggestion) {
             $('#organisations').attr("placeholder", "Type organisation name");
@@ -256,12 +218,6 @@
                     }
                  },
                 error: function(jqXHR, textStatus, errorThrown){
-                    console.log('jqXHR:');
-                    console.log(jqXHR);
-                    console.log('textStatus:');
-                    console.log(textStatus);
-                    console.log('errorThrown:');
-                    console.log(errorThrown);
                 }
             });
         }
@@ -345,12 +301,6 @@
                     }
                  },
                 error: function(jqXHR, textStatus, errorThrown){
-                    console.log('jqXHR:');
-                    console.log(jqXHR);
-                    console.log('textStatus:');
-                    console.log(textStatus);
-                    console.log('errorThrown:');
-                    console.log(errorThrown);
                 }
             });
         }
@@ -364,43 +314,4 @@
         }
     </script>
 
-    <!--Page Messages -->
-    <script src="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.js' %}"></script>
-    <script>
-        function infoMsg(msg) {
-            toastr.info(msg, 'Information', { "progressBar": true });
-        }
-
-        function warningMsg(msg) {
-            toastr.warning(msg, 'Warning', { "progressBar": true });
-        }
-        function errorMsg(msg) {
-            toastr.error(msg, 'Error', { "progressBar": true });
-        }
-
-        {% if info_message %}
-            toastr.info({{ info_message }}, 'Information', { "progressBar": true });
-        {% endif %}
-
-        {% if warning_message %}
-            toastr.warning({{ warning_message }}, 'Warning', { "progressBar": true });
-        {% endif %}
-
-        {% if error_message %}
-            toastr.error({{ error_message }}, 'Error', { "progressBar": true });
-        {% endif %}
-
-        $(document).ready(function(){
-            // get the tab from url
-            var hash = window.location.hash;
-
-            // if a hash is present (when you come to this page)
-            if (hash !='') {
-                // show the tab
-                $('a[href="' + hash + '"]').tab('show');
-            }
-        });
-    </script>
-</body>
 {% endblock %}
-</html>

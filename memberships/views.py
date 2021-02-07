@@ -9,7 +9,7 @@ from json import dumps
 import stripe
 
 
-@login_required(login_url='/accounts/login/')
+# @login_required(login_url='/accounts/login/')
 def donation_payment(request):
     if request.POST and request.POST.get('membership_package'):
         # create donation object
@@ -20,6 +20,7 @@ def donation_payment(request):
                                            email_address=request.POST.get('email_address'),
                                            message=request.POST.get('message'),)
         result = {'result': 'success'}
+        print(result)
         return HttpResponse(dumps(result))
 
     elif request.POST:
@@ -130,6 +131,7 @@ def donation_payment(request):
         if not payment_confirm['status'] == "succeeded":
             result = {'result': 'fail',
                       'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{payment_confirm['status']}</span>"}
+            print(result)
             return HttpResponse(dumps(result))
         else:
             donation.validated = True
@@ -176,11 +178,11 @@ def donation_payment(request):
             # send success result!
             result = {'result': 'success',
                       'receipt': payment_confirm.charges.data[0].receipt_url}
+            print(result)
             return HttpResponse(dumps(result))
-
+    print('not sure how it ended up here')
 
 def donation(request):
-
     org_name = request.GET.get('org-name', '')
 
     # check that an organisation name was given

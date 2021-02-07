@@ -1,0 +1,39 @@
+{% load static %}
+
+<!--Page Messages -->
+<script src="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.js' %}"></script>
+<script>
+    function infoMsg(msg) {
+        toastr.info(msg, 'Information', { "progressBar": true });
+    }
+
+    function warningMsg(msg) {
+        toastr.warning(msg, 'Warning', { "progressBar": true });
+    }
+    function errorMsg(msg) {
+        toastr.error(msg, 'Error', { "progressBar": true });
+    }
+
+    {% if info_message %}
+        toastr.info({{ info_message }}, 'Information', { "progressBar": true });
+    {% endif %}
+
+    {% if warning_message %}
+        toastr.warning({{ warning_message }}, 'Warning', { "progressBar": true });
+    {% endif %}
+
+    {% if error_message %}
+        toastr.error({{ error_message }}, 'Error', { "progressBar": true });
+    {% endif %}
+
+    $(document).ready(function(){
+        // get the tab from url
+        var hash = window.location.hash;
+
+        // if a hash is present (when you come to this page)
+        if (hash !='') {
+            // show the tab
+            $('a[href="' + hash + '"]').tab('show');
+        }
+    });
+</script>
