@@ -575,33 +575,27 @@
         });
     </script>
     <script>
-        // call giveSnippet function based on which button the user as clicked
+        // call copyToCB function based on which button the user as clicked
         $('.copy-btn').on('click',function(e){
-            giveSnippet($(this).attr('bgColour'), $(this).attr('colour'), $(this).attr('fontSize'));
+            var snippet = '<a href="{{ donation_url }}"><button style="border: none; background-color: ' + $(this).attr('bgColour') + '; color: ' + $(this).attr('colour') + '; font-size: ' + $(this).attr('fontSize') + '; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button></a>';
+            
+            copyToCB(snippet);
         });
 
-        // copy snippet to user's clipboard
-        function giveSnippet(bgColour, colour, fontSize){
-            var snippet = '<a href="{{ donation_url }}"><button style="border: none; background-color: ' + bgColour + '; color: ' + colour + '; font-size: ' + fontSize + '; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button></a>'
+        // call copyToCB using donation url
+        $('#copy-link').on('click',function(e){
+            copyToCB('{{ donation_url }}');
+        });
+
+        // copy text to user's clipboard
+        function copyToCB(text){
             var textArea = document.createElement("textarea");
             textArea.display = 'none';
-            textArea.value = snippet;
+            textArea.value = text;
             document.body.appendChild(textArea);
             textArea.select();
             document.execCommand("Copy");
             textArea.remove();
         }
-    </script>
-    <!-- copy donation link to user's clipboard -->
-    <script>
-        $('#copy-link').on('click',function(e){
-            var textArea = document.createElement("textarea");
-            textArea.display = 'none';
-            textArea.value = '{{ donation_url }}';
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("Copy");
-            textArea.remove();
-        });
     </script>
 {% endblock %}
