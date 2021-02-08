@@ -24,7 +24,7 @@
     </div><!-- /.modal -->
 
     <form id="donationForm">
-        <h4 class="mb-3">Donation Form</h4>
+        <h4 class="mb-3">Donation Form {{ request.user.is_authenticated }}</h4>
         {% if org_name != 'not_given' and org_name != 'not_match' %}
             <!-- valid organisation given -->
             <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
@@ -171,7 +171,7 @@
             if (isOrganisation && organisationExists && amountCheck && emailCheck) {
                 $('#donation-overlay-spinner').modal();
                 sleep(2000).then(() => {
-                    submitDonationForm()
+                    generateCardToken()
                 });
             } else if (isOrganisation == false){
                 errorMsg("Please fill the organisation name!");
@@ -282,6 +282,7 @@
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
                 data: {
+                    'form': $('#donationForm').serialize(),
                     'token': token,
                     },
                 beforeSend: function() {
