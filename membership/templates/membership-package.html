@@ -416,7 +416,8 @@
                                 </div>
                                 <p>
                                     Alternatively, if you would like to share your donation link in another way, here it is:<br/>
-                                    <a href="{{ donation_url }}">{{ donation_url }}</a>
+                                    <a id="donation-url" href="{{ donation_url }}" target="_blank">{{ donation_url }}</a>
+                                    <span id="copy-link" class="ml-2" data-toggle="tooltip" title="Copy link to clipboard" style="cursor:pointer"><i class="fad fa-copy"></i></span>
                                 </p>
                             </div>
                         </div>
@@ -590,5 +591,17 @@
             document.execCommand("Copy");
             textArea.remove();
         }
+    </script>
+    <!-- copy donation link to user's clipboard -->
+    <script>
+        $('#copy-link').on('click',function(e){
+            var textArea = document.createElement("textarea");
+            textArea.display = 'none';
+            textArea.value = '{{ donation_url }}';
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("Copy");
+            textArea.remove();
+        });
     </script>
 {% endblock %}
