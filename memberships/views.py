@@ -189,10 +189,13 @@ def donation_payment(request):
 def donation(request):
     org_name = request.GET.get('org-name', '')
 
+    # get all packages, as user may not be logged in
+    all_packages = MembershipPackage.objects.filter(enabled=True)
+
     # check that an organisation name was given
     if org_name != '':
         # check the organisation name matches an organisation
-        for package in MembershipPackage.objects.filter(enabled=True):
+        for package in all_packages:
             if org_name == package.organisation_name:
                 return render(request, 'donation.html', {'org_name': org_name,
                                                          'public_api_key': get_stripe_public_key(request)})
@@ -202,7 +205,8 @@ def donation(request):
                                                  'public_api_key': get_stripe_public_key(request)})
     # organisation name given did not match an enabled organisation
     return render(request, 'donation.html', {'org_name': 'not_match',
-                                             'public_api_key': get_stripe_public_key(request)})
+                                             'public_api_key': get_stripe_public_key(request),
+                                             'all_packages': all_packages})
 
 
 def send_payment_error(error):
