@@ -14,28 +14,33 @@ def donation_payment(request):
     form_data = parse_qs(request.POST['form'])
     print(request.POST)
     print(form_data)
-    print(form_data['membership_package'][0])
-
-    if form_data['message'] exists:
-        message = form_data['message']
+    
+    # handle non mandatory fields not being specified
+    if 'full_name' in form_data.keys():
+        full_name = form_data['full_name'][0]
     else:
-        message
+        full_name = 'Anonymous'
+    if 'message' in form_data.keys():
+        message = form_data['message'][0]
+    else:
+        message = "No message given"
+
     if request.POST:
         # create donation object
         try:
             donation = Donation.objects.create(donator=request.user,
                                                membership_package=MembershipPackage.objects.get(organisation_name=form_data['membership_package'][0]),
                                                amount=form_data['amount'][0],
-                                               full_name=form_data['full_name'][0],
+                                               full_name=full_name,
                                                email_address=form_data['email_address'][0],
                                                message=message)
         except ValueError:
             donation = Donation.objects.create(membership_package=MembershipPackage.objects.get(
                                                    organisation_name=form_data['membership_package'][0]),
                                                amount=form_data['amount'][0],
-                                               full_name=form_data['full_name'][0],
+                                               full_name=full_name,
                                                email_address=form_data['email_address'][0],
-                                               message=form_data['message'][0])
+                                               message=message)
 
         # check for existing membership
         subscription = False
@@ -55,7 +60,7 @@ def donation_payment(request):
         if not subscription or not subscription.stripe_id:
             # create stripe user
             customer = stripe.Customer.create(
-                name=form_data['full_name'][0],
+                name=full_name,
                 email=form_data['email_address'][0],
                 stripe_account=donation.membership_package.stripe_acct_id
             )
@@ -175,7 +180,7 @@ def donation_payment(request):
                        form_data['email_address'][0], donator_body, send_to=donation.email_address)
             # send to org owner
             send_email(f"Donation Confirmation: {donation.membership_package.organisation_name}",
-                       form_data['full_name'][0], owner_body, send_to=donation.membership_package.owner.email, reply_to=form_data['email_address'][0])
+                       full_name, owner_body, send_to=donation.membership_package.owner.email, reply_to=form_data['email_address'][0])
 
             # send success result!
             result = {'result': 'success',
