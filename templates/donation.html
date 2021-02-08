@@ -150,7 +150,8 @@
             e.preventDefault();
             // Define float checks
             var amount = $("#donation-amount").val();
-            var floatRegex = /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/;
+            // var floatRegex = /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/;
+            var floatRegex = /^\d+(\d{3})*(\.\d{1,2})?$/;
             var amountCheck = floatRegex.test(amount);
 
             // Define email checks
