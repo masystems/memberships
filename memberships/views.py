@@ -12,8 +12,6 @@ import stripe
 
 def donation_payment(request):
     form_data = parse_qs(request.POST['form'])
-    print(request.POST)
-    print(form_data)
     
     # handle non mandatory fields not being specified
     if 'full_name' in form_data.keys():
