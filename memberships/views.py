@@ -131,7 +131,7 @@ def donation_payment(request):
         # make payment intent
         payment_intent = stripe.PaymentIntent.create(
             customer=donation.stripe_id,
-            amount=int(donation.amount) * 100,
+            amount=int(float(donation.amount) * 100),
             currency="gbp",
             payment_method_types=["card"],
             receipt_email=donation.email_address,
