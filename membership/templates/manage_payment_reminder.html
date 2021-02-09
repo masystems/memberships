@@ -84,11 +84,15 @@
         <div class="col-lg-8 col-xlg-9">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">Add/Remove Custom Fields</h4>
-                    <form id="addCustomFieldForm" class="row">
-                        <div class="col-lg-9 col-xlg-8">
+                    <h4 class="card-title">Type Your Custom Email</h4>
+                    <form id="customiseEmailForm" class="row">
+                        <div class="col-lg-12 col-xlg-12">
                             <div class="form-group">
-                                <textarea type="text" class="form-control" id="information{{ forloop.counter }}" name="information">{{ type.information }}</textarea>
+                                <textarea placeholder="Insert email here" rows="10" type="text" class="form-control" name="custom_email" value="{{ membership_package.payment_reminder_email }}">{{ type.information }}</textarea>
+                            </div>
+                            <div class="form-group mb-0 text-right">  
+                                <button name="save" id="save" class="btn btn-info waves-effect waves-light">Save</button>
+                                <a href="{% url 'manage_payment_reminder' membership_package.organisation_name %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
                             </div>
                         </div>
                     </form>
@@ -112,15 +116,38 @@
             return new Promise((resolve) => setTimeout(resolve, time));
         }
 
-        $("#saveTypeForm").click(function(e){
+        $("#save").click(function(e){
             $('#overlay-spinner').modal();
                 e.preventDefault();
                 sleep(2000).then(() => {
-                    addNewField()
+                    updateEmail()
                 });
         });
 
-        
+        function updateEmail() {
+            $.ajax({
+                url: '{% url 'manage_payment_reminder' membership_package.organisation_name %}',
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: $('#customiseEmailForm'),
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        $('#overlay-spinner').modal('toggle');
+                        errorMsg(result['message']);
+                    } else {
+                        infoMsg(result.message);
+                        location.reload();
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
+        }
     </script>
     <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
     <script>
