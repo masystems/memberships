@@ -150,7 +150,8 @@
             e.preventDefault();
             // Define float checks
             var amount = $("#donation-amount").val();
-            var floatRegex = /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/;
+            // var floatRegex = /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/;
+            var floatRegex = /^\d+(\d{3})*(\.\d{1,2})?$/;
             var amountCheck = floatRegex.test(amount);
 
             // Define email checks
@@ -158,10 +159,10 @@
             var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             var emailCheck = emailRegex.test(email);
 
-            // If a valid organisation name was not given, validate the organisation name given in the text field
+            // If a valid organisation name was not given in url, validate the organisation name given in the text field
             var isOrganisation = true;
             var organisationExists = true;
-            if ('{{ org_name }}' == 'not_given' | '{{ org_name }}' == 'not_given') {
+            if ('{{ org_name }}' == 'not_given' | '{{ org_name }}' == 'not_match') {
                 // Define organisation checks
                 var isOrganisation = $('#organisation-donation').val() != "";
                 var organisationExists = orgs.includes($('#organisation-donation').val());
@@ -171,7 +172,7 @@
             if (isOrganisation && organisationExists && amountCheck && emailCheck) {
                 $('#donation-overlay-spinner').modal();
                 sleep(2000).then(() => {
-                    submitDonationForm()
+                    generateCardToken()
                 });
             } else if (isOrganisation == false){
                 errorMsg("Please fill the organisation name!");
@@ -282,6 +283,7 @@
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
                 data: {
+                    'form': $('#donationForm').serialize(),
                     'token': token,
                     },
                 beforeSend: function() {

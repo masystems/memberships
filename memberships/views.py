@@ -6,33 +6,48 @@ from django.db.models import Q
 from membership.models import MembershipPackage, Member, MembershipSubscription, Donation
 from .functions import *
 from json import dumps
+from urllib.parse import parse_qs
 import stripe
 
 
-# @login_required(login_url='/accounts/login/')
 def donation_payment(request):
-    if request.POST and request.POST.get('membership_package'):
-        # create donation object
-        donation = Donation.objects.create(donator=request.user,
-                                           membership_package=MembershipPackage.objects.get(organisation_name=request.POST.get('membership_package')),
-                                           amount=request.POST.get('amount'),
-                                           full_name=request.POST.get('full_name'),
-                                           email_address=request.POST.get('email_address'),
-                                           message=request.POST.get('message'),)
-        result = {'result': 'success'}
-        print(result)
-        return HttpResponse(dumps(result))
+    form_data = parse_qs(request.POST['form'])
+    
+    # handle non mandatory fields not being specified
+    if 'full_name' in form_data.keys():
+        full_name = form_data['full_name'][0]
+    else:
+        full_name = 'Anonymous'
+    if 'message' in form_data.keys():
+        message = form_data['message'][0]
+    else:
+        message = "No message given"
 
-    elif request.POST:
-        # get donation object
-        donation = Donation.objects.filter(donator=request.user,
-                                        validated=False).latest('id')
-        # check for existing membership
-        member = Member.objects.get(user_account=request.user)
+    if request.POST:
+        # create donation object
         try:
-            subscription = MembershipSubscription.objects.get(member=member, membership_package=donation.membership_package)
-        except MembershipSubscription.DoesNotExist:
-            subscription = False
+            donation = Donation.objects.create(donator=request.user,
+                                               membership_package=MembershipPackage.objects.get(organisation_name=form_data['membership_package'][0]),
+                                               amount=form_data['amount'][0],
+                                               full_name=full_name,
+                                               email_address=form_data['email_address'][0],
+                                               message=message)
+        except ValueError:
+            donation = Donation.objects.create(membership_package=MembershipPackage.objects.get(
+                                                   organisation_name=form_data['membership_package'][0]),
+                                               amount=form_data['amount'][0],
+                                               full_name=full_name,
+                                               email_address=form_data['email_address'][0],
+                                               message=message)
+
+        # check for existing membership
+        subscription = False
+        if request.user.is_authenticated:
+            member = Member.objects.get(user_account=request.user)
+            try:
+                subscription = MembershipSubscription.objects.get(member=member, membership_package=donation.membership_package)
+            except MembershipSubscription.DoesNotExist:
+                pass
 
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(request)
@@ -43,8 +58,8 @@ def donation_payment(request):
         if not subscription or not subscription.stripe_id:
             # create stripe user
             customer = stripe.Customer.create(
-                name=request.user.get_full_name(),
-                email=request.user.email,
+                name=full_name,
+                email=form_data['email_address'][0],
                 stripe_account=donation.membership_package.stripe_acct_id
             )
             donation.stripe_id = customer['id']
@@ -114,9 +129,9 @@ def donation_payment(request):
             return HttpResponse(dumps(result))
 
         # make payment intent
-        payment_intenet = stripe.PaymentIntent.create(
+        payment_intent = stripe.PaymentIntent.create(
             customer=donation.stripe_id,
-            amount=int(donation.amount) * 100,
+            amount=int(float(donation.amount) * 100),
             currency="gbp",
             payment_method_types=["card"],
             receipt_email=donation.email_address,
@@ -124,35 +139,25 @@ def donation_payment(request):
         )
         # take payment
         payment_confirm = stripe.PaymentIntent.confirm(
-            payment_intenet['id'],
+            payment_intent['id'],
             payment_method=payment_method['default_source'],
             stripe_account=donation.membership_package.stripe_acct_id
         )
         if not payment_confirm['status'] == "succeeded":
             result = {'result': 'fail',
                       'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{payment_confirm['status']}</span>"}
-            print(result)
             return HttpResponse(dumps(result))
         else:
             donation.validated = True
             donation.stripe_payment_id = payment_confirm['id']
             donation.save()
 
-            # temporary variable to hold name of donator, or 'Anonymous'
-            temp_donator_name = donation.full_name
-            if len(donation.full_name) == 0:
-                temp_donator_name = 'Anonymous'
-            # temporary variable to hold message from donator, or 'No message sent'
-            temp_donation_message = donation.message
-            if len(donation.message) == 0:
-                temp_donator_message = 'No message sent'
-
             # send confirmation email
             donator_body = f"""<p>Congratulations! You just made a new donation.
                     <p>Donation details:</p>
                     <ul>
                     <li>Donated to: {donation.membership_package.organisation_name}</li>
-                    <li>Donated by: {temp_donator_name}</li>
+                    <li>Donated by: {donation.full_name or "Anonymous"}</li>
                     <li>Amount: £{donation.amount}</li>
                     <li>Receipt: {payment_confirm.charges.data[0].receipt_url}</li>
                     </ul>
@@ -161,34 +166,36 @@ def donation_payment(request):
                     <p>Donation details:</p>
                     <ul>
                     <li>Donated to: {donation.membership_package.organisation_name}</li>
-                    <li>Donated by: {temp_donator_name}</li>
+                    <li>Donated by: {donation.full_name or "Anonymous"}</li>
                     <li>Amount: £{donation.amount}</li>
                     <li>Receipt: {payment_confirm.charges.data[0].receipt_url}</li>
-                    <li>Message from donator: {donation.message}</li>
+                    <li>Message from donator: {donation.message or "No message given"}</li>
                     </ul>
                     """
 
             # send to donator
             send_email(f"Donation Confirmation: {donation.membership_package.organisation_name}",
-                       request.user.get_full_name(), donator_body, send_to=donation.email_address)
+                       form_data['email_address'][0], donator_body, send_to=donation.email_address)
             # send to org owner
             send_email(f"Donation Confirmation: {donation.membership_package.organisation_name}",
-                       request.user.get_full_name(), owner_body, send_to=donation.membership_package.owner.email, reply_to=donation.email_address)
+                       full_name, owner_body, send_to=donation.membership_package.owner.email, reply_to=form_data['email_address'][0])
 
             # send success result!
             result = {'result': 'success',
                       'receipt': payment_confirm.charges.data[0].receipt_url}
-            print(result)
             return HttpResponse(dumps(result))
-    print('not sure how it ended up here')
+
 
 def donation(request):
     org_name = request.GET.get('org-name', '')
 
+    # get all packages, as user may not be logged in
+    all_packages = MembershipPackage.objects.filter(enabled=True)
+
     # check that an organisation name was given
     if org_name != '':
         # check the organisation name matches an organisation
-        for package in MembershipPackage.objects.filter(enabled=True):
+        for package in all_packages:
             if org_name == package.organisation_name:
                 return render(request, 'donation.html', {'org_name': org_name,
                                                          'public_api_key': get_stripe_public_key(request)})
@@ -198,7 +205,8 @@ def donation(request):
                                                  'public_api_key': get_stripe_public_key(request)})
     # organisation name given did not match an enabled organisation
     return render(request, 'donation.html', {'org_name': 'not_match',
-                                             'public_api_key': get_stripe_public_key(request)})
+                                             'public_api_key': get_stripe_public_key(request),
+                                             'all_packages': all_packages})
 
 
 def send_payment_error(error):
