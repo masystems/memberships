@@ -29,6 +29,7 @@ class MembershipPackage(models.Model):
                                            help_text="Link your membership account to your cloud-lines account")
     enabled = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+    payment_reminder_email = models.TextField(blank=True)
 
     def __str__(self):
         return self.organisation_name
