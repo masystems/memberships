@@ -149,10 +149,13 @@
         $("#donation-button").click(function(e){
             e.preventDefault();
             // Define float checks
-            var amount = $("#donation-amount").val();
-            // var floatRegex = /^\s*(\+|-)?((\d+(\.\d+)?)|(\.\d+))\s*$/;
-            var floatRegex = /^\d+(\d{3})*(\.\d{1,2})?$/;
-            var amountCheck = floatRegex.test(amount);
+            if (Number($("#donation-amount").val()) > 0) {
+                var amount = $("#donation-amount").val();
+                var floatRegex = /^\d+(\d{3})*(\.\d{1,2})?$/;
+                var amountCheck = floatRegex.test(amount);
+            } else {
+                errorMsg("Donation amount must be greater than zero!");
+            }
 
             // Define email checks
             var email = $("#donator-email").val();
