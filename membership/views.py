@@ -805,6 +805,10 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         for sub in total_stripe_subscriptions:
             if sub.plan.active:
                 context['stripe_members'] += 1
+        
+        # url for donation page
+        context['donation_url'] = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={context['membership_package'].organisation_name}"
+
         return context
 
 

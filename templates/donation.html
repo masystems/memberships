@@ -1,0 +1,322 @@
+{% extends "account/base.html" %}
+{% load static %}
+
+{% block header %}
+    <script src="{% static 'assets/libs/jquery/dist/jquery.min.js' %}"></script>
+    {% include 'css.html' %}
+{% endblock %}
+
+{% block content %}
+    <!-- Spinner Overlay -->
+    <div id="donation-overlay-spinner" class="modal fade" data-backdrop="static" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content modal-filled bg-info">
+                <div class="modal-body p-4">
+                    <div class="text-center">
+                        <div id="spinner">
+                            <div class="spinner-border" role="status"></div>
+                            <h3 class="text-white mt-2">Processing donation...</h3>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- /.modal-content -->
+        </div><!-- /.modal-dialog -->
+    </div><!-- /.modal -->
+
+    <form id="donationForm">
+        <h4 class="mb-3">Donation Form</h4>
+        {% if org_name != 'not_given' and org_name != 'not_match' %}
+            <!-- valid organisation given -->
+            <p>Donate to <strong>{{ org_name }}</strong> by filling out the below fields.</p>
+            <!-- hidden form input of organisation name -->
+            <input type="hidden" name="membership_package" value="{{ org_name }}">
+        {% elif org_name == 'not_given' %}
+            <!-- no organisation given -->
+            <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not given.</p>
+            <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
+            <div class="input-group mb-3">
+                <div id="orgs">
+                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                </div>
+            </div>
+        {% elif org_name == 'not_match' %}
+            <!-- no organisation matches the given organisation -->
+            <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not recognised.</p>
+            <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
+            <div class="input-group mb-3">
+                <div id="orgs">
+                    <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
+                </div>
+            </div>
+        {% endif %}
+        <div class="form-group">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
+                </div>
+                <input id="donation-amount" class="form-control" type="text" name="amount" placeholder="Donation Amount">
+            </div>
+        </div>
+        <div class="form-group">
+            <input id="donator-full-name" type="text" class="form-control" name="full_name" placeholder="Name">
+        </div>
+        <div class="form-group">
+            <input id="donator-email" type="email" class="form-control" name="email_address" placeholder="Email Address">
+        </div>
+        <div class="form-group">
+            <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
+        </div>
+    </form>
+    <form id="donation-payment-form">
+        <label>Card Holders Name:</label>
+        <input id="cardholder-name" type="text" class="form-control">
+        <!-- placeholder for Elements -->
+        <div id="donation-card-element"></div>
+        <!-- Used to display Element errors. -->
+        <div id="donation-card-errors" role="alert"></div>
+        <div class="text-center mt-3" id="cardTypes" style="margin:0 auto;">
+            <img src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:32px">
+            <img src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:32px">
+            <img src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:32px">
+        </div>
+        <div class="card-body" id="donation-payment-buttons">
+            <div class="form-group mb-0 text-right">
+                <button id="donation-button" class="btn btn-success waves-effect waves-light">Donate</button>
+            </div>
+        </div>
+    </form>
+    <div id="donationResult" class="d-none text-center">
+        <h2>Success!</h2>
+        <h6>Your donation was successful!</h6>
+        <p>Your selected organisation has been notified of your kind donation.
+        You should receive an email shortly confirming your donation.</p>
+
+        <a href="#" target="_blank" id="donationReceipt"><button type="button" id="donationReceiptBtn" class="btn btn-dark mb-2">View Receipt</button></a>
+    </div>
+{% endblock %}
+
+{% block footer %}
+    {% include 'toastr.html' %}
+    <!-- Javascript for the organisation name text field -->
+    <script src="{% static 'assets/libs/typeahead.js/dist/typeahead.jquery.min.js' %}"></script>
+    <script>
+        var substringMatcher = function(strs) {
+            return function findMatches(q, cb) {
+                var matches, substringRegex;
+    
+                // an array that will be populated with substring matches
+                matches = [];
+    
+                // regex used to determine if a string contains the substring `q`
+                substrRegex = new RegExp(q, 'i');
+    
+                // iterate through the pool of strings and for any string that
+                // contains the substring `q`, add it to the `matches` array
+                $.each(strs, function(i, str) {
+                  if (substrRegex.test(str)) {
+                    matches.push(str);
+                  }
+                });
+    
+                cb(matches);
+                  };
+        };
+        var orgs = [{% for org in all_packages.all %}
+                            '{{ org.organisation_name }}',
+                            {% endfor %}];
+        $('#orgs .typeahead,#orgs .typeahead1').typeahead({
+              hint: true,
+              highlight: true,
+              minLength: 0
+            },
+            {
+              name: 'organisations',
+              source: substringMatcher(orgs)
+        });
+        $('.typeahead, .typeahead1').bind('typeahead:active', function(ev, suggestion) {
+            $('#organisations').attr("placeholder", "Type organisation name");
+        });
+    </script>
+
+    <!--Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+
+        function sleep (time) {
+          return new Promise((resolve) => setTimeout(resolve, time));
+        }
+
+        $("#donation-button").click(function(e){
+            e.preventDefault();
+            // Define float checks
+            if (Number($("#donation-amount").val()) > 0) {
+                var amount = $("#donation-amount").val();
+                var floatRegex = /^\d+(\d{3})*(\.\d{1,2})?$/;
+                var amountCheck = floatRegex.test(amount);
+            } else {
+                errorMsg("Donation amount must be greater than zero!");
+            }
+
+            // Define email checks
+            var email = $("#donator-email").val();
+            var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            var emailCheck = emailRegex.test(email);
+
+            // If a valid organisation name was not given in url, validate the organisation name given in the text field
+            var isOrganisation = true;
+            var organisationExists = true;
+            if ('{{ org_name }}' == 'not_given' | '{{ org_name }}' == 'not_match') {
+                // Define organisation checks
+                var isOrganisation = $('#organisation-donation').val() != "";
+                var organisationExists = orgs.includes($('#organisation-donation').val());
+            }
+
+            // If amount and email are okay, submit donation form
+            if (isOrganisation && organisationExists && amountCheck && emailCheck) {
+                $('#donation-overlay-spinner').modal();
+                sleep(2000).then(() => {
+                    generateCardToken()
+                });
+            } else if (isOrganisation == false){
+                errorMsg("Please fill the organisation name!");
+            } else if (organisationExists == false){
+                errorMsg("Organisation does not exist!");
+            }
+
+            if(emailCheck == false){
+               errorMsg("The Email is invalid!");
+            }
+
+            if(amountCheck == false){
+               errorMsg("The amount is invalid!");
+            }
+        });
+
+        function submitDonationForm() {
+            // submit donation form
+            // Get form
+            var form = $('#donationForm')[0];
+
+            // Create an FormData object
+            var data = new FormData(form);
+
+            $.ajax({
+                url: '{% url 'donation_payment' %}',
+                type: 'POST',
+                processData: false,
+                contentType: false,
+                cache: false,
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: data,
+                beforeSend: function() {
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['result'] == "fail") {
+                        $('#formError').removeClass('d-none');
+                        $('#donation-overlay-spinner').modal('hide');
+                    } else {
+                        $('#formError').addClass('d-none');
+                        generateCardToken(data);
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
+        }
+
+        // STRIPE STUFF
+        var stripe = Stripe('{{ public_api_key }}');
+        var elements = stripe.elements();
+
+        // Custom styling can be passed to options when creating an Element.
+        var style = {
+          base: {
+            color: '#32325d',
+            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+            fontSmoothing: 'antialiased',
+            fontSize: '24px',
+            '::placeholder': {
+              color: '#aab7c4'
+            }
+          },
+          invalid: {
+            color: '#fa755a',
+            iconColor: '#fa755a'
+          }
+        };
+
+        // Create an instance of the card Element.
+        var card = elements.create('card', {style: style});
+
+        // Add an instance of the card Element into the `card-element` <div>.
+        card.mount('#donation-card-element');
+
+
+        card.addEventListener('change', function(event) {
+          var displayError = document.getElementById('donation-card-errors');
+          if (event.error) {
+            displayError.textContent = event.error.message;
+          } else {
+            displayError.textContent = '';
+          }
+        });
+
+        // Create a token or display an error when the form is submitted.
+        function generateCardToken() {
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    // Inform the customer that there was an error.
+                    var errorElement = document.getElementById('donation-card-errors');
+                    errorElement.textContent = result.error.message;
+                    $('#donation-overlay-spinner').modal('hide');
+                } else {
+                    // Send the token to your server.
+                    donationStripeTokenHandler(result.token);
+                }
+            });
+        }
+
+        function donationStripeTokenHandler(token) {
+            // Submit the token
+            $.ajax({
+                url: '{% url 'donation_payment' %}',
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: {
+                    'form': $('#donationForm').serialize(),
+                    'token': token,
+                    },
+                beforeSend: function() {
+                    $('#paymentSuccess').addClass('d-none');
+                    $('#paymentFail').addClass('d-none');
+                },
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result.result == 'fail') {
+                        $('#donation-overlay-spinner').modal('hide');
+                        $('#donation-card-errors').html(result.feedback);
+                    } else {
+                        $('#donation-payment-form').addClass('d-none');
+                        $('#donation-payment-buttons').addClass('d-none');
+                        $('#donationForm').addClass('d-none');
+                        loadSuccessPage(result);
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
+        }
+
+        function loadSuccessPage(result) {
+            $('#donation-overlay-spinner').modal('hide');
+
+            //update layout
+            $('#donationResult').removeClass('d-none');
+            $('#donationReceipt').attr("href", result.receipt);
+        }
+    </script>
+
+{% endblock %}

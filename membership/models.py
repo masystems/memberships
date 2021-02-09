@@ -169,7 +169,7 @@ class Equine(models.Model):
 
 class Donation(models.Model):
     donator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='donaton',
-                              verbose_name="Donator")
+                              verbose_name="Donator", blank=True, null=True)
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='dmembership_package', verbose_name="Membership Package")
     amount = models.CharField(max_length=255)
     full_name = models.CharField(max_length=255)

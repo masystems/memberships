@@ -169,7 +169,7 @@
                                     <form id="donationForm">
                                         <div class="col-lg-3 col-xlg-2 mb-4">
                                             <h4 class="mb-3">Donation Form</h4>
-                                            <p>Donate to an organisation but filling out the below fields.</p>
+                                            <p>Donate to an organisation by filling out the below fields.</p>
                                             <div class="input-group">
                                                 <div id="orgs">
                                                     <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name*">
@@ -613,43 +613,9 @@
             $('#donationReceipt').attr("href", result.receipt);
         }
     </script>
-    <!--Page Messages -->
-    <script src="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.js' %}"></script>
-    <script>
-        function infoMsg(msg) {
-            toastr.info(msg, 'Information', { "progressBar": true });
-        }
 
-        function warningMsg(msg) {
-            toastr.warning(msg, 'Warning', { "progressBar": true });
-        }
-        function errorMsg(msg) {
-            toastr.error(msg, 'Error', { "progressBar": true });
-        }
+    {% include 'toastr.html' %}
 
-        {% if info_message %}
-            toastr.info({{ info_message }}, 'Information', { "progressBar": true });
-        {% endif %}
-
-        {% if warning_message %}
-            toastr.warning({{ warning_message }}, 'Warning', { "progressBar": true });
-        {% endif %}
-
-        {% if error_message %}
-            toastr.error({{ error_message }}, 'Error', { "progressBar": true });
-        {% endif %}
-
-        $(document).ready(function(){
-            // get the tab from url
-            var hash = window.location.hash;
-
-            // if a hash is present (when you come to this page)
-            if (hash !='') {
-                // show the tab
-                $('a[href="' + hash + '"]').tab('show');
-            }
-        });
-    </script>
     {% block footer %}
     {% endblock %}
 </body>
