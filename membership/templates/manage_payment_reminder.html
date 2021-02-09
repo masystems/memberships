@@ -131,7 +131,7 @@
                 type: 'POST',
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                data: $('#customiseEmailForm'),
+                data: $('#customiseEmailForm').serialize(),
                 beforeSend: function() {
                 },
                 success: function(data) {
