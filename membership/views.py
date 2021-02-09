@@ -1073,7 +1073,17 @@ def payment_reminder(request, title, pk):
 
 @login_required(login_url='/accounts/login/')
 def manage_payment_reminder(request, title):
-    return render(request, 'manage_payment_reminder.html', {'membership_package': MembershipPackage.objects.get(organisation_name=title)})
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    
+    if request.method == "GET":
+        return render(request, 'manage_payment_reminder.html', {'membership_package': membership_package})
+    else:
+        membership_package.payment_reminder_email = request.POST.get('custom_email')
+        membership_package.save()
+        # not sure it's saving
+        
+        return HttpResponse(dumps({'status': "success",
+                                           'message': "Field successfully updated"}), content_type='application/json')
 
 
 def get_account_link(membership):
