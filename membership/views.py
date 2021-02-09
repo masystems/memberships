@@ -1072,8 +1072,8 @@ def payment_reminder(request, title, pk):
 
 
 @login_required(login_url='/accounts/login/')
-def customise_payment_reminder(request):
-    return render(request, 'customise_payment_reminder.html')
+def manage_payment_reminder(request, title):
+    return render(request, 'manage_payment_reminder.html')
 
 
 def get_account_link(membership):
