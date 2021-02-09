@@ -1224,7 +1224,7 @@ def member_reg_form(request, title, pk):
                         form.add_error('email', f"This email address is already in use for "
                                                 f"{membership_package.organisation_name}.")
                 except Member.DoesNotExist:
-                    user_account = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
+                    member = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
                                           title=form.cleaned_data['title'],
                                           company=form.cleaned_data['company'],
                                           address_line_1=form.cleaned_data['address_line_1'],
@@ -1242,7 +1242,7 @@ def member_reg_form(request, title, pk):
                                         username=generate_username(form.cleaned_data['first_name'],
                                                                    form.cleaned_data['last_name']))
 
-                    user_account = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
+                    member = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
                                           title=form.cleaned_data['title'],
                                           company=form.cleaned_data['company'],
                                           address_line_1=form.cleaned_data['address_line_1'],
@@ -1263,7 +1263,7 @@ def member_reg_form(request, title, pk):
                         form.add_error('email',
                                        f"This email address is already in use for {membership_package.organisation_name}.")
                     else:
-                        user_account = Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
+                        member = Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
                                                             company=form.cleaned_data['company'],
                                                             address_line_1=form.cleaned_data['address_line_1'],
                                                             address_line_2=form.cleaned_data['address_line_2'],
