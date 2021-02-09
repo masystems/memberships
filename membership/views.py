@@ -1071,6 +1071,11 @@ def payment_reminder(request, title, pk):
     return redirect('membership_package', membership_package.organisation_name)
 
 
+@login_required(login_url='/accounts/login/')
+def customise_payment_reminder(request):
+    return render(request, 'customise_payment_reminder.html')
+
+
 def get_account_link(membership):
     account_link = stripe.AccountLink.create(
         account=membership.stripe_acct_id,
