@@ -1073,7 +1073,7 @@ def payment_reminder(request, title, pk):
 
 @login_required(login_url='/accounts/login/')
 def manage_payment_reminder(request, title):
-    return render(request, 'manage_payment_reminder.html')
+    return render(request, 'manage_payment_reminder.html', {'membership_package': MembershipPackage.objects.get(organisation_name=title)})
 
 
 def get_account_link(membership):
