@@ -54,12 +54,11 @@
                 <hr>
                 <div class="card-body">
                     <p>
-                        Use this page to customise the payment reminder email, which is sent when clicking the Payment Reminder button for a particular member. If you do not specify your own email, the default email below will be sent.
+                        Use this page to customise the payment reminder email, which is sent when clicking the Payment Reminder button for a particular member. If you do not specify your own email, the default emails below will be sent.
                     </p>
                     <hr>
                     <h4>When Payment Method Is Card</h4>
                     <p>This is a reminder for you to pay for your subscription.</p>
-                    <p>Payment to renew your subscription failed. Please try again or contact the owner or an admin of {membership_package.organisation_name}. <i><b>(if card payment failed)</b></i></p>
                     <ul>
                         <li>Membership Organisation: {membership_package.organisation_name}</li>
                         <li>Next Payment: £<i>amount due</i> due by <i>date due</i>.</li>
@@ -88,7 +87,7 @@
                     <form id="customiseEmailForm" class="row">
                         <div class="col-lg-12 col-xlg-12">
                             <div class="form-group">
-                                <textarea placeholder="Insert email here" rows="10" type="text" class="form-control" name="custom_email" value="{{ membership_package.payment_reminder_email }}">{{ type.information }}</textarea>
+                                <textarea placeholder="Insert email here" rows="10" type="text" class="form-control" name="custom_email" value="{{ membership_package.payment_reminder_email }}">{{ membership_package.payment_reminder_email }}</textarea>
                             </div>
                             <div class="form-group mb-0 text-right">  
                                 <button name="save" id="save" class="btn btn-info waves-effect waves-light">Save</button>
