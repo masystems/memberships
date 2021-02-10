@@ -1233,7 +1233,7 @@ def member_reg_form(request, title, pk):
                                           country=form.cleaned_data['country'],
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
-                    pass
+                    
                 except User.DoesNotExist:
                     user = User.objects.create(first_name=form.cleaned_data['first_name'],
                                         last_name=form.cleaned_data['last_name'],
@@ -1251,7 +1251,7 @@ def member_reg_form(request, title, pk):
                                           country=form.cleaned_data['country'],
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
-                    pass
+                    
             elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # edit member
                 # validate email not already in use
