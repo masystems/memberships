@@ -1256,7 +1256,8 @@ def member_reg_form(request, title, pk):
                 # edit member
                 # validate email not already in use
                 try:
-                    if Member.objects.filter(user_account=User.objects.get(email=form.cleaned_data['email'])).exclude(id=member.id).exists():
+                    if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(
+                            email=form.cleaned_data['email'])), membership_package=membership_package).exclude(member=member).exists():
                         form.add_error('email',
                                        f"This email address is already in use for {membership_package.organisation_name}.")
                 except User.DoesNotExist:
