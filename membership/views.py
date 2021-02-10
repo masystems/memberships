@@ -1256,10 +1256,15 @@ def member_reg_form(request, title, pk):
                 # edit member
                 # validate email not already in use
                 try:
+                    # if email is in use for this membership package, add an error to the form
                     if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(
                             email=form.cleaned_data['email'])), membership_package=membership_package).exclude(member=member).exists():
                         form.add_error('email',
                                        f"This email address is already in use for {membership_package.organisation_name}.")
+                    # email is in use for a different package, so it for the member
+                    else:
+                        member.user_account.email = form.cleaned_data['email']
+                # email not in use, so save it for the member
                 except User.DoesNotExist:
                     member.user_account.email = form.cleaned_data['email']
                 finally:
@@ -1275,16 +1280,17 @@ def member_reg_form(request, title, pk):
                     #                                     postcode=form.cleaned_data['postcode'],
                     #                                     contact_number=form.cleaned_data['contact_number']
                     #                                     )
-                    member.title=form.cleaned_data['title']
-                    member.company=form.cleaned_data['company']
-                    member.address_line_1=form.cleaned_data['address_line_1']
-                    member.address_line_2=form.cleaned_data['address_line_2']
-                    member.town=form.cleaned_data['town']
-                    member.county=form.cleaned_data['county']
-                    member.country=form.cleaned_data['country']
-                    member.postcode=form.cleaned_data['postcode']
-                    member.contact_number=form.cleaned_data['contact_number']
+                    member.title = form.cleaned_data['title']
+                    member.company = form.cleaned_data['company']
+                    member.address_line_1 = form.cleaned_data['address_line_1']
+                    member.address_line_2 = form.cleaned_data['address_line_2']
+                    member.town = form.cleaned_data['town']
+                    member.county = form.cleaned_data['county']
+                    member.country = form.cleaned_data['country']
+                    member.postcode = form.cleaned_data['postcode']
+                    member.contact_number = form.cleaned_data['contact_number']
                     member.save()
+                    member.user_account.save()
                     
             else:
                 # new membership request but user is not admin/owner tut tut
