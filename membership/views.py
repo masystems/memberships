@@ -1218,9 +1218,8 @@ def member_reg_form(request, title, pk):
                 # new member
                 # validate user not already a member of package
                 try:
-                    if MembershipSubscription.objects.filter(member=Member.objects.get(
-                            user_account=User.objects.get(email=form.cleaned_data['email'])),
-                            membership_package=membership_package).exists():
+                    member = Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email']))
+                    if MembershipSubscription.objects.filter(member=member, membership_package=membership_package).exists():
                         form.add_error('email', f"This email address is already in use for "
                                                 f"{membership_package.organisation_name}.")
                 except Member.DoesNotExist:
