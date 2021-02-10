@@ -1080,10 +1080,9 @@ def manage_payment_reminder(request, title):
     else:
         membership_package.payment_reminder_email = request.POST.get('custom_email')
         membership_package.save()
-        # not sure it's saving
         
         return HttpResponse(dumps({'status': "success",
-                                           'message': "Field successfully updated"}), content_type='application/json')
+                                           'message': "Email successfully updated"}), content_type='application/json')
 
 
 def get_account_link(membership):
