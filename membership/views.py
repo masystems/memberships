@@ -1265,17 +1265,27 @@ def member_reg_form(request, title, pk):
                 finally:
                     member.user_account.first_name = form.cleaned_data['first_name']
                     member.user_account.last_name = form.cleaned_data['last_name']
-                    Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
-                                                        company=form.cleaned_data['company'],
-                                                        address_line_1=form.cleaned_data['address_line_1'],
-                                                        address_line_2=form.cleaned_data['address_line_2'],
-                                                        town=form.cleaned_data['town'],
-                                                        county=form.cleaned_data['county'],
-                                                        country=form.cleaned_data['country'],
-                                                        postcode=form.cleaned_data['postcode'],
-                                                        contact_number=form.cleaned_data['contact_number']
-                                                        )
+                    # Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
+                    #                                     company=form.cleaned_data['company'],
+                    #                                     address_line_1=form.cleaned_data['address_line_1'],
+                    #                                     address_line_2=form.cleaned_data['address_line_2'],
+                    #                                     town=form.cleaned_data['town'],
+                    #                                     county=form.cleaned_data['county'],
+                    #                                     country=form.cleaned_data['country'],
+                    #                                     postcode=form.cleaned_data['postcode'],
+                    #                                     contact_number=form.cleaned_data['contact_number']
+                    #                                     )
+                    member.title=form.cleaned_data['title']
+                    member.company=form.cleaned_data['company']
+                    member.address_line_1=form.cleaned_data['address_line_1']
+                    member.address_line_2=form.cleaned_data['address_line_2']
+                    member.town=form.cleaned_data['town']
+                    member.county=form.cleaned_data['county']
+                    member.country=form.cleaned_data['country']
+                    member.postcode=form.cleaned_data['postcode']
+                    member.contact_number=form.cleaned_data['contact_number']
                     member.save()
+                    
             else:
                 # new membership request but user is not admin/owner tut tut
                 redirect('dashboard')
