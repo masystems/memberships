@@ -1730,8 +1730,10 @@ def edit_sub_comment(request, id):
 def member_payments(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
+    subscription = member.subscription.get(member=member, membership_package=membership_package)
     return render(request, 'member_payments.html', {'membership_package': membership_package,
-                                                    'member': member})
+                                                    'member': member,
+                                                    'subscription': subscription})
 
 
 @login_required(login_url='/accounts/login/')
