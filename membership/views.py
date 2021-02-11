@@ -1781,10 +1781,13 @@ def member_payments(request, title, pk):
     # work out if they are overdue
     overdue = False
     # their subscription is free
-    if subscription.price.amount == 0:
+    if float(subscription.price.amount) == 0:
         pass
-    # if next payment due is in the past, or if they have never paid, they are overdue
-    elif next_payment_date < datetime.now().date() or not last_payment_date:
+    # if they have never paid, they are overdue
+    elif not last_payment_date:
+        overdue = True
+    # if next payment due is in the past
+    elif next_payment_date < datetime.now().date():
         overdue = True
     
     return render(request, 'member_payments.html', {'membership_package': membership_package,
