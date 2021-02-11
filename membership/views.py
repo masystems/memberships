@@ -1746,7 +1746,7 @@ def get_member_payments(request, title, pk):
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
     payments = []
     if search == "":
-        all_payments = Payment.objects.filter(subscription=subscription)[start:start + end]
+        all_payments = Payment.objects.filter(subscription=subscription).order_by('-created')[start:start + end]
     else:
         all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
@@ -1755,7 +1755,7 @@ def get_member_payments(request, title, pk):
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
-                                              subscription=subscription).distinct()[
+                                              subscription=subscription).distinct().order_by('-created')[
                       start:start + end]
     # get stripe payments
     total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
