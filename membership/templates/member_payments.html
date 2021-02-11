@@ -13,8 +13,8 @@
 <!-- ============================================================== -->
 <div class="page-breadcrumb">
     <div class="row">
-        <div class="col-md-5 align-self-center">
-            <h4 class="page-title">{{ membership_package }} Member Payments: <span class="text-success">{{ member.title }} {{ member.user_account.get_full_name }}</span></h4>
+        <div class="col-md-4 align-self-center">
+            <h4 class="page-title">{{ membership_package }} Member Payments: <span class="text-success">{{ member.user_account.get_full_name }}</span></h4>
             <div class="d-flex align-items-center">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
@@ -27,7 +27,27 @@
                 </nav>
             </div>
         </div>
-        <div class="col-md-7 align-self-center d-none d-md-block">
+        <div class="col-md-5 align-self-center d-none d-md-block mt-3">
+            <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Membership Type</strong>
+                <br>
+                <p class="text-muted">
+                    the type
+                </p>
+            </div>
+            <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Next Payment Due</strong>
+                <br>
+                <p class="text-muted">
+                    due date
+                </p>
+            </div>
+            <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Overdue</strong>
+                <br>
+                <p class="text-muted">
+                    They missed
+                </p>
+            </div>
+        </div>
+        <div class="col-md-3 align-self-center d-none d-md-block">
             <a href="{% url 'member_payment_form' membership_package.organisation_name member.id %}"><button class="btn btn-success float-right">Add Payment</button></a>
         </div>
     </div>
@@ -42,11 +62,6 @@
     <!-- Row -->
     <div class="row">
         <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">Key Information</h4>
-                </div>
-            </div>
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Payments</h4>
