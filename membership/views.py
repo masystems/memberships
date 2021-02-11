@@ -12,6 +12,7 @@ from json import dumps, loads, JSONDecodeError
 import stripe
 from re import match
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 def generate_site_vars(request):
@@ -1731,9 +1732,25 @@ def member_payments(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
     subscription = member.subscription.get(member=member, membership_package=membership_package)
+    
+    # get due date of next payment
+    next_payment_date = None
+    last_payment_date = Payment.objects.filter(subscription=subscription).order_by('-created').first().created
+    if subscription.price.interval == 'monthly':
+        next_payment_date = last_payment_date + relativedelta(months=1)
+    else:
+        next_payment_date = last_payment_date + relativedelta(years=1)
+    
+    # work out if they are overdue
+    overdue = False
+    if next_payment_date < datetime.now().date():
+        overdue = True
+    
     return render(request, 'member_payments.html', {'membership_package': membership_package,
                                                     'member': member,
-                                                    'subscription': subscription})
+                                                    'subscription': subscription,
+                                                    'next_payment_date': next_payment_date,
+                                                    'overdue': overdue})
 
 
 @login_required(login_url='/accounts/login/')
