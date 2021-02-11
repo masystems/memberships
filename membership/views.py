@@ -1746,7 +1746,7 @@ def get_member_payments(request, title, pk):
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
     payments = []
     if search == "":
-        all_payments = Payment.objects.filter(subscription=subscription)[start:start + end]
+        all_payments = Payment.objects.filter(subscription=subscription).order_by('-created')[start:start + end]
     else:
         all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
@@ -1755,7 +1755,7 @@ def get_member_payments(request, title, pk):
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
-                                              subscription=subscription).distinct()[
+                                              subscription=subscription).distinct().order_by('-created')[
                       start:start + end]
     # get stripe payments
     total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
@@ -1779,7 +1779,7 @@ def get_member_payments(request, title, pk):
     if all_payments.count() > 0 or subscription.stripe_id:
         for payment in all_payments:
             # get the amount as a variable so it can be converted to the correct format to be displayed
-
+            temp_amount = float(payment.amount)/100
             if payment.gift_aid:
                 giftaid = '<i class="fad fa-check text-success"></i>'
             else:
@@ -1790,7 +1790,7 @@ def get_member_payments(request, title, pk):
                              'id': payment.payment_number,
                              'method': payment.payment_method.payment_name,
                              'type': payment.type,
-                             'amount': f"£{float(payment.amount)}",
+                             'amount': "£%.2f" % temp_amount,
                              'comments': payment.comments,
                              'created': str(payment.created),
                              'gift_aid': giftaid,
