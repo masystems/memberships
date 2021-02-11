@@ -40,20 +40,22 @@
                     {{ next_payment_date }}
                 </p>
             </div>
-            {% if overdue %}
-                <div class="col-md-4 col-xs-6 b-r float-right text-danger"> <strong>Overdue</strong>
-                    <br>
-                    <p>
-                        Payment is overdue
-                    </p>
-                </div>
-            {% else %}
-                <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Not Overdue</strong>
-                    <br>
-                    <p class="text-muted">
-                        No payments overdue
-                    </p>
-                </div>
+            {% if subscription.active %}
+                {% if overdue %}
+                    <div class="col-md-4 col-xs-6 b-r float-right text-danger"> <strong>Overdue</strong>
+                        <br>
+                        <p>
+                            Payment is overdue
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Not Overdue</strong>
+                        <br>
+                        <p class="text-muted">
+                            No payments overdue
+                        </p>
+                    </div>
+                {% endif %}
             {% endif %}
         </div>
         <div class="col-md-3 align-self-center d-none d-md-block">
