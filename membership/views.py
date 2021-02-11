@@ -1738,7 +1738,6 @@ def member_payments(request, title, pk):
     last_db_payment_date = None
     if last_db_payment:
         last_db_payment_date = last_db_payment.created
-    print(f'last db - {last_db_payment_date}')
 
     # if it's a stripe subscription, get date of last stripe payment
     last_stripe_payment_date = None
@@ -1749,7 +1748,6 @@ def member_payments(request, title, pk):
         # if any stripe payments exist, get the date of the last one
         if len(last_stripe_payment) > 0:
             last_stripe_payment_date = datetime.fromtimestamp(last_stripe_payment[0]['created']).date()
-    print(f'last stripe - {last_stripe_payment_date}')
 
     # get last payment date from stripe payments and db payments
     last_payment_date = None
@@ -1770,16 +1768,15 @@ def member_payments(request, title, pk):
         # they must be equal, so it doesn't matter which is used
         else:
             last_payment_date = last_db_payment_date
-    print(f'last - {last_payment_date}')
         
     # get date of next payment due, if last date exists
     next_payment_date = None
     if last_payment_date:
         if subscription.price.interval == 'monthly':
-            next_payment_date = last_db_payment_date + relativedelta(months=1)
+            next_payment_date = last_payment_date + relativedelta(months=1)
         # must be yearly
         else:
-            next_payment_date = last_db_payment_date + relativedelta(years=1)
+            next_payment_date = last_payment_date + relativedelta(years=1)
 
     # work out if they are overdue
     overdue = False
