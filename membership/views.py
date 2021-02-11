@@ -1779,7 +1779,7 @@ def get_member_payments(request, title, pk):
     if all_payments.count() > 0 or subscription.stripe_id:
         for payment in all_payments:
             # get the amount as a variable so it can be converted to the correct format to be displayed
-            temp_amount = float(payment.amount)/100
+
             if payment.gift_aid:
                 giftaid = '<i class="fad fa-check text-success"></i>'
             else:
@@ -1790,7 +1790,7 @@ def get_member_payments(request, title, pk):
                              'id': payment.payment_number,
                              'method': payment.payment_method.payment_name,
                              'type': payment.type,
-                             'amount': "£%.2f" % temp_amount,
+                             'amount': f"£{float(payment.amount)}",
                              'comments': payment.comments,
                              'created': str(payment.created),
                              'gift_aid': giftaid,
