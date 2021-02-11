@@ -28,24 +28,33 @@
             </div>
         </div>
         <div class="col-md-5 align-self-center d-none d-md-block mt-3">
-            <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Membership Type</strong>
+            <div class="col-md-4 col-xs-4 b-r float-right"> <strong>Membership Type</strong>
                 <br>
                 <p class="text-muted">
-                    the type
+                    {{ subscription.price.nickname }}
                 </p>
             </div>
             <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Next Payment Due</strong>
                 <br>
                 <p class="text-muted">
-                    due date
+                    {{ next_payment_date }}
                 </p>
             </div>
-            <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Overdue</strong>
-                <br>
-                <p class="text-muted">
-                    They missed
-                </p>
-            </div>
+            {% if overdue %}
+                <div class="col-md-4 col-xs-6 b-r float-right text-danger"> <strong>Overdue</strong>
+                    <br>
+                    <p>
+                        Payment is overdue
+                    </p>
+                </div>
+            {% else %}
+                <div class="col-md-4 col-xs-6 b-r float-right"> <strong>Not Overdue</strong>
+                    <br>
+                    <p class="text-muted">
+                        No payments overdue
+                    </p>
+                </div>
+            {% endif %}
         </div>
         <div class="col-md-3 align-self-center d-none d-md-block">
             <a href="{% url 'member_payment_form' membership_package.organisation_name member.id %}"><button class="btn btn-success float-right">Add Payment</button></a>
