@@ -93,7 +93,7 @@ class MembershipSubscription(models.Model):
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
     validated = models.BooleanField(default=False)
     comments = models.TextField(blank=True)
-    membership_start = models.DateField(null=True, blank=True)
+    membership_start = models.DateField(null=True, blank=True, default=datetime.now)
     membership_expiry = models.DateField(null=True, blank=True)
     active = models.BooleanField(default=False)
     custom_fields = models.TextField(blank=True)
