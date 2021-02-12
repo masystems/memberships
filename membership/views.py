@@ -1237,9 +1237,8 @@ def member_reg_form(request, title, pk):
                 # new member
                 # validate user not already a member of package
                 try:
-                    if MembershipSubscription.objects.filter(member=Member.objects.get(
-                            user_account=User.objects.get(email=form.cleaned_data['email'])),
-                            membership_package=membership_package).exists():
+                    member = Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email']))
+                    if MembershipSubscription.objects.filter(member=member, membership_package=membership_package).exists():
                         form.add_error('email', f"This email address is already in use for "
                                                 f"{membership_package.organisation_name}.")
                 except Member.DoesNotExist:
@@ -1253,7 +1252,7 @@ def member_reg_form(request, title, pk):
                                           country=form.cleaned_data['country'],
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
-                    pass
+                    
                 except User.DoesNotExist:
                     user = User.objects.create(first_name=form.cleaned_data['first_name'],
                                         last_name=form.cleaned_data['last_name'],
@@ -1271,30 +1270,47 @@ def member_reg_form(request, title, pk):
                                           country=form.cleaned_data['country'],
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
-                    pass
+                    
             elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # edit member
                 # validate email not already in use
                 try:
-                    if Member.objects.filter(user_account=User.objects.get(email=form.cleaned_data['email'])).exclude(id=member.id).exists():
+                    # if email is in use for this membership package, add an error to the form
+                    if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(
+                            email=form.cleaned_data['email'])), membership_package=membership_package).exclude(member=member).exists():
                         form.add_error('email',
                                        f"This email address is already in use for {membership_package.organisation_name}.")
+                    # email is in use for a different package, so it for the member
+                    else:
+                        member.user_account.email = form.cleaned_data['email']
+                # email not in use, so save it for the member
                 except User.DoesNotExist:
                     member.user_account.email = form.cleaned_data['email']
                 finally:
                     member.user_account.first_name = form.cleaned_data['first_name']
                     member.user_account.last_name = form.cleaned_data['last_name']
-                    Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
-                                                        company=form.cleaned_data['company'],
-                                                        address_line_1=form.cleaned_data['address_line_1'],
-                                                        address_line_2=form.cleaned_data['address_line_2'],
-                                                        town=form.cleaned_data['town'],
-                                                        county=form.cleaned_data['county'],
-                                                        country=form.cleaned_data['country'],
-                                                        postcode=form.cleaned_data['postcode'],
-                                                        contact_number=form.cleaned_data['contact_number']
-                                                        )
+                    # Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
+                    #                                     company=form.cleaned_data['company'],
+                    #                                     address_line_1=form.cleaned_data['address_line_1'],
+                    #                                     address_line_2=form.cleaned_data['address_line_2'],
+                    #                                     town=form.cleaned_data['town'],
+                    #                                     county=form.cleaned_data['county'],
+                    #                                     country=form.cleaned_data['country'],
+                    #                                     postcode=form.cleaned_data['postcode'],
+                    #                                     contact_number=form.cleaned_data['contact_number']
+                    #                                     )
+                    member.title = form.cleaned_data['title']
+                    member.company = form.cleaned_data['company']
+                    member.address_line_1 = form.cleaned_data['address_line_1']
+                    member.address_line_2 = form.cleaned_data['address_line_2']
+                    member.town = form.cleaned_data['town']
+                    member.county = form.cleaned_data['county']
+                    member.country = form.cleaned_data['country']
+                    member.postcode = form.cleaned_data['postcode']
+                    member.contact_number = form.cleaned_data['contact_number']
                     member.save()
+                    member.user_account.save()
+                    
             else:
                 # new membership request but user is not admin/owner tut tut
                 redirect('dashboard')
@@ -1749,7 +1765,7 @@ def get_member_payments(request, title, pk):
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
     payments = []
     if search == "":
-        all_payments = Payment.objects.filter(subscription=subscription)[start:start + end]
+        all_payments = Payment.objects.filter(subscription=subscription).order_by('-created')[start:start + end]
     else:
         all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
@@ -1758,7 +1774,7 @@ def get_member_payments(request, title, pk):
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
-                                              subscription=subscription).distinct()[
+                                              subscription=subscription).distinct().order_by('-created')[
                       start:start + end]
     # get stripe payments
     total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
