@@ -1689,15 +1689,18 @@ class MemberProfileView(MembershipBase):
         context['subscriptions'] = {}
         stripe.api_key = get_stripe_secret_key(self.request)
         for subscription in context['member'].subscription.all():
-            if subscription.stripe_subscription_id:
+            # if it's a stripe customer
+            if subscription.stripe_id:
                 context['subscriptions'][subscription.id] = {}
-                context['subscriptions'][subscription.id]['subscription'] = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
-                                                                       stripe_account=subscription.membership_package.stripe_acct_id)
-
                 context['subscriptions'][subscription.id]['customer'] = stripe.Customer.retrieve(subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
                 context['subscriptions'][subscription.id]['payments'] = stripe.Charge.list(customer=subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
+                # if it's a stripe subscription
+                if subscription.stripe_subscription_id:
+                    context['subscriptions'][subscription.id]['subscription'] = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
+                                                                        stripe_account=subscription.membership_package.stripe_acct_id)
+
         return context
 
 
