@@ -1027,6 +1027,7 @@ def payment_reminder(request, title, pk):
     temp_payment_method = subscription.payment_method
     outstanding_string = ""
     body = ""
+    customised = False
 
     # if payment reminder email hasn't been sent, send default emails
     if membership_package.payment_reminder_email == '':
@@ -1070,8 +1071,9 @@ def payment_reminder(request, title, pk):
     # use custom payment reminder email
     else:
         body = membership_package.payment_reminder_email
+        customised = True
     
-    send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email)
+    send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email, customised=customised)
 
     return redirect('membership_package', membership_package.organisation_name)
 
