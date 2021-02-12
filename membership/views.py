@@ -1083,6 +1083,13 @@ def payment_reminder(request, title, pk):
 
 @login_required(login_url='/accounts/login/')
 def manage_payment_reminder(request, title):
+    # validate request user is owner or admin of org
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                        Q(admins=request.user),
+                                        organisation_name=title,
+                                        enabled=True).exists():
+        return redirect('dashboard')
+
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     
     if request.method == "GET":
