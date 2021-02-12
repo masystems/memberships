@@ -1771,13 +1771,19 @@ def member_payments(request, title, pk):
         
     # get date of next payment due, if last date exists
     next_payment_date = None
-    if last_payment_date:
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    elif last_payment_date:
         if subscription.price.interval == 'monthly':
             next_payment_date = last_payment_date + relativedelta(months=1)
         # must be yearly
         else:
             next_payment_date = last_payment_date + relativedelta(years=1)
-
+    # set next payment to sub start date
+    else:
+        next_payment_date = subscription.membership_start
+    
     # work out if they are overdue
     overdue = False
     # their subscription is free
