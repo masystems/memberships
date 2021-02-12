@@ -1072,6 +1072,9 @@ def payment_reminder(request, title, pk):
     else:
         body = membership_package.payment_reminder_email
         customised = True
+
+        # add in the new lines
+        body = body.replace('\n', '<br/>')
     
     send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email, customised=customised)
 
