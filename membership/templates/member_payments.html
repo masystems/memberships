@@ -13,7 +13,7 @@
 <!-- ============================================================== -->
 <div class="page-breadcrumb">
     <div class="row">
-        <div class="col-md-5 align-self-center">
+        <div class="col-md-4 align-self-center">
             <h4 class="page-title">{{ membership_package }} Member Payments: <span class="text-success">{{ member.user_account.get_full_name }}</span></h4>
             <div class="d-flex align-items-center">
                 <nav aria-label="breadcrumb">
@@ -27,7 +27,44 @@
                 </nav>
             </div>
         </div>
-        <div class="col-md-7 align-self-center d-none d-md-block">
+        <div class="col-md-6 align-self-center d-none d-md-block mt-3">
+            <div class="col-md-3 col-xs-3 b-r float-right"> <strong>Membership Type</strong>
+                <br>
+                <p class="text-muted">
+                    {{ subscription.price.nickname }}
+                </p>
+            </div>
+            <div class="col-md-3 col-xs-3 b-r float-right"> <strong>Next Payment Due</strong>
+                <br>
+                <p class="text-muted">
+                    {{ next_payment_date }}
+                </p>
+            </div>
+            {% if subscription.active %}
+                {% if overdue %}
+                    <div class="col-md-3 col-xs-3 b-r float-right text-danger"> <strong>Overdue</strong>
+                        <br>
+                        <p>
+                            Payment is overdue
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="col-md-3 col-xs-3 b-r float-right"> <strong>Not Overdue</strong>
+                        <br>
+                        <p class="text-muted">
+                            No payments overdue
+                        </p>
+                    </div>
+                {% endif %}
+            {% endif %}
+            <div class="col-md-3 col-xs-3 b-r float-right"> <strong>Membership Number</strong>
+                <br>
+                <p class="text-muted">
+                    {{ subscription.membership_number }}
+                </p>
+            </div>
+        </div>
+        <div class="col-md-2 align-self-center d-none d-md-block">
             <a href="{% url 'member_payment_form' membership_package.organisation_name member.id %}"><button class="btn btn-success float-right">Add Payment</button></a>
         </div>
     </div>
@@ -44,7 +81,7 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">{{ package.organisation_name }} Members</h4>
+                    <h4 class="card-title">Payments</h4>
                     <div class="mb-2">
                         Toggle columns: <a href="#!" class="toggle-vis" data-column="1"><button class="btn btn-info">ID</button></a>
                         <a href="#!" class="toggle-vis" data-column="2"><button class="btn btn-info">Method</button></a>

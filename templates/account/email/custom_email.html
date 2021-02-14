@@ -1,0 +1,6 @@
+{% extends 'account/email/custom_email_base.html' %}
+{% block content %}
+    {% autoescape off %}
+        {{ body }}
+    {% endautoescape %}
+{% endblock %}

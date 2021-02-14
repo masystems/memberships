@@ -12,6 +12,7 @@ from json import dumps, loads, JSONDecodeError
 import stripe
 from re import match
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 def generate_site_vars(request):
@@ -1027,48 +1028,79 @@ def payment_reminder(request, title, pk):
     temp_payment_method = subscription.payment_method
     outstanding_string = ""
     body = ""
+    customised = False
 
-    # if payment_method == None, it is a card payment, and stripe can be used
-    if subscription.payment_method == None:
-        temp_payment_method = "Card payment"
+    # if payment reminder email hasn't been sent, send default emails
+    if membership_package.payment_reminder_email == '':
+        # if payment_method == None, it is a card payment, and stripe can be used
+        if subscription.payment_method == None:
+            temp_payment_method = "Card payment"
 
-        # stripe subscription
-        stripe.api_key = get_stripe_secret_key(request)
-        stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
-        
-        # if payments are outstanding
-        if stripe_subscription.status == "past_due":
-            outstanding_string = f"<p>Payment to renew your subscription failed. Please try again or contact the owner or an admin of {membership_package.organisation_name}.</p>"
+            # stripe subscription
+            stripe.api_key = get_stripe_secret_key(request)
+            stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
+            
+            # if payments are outstanding
+            if stripe_subscription.status == "past_due":
+                outstanding_string = f"<p>Payment to renew your subscription failed. Please try again or contact the owner or an admin of {membership_package.organisation_name}.</p>"
 
-        body = f"""<p>This is a reminder for you to pay for your subscription.</p>
-                    {outstanding_string}
-                    <ul>
-                        <li>Membership Organisation: {membership_package.organisation_name}</li>
-                        <li>Next Payment: £{"{:.2f}".format(int(subscription.price.amount) / 100)} due by {datetime.fromtimestamp(stripe_subscription.current_period_end)}.</li>
-                        <li>Payment Method: {temp_payment_method}</li>
-                        <li>Payment Interval: {subscription.price.interval}</li>
-                    </ul>
-                    """
+            body = f"""<p>This is a reminder for you to pay for your subscription.</p>
+                        {outstanding_string}
+                        <ul>
+                            <li>Membership Organisation: {membership_package.organisation_name}</li>
+                            <li>Next Payment: £{"{:.2f}".format(int(subscription.price.amount) / 100)} due by {datetime.fromtimestamp(stripe_subscription.current_period_end)}.</li>
+                            <li>Payment Method: {temp_payment_method}</li>
+                            <li>Payment Interval: {subscription.price.interval}</li>
+                        </ul>
+                        """
 
-    # payment method is not card payment
+        # payment method is not card payment
+        else:
+            payment_method = subscription.payment_method
+            payment_info_string = ""
+            if payment_method.information != '':
+                payment_info_string = f"<li>Payment Information: {payment_method.information}</li>"
+            body = f"""<p>This is a reminder for you to pay for your subscription.
+                        <ul>
+                            <li>Membership Organisation: {membership_package.organisation_name}</li>
+                            <li>Amount Due: £{"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
+                            <li>Payment Method: {payment_method.payment_name}</li>
+                            <li>Payment Interval: {subscription.price.interval}</li>
+                            {payment_info_string}
+                        </ul>
+                        """
+    # use custom payment reminder email
     else:
-        payment_method = subscription.payment_method
-        payment_info_string = ""
-        if payment_method.information != '':
-            payment_info_string = f"<li>Payment Information: {payment_method.information}</li>"
-        body = f"""<p>This is a reminder for you to pay for your subscription.
-                    <ul>
-                        <li>Membership Organisation: {membership_package.organisation_name}</li>
-                        <li>Amount Due: £{"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
-                        <li>Payment Method: {payment_method.payment_name}</li>
-                        <li>Payment Interval: {subscription.price.interval}</li>
-                        {payment_info_string}
-                    </ul>
-                    """
+        body = membership_package.payment_reminder_email
+        customised = True
+
+        # add in the new lines
+        body = body.replace('\n', '<br/>')
     
-    send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email)
+    send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email, customised=customised)
 
     return redirect('membership_package', membership_package.organisation_name)
+
+
+@login_required(login_url='/accounts/login/')
+def manage_payment_reminder(request, title):
+    # validate request user is owner or admin of org
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                        Q(admins=request.user),
+                                        organisation_name=title,
+                                        enabled=True).exists():
+        return redirect('dashboard')
+
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    
+    if request.method == "GET":
+        return render(request, 'manage_payment_reminder.html', {'membership_package': membership_package})
+    else:
+        membership_package.payment_reminder_email = request.POST.get('custom_email')
+        membership_package.save()
+        
+        return HttpResponse(dumps({'status': "success",
+                                           'message': "Email successfully updated"}), content_type='application/json')
 
 
 def get_account_link(membership):
@@ -1219,9 +1251,8 @@ def member_reg_form(request, title, pk):
                 # validate user not already a member of package
                 try:
                     member = Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email']))
-                    if MembershipSubscription.objects.filter(member=member, membership_package=membership_package).exists():
-                        form.add_error('email', f"This email address is already in use for "
-                                                f"{membership_package.organisation_name}.")
+                    if MembershipSubscription.objects.filter(member=member).exists():
+                        form.add_error('email', f"This email address is already in use.")
                 except Member.DoesNotExist:
                     member = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
                                           title=form.cleaned_data['title'],
@@ -1256,11 +1287,11 @@ def member_reg_form(request, title, pk):
                 # edit member
                 # validate email not already in use
                 try:
-                    # if email is in use for this membership package, add an error to the form
+                    # if email is in use, add an error to the form
                     if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(
-                            email=form.cleaned_data['email'])), membership_package=membership_package).exclude(member=member).exists():
+                            email=form.cleaned_data['email']))).exclude(member=member).exists():
                         form.add_error('email',
-                                       f"This email address is already in use for {membership_package.organisation_name}.")
+                                       f"This email address is already in use.")
                     # email is in use for a different package, so it for the member
                     else:
                         member.user_account.email = form.cleaned_data['email']
@@ -1689,15 +1720,18 @@ class MemberProfileView(MembershipBase):
         context['subscriptions'] = {}
         stripe.api_key = get_stripe_secret_key(self.request)
         for subscription in context['member'].subscription.all():
-            if subscription.stripe_subscription_id:
+            # if it's a stripe customer
+            if subscription.stripe_id:
                 context['subscriptions'][subscription.id] = {}
-                context['subscriptions'][subscription.id]['subscription'] = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
-                                                                       stripe_account=subscription.membership_package.stripe_acct_id)
-
                 context['subscriptions'][subscription.id]['customer'] = stripe.Customer.retrieve(subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
                 context['subscriptions'][subscription.id]['payments'] = stripe.Charge.list(customer=subscription.stripe_id,
                                                                stripe_account=subscription.membership_package.stripe_acct_id)
+                # if it's a stripe subscription
+                if subscription.stripe_subscription_id:
+                    context['subscriptions'][subscription.id]['subscription'] = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
+                                                                        stripe_account=subscription.membership_package.stripe_acct_id)
+
         return context
 
 
@@ -1730,8 +1764,76 @@ def edit_sub_comment(request, id):
 def member_payments(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
+    subscription = member.subscription.get(member=member, membership_package=membership_package)
+
+    # get date of last payment in our DB, if it exists
+    last_db_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
+    last_db_payment_date = None
+    if last_db_payment:
+        last_db_payment_date = last_db_payment.created
+
+    # if it's a stripe subscription, get date of last stripe payment
+    last_stripe_payment_date = None
+    if subscription.stripe_id:
+        stripe.api_key = get_stripe_secret_key(request)
+        # get the last stripe payment
+        last_stripe_payment = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id, limit=1)['data']
+        # if any stripe payments exist, get the date of the last one
+        if len(last_stripe_payment) > 0:
+            last_stripe_payment_date = datetime.fromtimestamp(last_stripe_payment[0]['created']).date()
+
+    # get last payment date from stripe payments and db payments
+    last_payment_date = None
+    if last_db_payment_date and not last_stripe_payment_date:
+        last_payment_date = last_db_payment_date
+    elif not last_db_payment_date and last_stripe_payment_date:
+        last_payment_date = last_stripe_payment_date
+    # neither exist, so last payment remins None
+    elif not last_db_payment_date and not last_stripe_payment_date:
+        pass
+    elif last_db_payment_date and last_stripe_payment_date:
+        # last db payment is after last stripe payment
+        if last_db_payment_date > last_stripe_payment_date:
+            last_payment_date = last_db_payment_date
+        # last db payment is before last stripe payment
+        elif last_db_payment_date < last_stripe_payment_date:
+            last_payment_date = last_stripe_payment_date
+        # they must be equal, so it doesn't matter which is used
+        else:
+            last_payment_date = last_db_payment_date
+        
+    # get date of next payment due, if last date exists
+    next_payment_date = None
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    elif last_payment_date:
+        if subscription.price.interval == 'monthly':
+            next_payment_date = last_payment_date + relativedelta(months=1)
+        # must be yearly
+        else:
+            next_payment_date = last_payment_date + relativedelta(years=1)
+    # set next payment to sub start date
+    else:
+        next_payment_date = subscription.membership_start
+    
+    # work out if they are overdue
+    overdue = False
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    # if they have never paid, they are overdue
+    elif not last_payment_date:
+        overdue = True
+    # if next payment due is in the past
+    elif next_payment_date < datetime.now().date():
+        overdue = True
+    
     return render(request, 'member_payments.html', {'membership_package': membership_package,
-                                                    'member': member})
+                                                    'member': member,
+                                                    'subscription': subscription,
+                                                    'next_payment_date': next_payment_date,
+                                                    'overdue': overdue})
 
 
 @login_required(login_url='/accounts/login/')
