@@ -1027,48 +1027,79 @@ def payment_reminder(request, title, pk):
     temp_payment_method = subscription.payment_method
     outstanding_string = ""
     body = ""
+    customised = False
 
-    # if payment_method == None, it is a card payment, and stripe can be used
-    if subscription.payment_method == None:
-        temp_payment_method = "Card payment"
+    # if payment reminder email hasn't been sent, send default emails
+    if membership_package.payment_reminder_email == '':
+        # if payment_method == None, it is a card payment, and stripe can be used
+        if subscription.payment_method == None:
+            temp_payment_method = "Card payment"
 
-        # stripe subscription
-        stripe.api_key = get_stripe_secret_key(request)
-        stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
-        
-        # if payments are outstanding
-        if stripe_subscription.status == "past_due":
-            outstanding_string = f"<p>Payment to renew your subscription failed. Please try again or contact the owner or an admin of {membership_package.organisation_name}.</p>"
+            # stripe subscription
+            stripe.api_key = get_stripe_secret_key(request)
+            stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
+            
+            # if payments are outstanding
+            if stripe_subscription.status == "past_due":
+                outstanding_string = f"<p>Payment to renew your subscription failed. Please try again or contact the owner or an admin of {membership_package.organisation_name}.</p>"
 
-        body = f"""<p>This is a reminder for you to pay for your subscription.</p>
-                    {outstanding_string}
-                    <ul>
-                        <li>Membership Organisation: {membership_package.organisation_name}</li>
-                        <li>Next Payment: £{"{:.2f}".format(int(subscription.price.amount) / 100)} due by {datetime.fromtimestamp(stripe_subscription.current_period_end)}.</li>
-                        <li>Payment Method: {temp_payment_method}</li>
-                        <li>Payment Interval: {subscription.price.interval}</li>
-                    </ul>
-                    """
+            body = f"""<p>This is a reminder for you to pay for your subscription.</p>
+                        {outstanding_string}
+                        <ul>
+                            <li>Membership Organisation: {membership_package.organisation_name}</li>
+                            <li>Next Payment: £{"{:.2f}".format(int(subscription.price.amount) / 100)} due by {datetime.fromtimestamp(stripe_subscription.current_period_end)}.</li>
+                            <li>Payment Method: {temp_payment_method}</li>
+                            <li>Payment Interval: {subscription.price.interval}</li>
+                        </ul>
+                        """
 
-    # payment method is not card payment
+        # payment method is not card payment
+        else:
+            payment_method = subscription.payment_method
+            payment_info_string = ""
+            if payment_method.information != '':
+                payment_info_string = f"<li>Payment Information: {payment_method.information}</li>"
+            body = f"""<p>This is a reminder for you to pay for your subscription.
+                        <ul>
+                            <li>Membership Organisation: {membership_package.organisation_name}</li>
+                            <li>Amount Due: £{"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
+                            <li>Payment Method: {payment_method.payment_name}</li>
+                            <li>Payment Interval: {subscription.price.interval}</li>
+                            {payment_info_string}
+                        </ul>
+                        """
+    # use custom payment reminder email
     else:
-        payment_method = subscription.payment_method
-        payment_info_string = ""
-        if payment_method.information != '':
-            payment_info_string = f"<li>Payment Information: {payment_method.information}</li>"
-        body = f"""<p>This is a reminder for you to pay for your subscription.
-                    <ul>
-                        <li>Membership Organisation: {membership_package.organisation_name}</li>
-                        <li>Amount Due: £{"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
-                        <li>Payment Method: {payment_method.payment_name}</li>
-                        <li>Payment Interval: {subscription.price.interval}</li>
-                        {payment_info_string}
-                    </ul>
-                    """
+        body = membership_package.payment_reminder_email
+        customised = True
+
+        # add in the new lines
+        body = body.replace('\n', '<br/>')
     
-    send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email)
+    send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email, customised=customised)
 
     return redirect('membership_package', membership_package.organisation_name)
+
+
+@login_required(login_url='/accounts/login/')
+def manage_payment_reminder(request, title):
+    # validate request user is owner or admin of org
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                        Q(admins=request.user),
+                                        organisation_name=title,
+                                        enabled=True).exists():
+        return redirect('dashboard')
+
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    
+    if request.method == "GET":
+        return render(request, 'manage_payment_reminder.html', {'membership_package': membership_package})
+    else:
+        membership_package.payment_reminder_email = request.POST.get('custom_email')
+        membership_package.save()
+        
+        return HttpResponse(dumps({'status': "success",
+                                           'message': "Email successfully updated"}), content_type='application/json')
 
 
 def get_account_link(membership):
