@@ -563,31 +563,42 @@ def get_members_detailed(request, title):
                 membership_start_date = datetime.fromtimestamp(stripe_subscription.start_date).strftime("%d/%m/%Y<br/>%H:%M")
 
             # # set member id, name, email, mambership_type and buttons
-            members.append({'id': subscription.membership_number,
-                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
-                            'email': subscription.member.user_account.email,
-                            'address': address_string,
-                            'contact': f'{subscription.member.contact_number or "NULL"}',
-                            'membership_type': membership_type,
-                            'payment_method': payment_method,
-                            'billing_interval': billing_interval,
-                            'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
-                            'membership_start': f'{membership_start_date or "NULL"}',
-                            'membership_expiry': f'{subscription.membership_expiry  or "NULL"}',
-                            'action': f"""<div class="btn-group">
-                                                <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    Administer
-                                                </button>
-                                                <div class="dropdown-menu">
-                                                    {card_button}
-                                                    {member_payments_button}
-                                                    {edit_member_button}
-                                                    {reset_password_button}
-                                                    {payment_reminder_button}
-                                                    {remove_member_button}
-                                                </div>
-                                            </div>"""})
+            row = {'id': subscription.membership_number,
+                'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
+                'email': subscription.member.user_account.email,
+                'address': address_string,
+                'contact': f'{subscription.member.contact_number or "NULL"}',
+                'membership_type': membership_type,
+                'payment_method': payment_method,
+                'billing_interval': billing_interval,
+                'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+                'membership_start': f'{membership_start_date or "NULL"}',
+                'membership_expiry': f'{subscription.membership_expiry  or "NULL"}',
+                'action': f"""<div class="btn-group">
+                                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Administer
+                                    </button>
+                                    <div class="dropdown-menu">
+                                        {card_button}
+                                        {member_payments_button}
+                                        {edit_member_button}
+                                        {reset_password_button}
+                                        {payment_reminder_button}
+                                        {remove_member_button}
+                                    </div>
+                                </div>"""}
 
+            # custom fields
+            custom_fields = loads(subscription.custom_fields)
+            for key, field in custom_fields.items():
+                try:
+                    value = field['field_value']
+                except KeyError:
+                    value = ""
+                row.update({field['field_name']: value})
+
+            # append all data to the list
+            members.append(row)
         complete_data = {
             "draw": 0,
             "recordsTotal": all_subscriptions.count(),
@@ -1144,6 +1155,12 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
     def get_context_data(self, **kwargs):
         self.context = super().get_context_data(**kwargs)
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
+
+        # get and sort custom fields titles
+        custom_fields_raw = loads(self.context['membership_package'].custom_fields)
+        self.context['custom_fields'] = []
+        for key, field in custom_fields_raw.items():
+            self.context['custom_fields'].append(field['field_name'])
         return self.context
 
 
