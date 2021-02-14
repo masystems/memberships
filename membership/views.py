@@ -1250,9 +1250,8 @@ def member_reg_form(request, title, pk):
                 # validate user not already a member of package
                 try:
                     member = Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email']))
-                    if MembershipSubscription.objects.filter(member=member, membership_package=membership_package).exists():
-                        form.add_error('email', f"This email address is already in use for "
-                                                f"{membership_package.organisation_name}.")
+                    if MembershipSubscription.objects.filter(member=member).exists():
+                        form.add_error('email', f"This email address is already in use.")
                 except Member.DoesNotExist:
                     member = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
                                           title=form.cleaned_data['title'],
@@ -1287,11 +1286,11 @@ def member_reg_form(request, title, pk):
                 # edit member
                 # validate email not already in use
                 try:
-                    # if email is in use for this membership package, add an error to the form
+                    # if email is in use, add an error to the form
                     if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(
-                            email=form.cleaned_data['email'])), membership_package=membership_package).exclude(member=member).exists():
+                            email=form.cleaned_data['email']))).exclude(member=member).exists():
                         form.add_error('email',
-                                       f"This email address is already in use for {membership_package.organisation_name}.")
+                                       f"This email address is already in use.")
                     # email is in use for a different package, so it for the member
                     else:
                         member.user_account.email = form.cleaned_data['email']
