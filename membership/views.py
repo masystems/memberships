@@ -12,6 +12,7 @@ from json import dumps, loads, JSONDecodeError
 import stripe
 from re import match
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 def generate_site_vars(request):
@@ -1763,8 +1764,76 @@ def edit_sub_comment(request, id):
 def member_payments(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
+    subscription = member.subscription.get(member=member, membership_package=membership_package)
+
+    # get date of last payment in our DB, if it exists
+    last_db_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
+    last_db_payment_date = None
+    if last_db_payment:
+        last_db_payment_date = last_db_payment.created
+
+    # if it's a stripe subscription, get date of last stripe payment
+    last_stripe_payment_date = None
+    if subscription.stripe_id:
+        stripe.api_key = get_stripe_secret_key(request)
+        # get the last stripe payment
+        last_stripe_payment = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id, limit=1)['data']
+        # if any stripe payments exist, get the date of the last one
+        if len(last_stripe_payment) > 0:
+            last_stripe_payment_date = datetime.fromtimestamp(last_stripe_payment[0]['created']).date()
+
+    # get last payment date from stripe payments and db payments
+    last_payment_date = None
+    if last_db_payment_date and not last_stripe_payment_date:
+        last_payment_date = last_db_payment_date
+    elif not last_db_payment_date and last_stripe_payment_date:
+        last_payment_date = last_stripe_payment_date
+    # neither exist, so last payment remins None
+    elif not last_db_payment_date and not last_stripe_payment_date:
+        pass
+    elif last_db_payment_date and last_stripe_payment_date:
+        # last db payment is after last stripe payment
+        if last_db_payment_date > last_stripe_payment_date:
+            last_payment_date = last_db_payment_date
+        # last db payment is before last stripe payment
+        elif last_db_payment_date < last_stripe_payment_date:
+            last_payment_date = last_stripe_payment_date
+        # they must be equal, so it doesn't matter which is used
+        else:
+            last_payment_date = last_db_payment_date
+        
+    # get date of next payment due, if last date exists
+    next_payment_date = None
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    elif last_payment_date:
+        if subscription.price.interval == 'monthly':
+            next_payment_date = last_payment_date + relativedelta(months=1)
+        # must be yearly
+        else:
+            next_payment_date = last_payment_date + relativedelta(years=1)
+    # set next payment to sub start date
+    else:
+        next_payment_date = subscription.membership_start
+    
+    # work out if they are overdue
+    overdue = False
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    # if they have never paid, they are overdue
+    elif not last_payment_date:
+        overdue = True
+    # if next payment due is in the past
+    elif next_payment_date < datetime.now().date():
+        overdue = True
+    
     return render(request, 'member_payments.html', {'membership_package': membership_package,
-                                                    'member': member})
+                                                    'member': member,
+                                                    'subscription': subscription,
+                                                    'next_payment_date': next_payment_date,
+                                                    'overdue': overdue})
 
 
 @login_required(login_url='/accounts/login/')
