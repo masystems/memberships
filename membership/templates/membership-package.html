@@ -161,18 +161,7 @@
                                                     Add New Member
                                                 </button>
                                             {% endif %}
-                                            <div class="btn-group">
-                                                <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    Manage
-                                                </button>
-                                                <div class="dropdown-menu" style="">
-                                                    <a class="dropdown-item" href="{% url 'manage_admins' membership_package.organisation_name %}">Admins</a>
-                                                    <a class="dropdown-item" href="{% url 'manage_membership_types' membership_package.organisation_name %}">Membership Types</a>
-                                                    <a class="dropdown-item" href="{% url 'manage_payment_methods' membership_package.organisation_name %}">Payment Methods</a>
-                                                    <a class="dropdown-item" href="{% url 'manage_custom_fields' membership_package.organisation_name %}">Custom Fields</a>
-                                                    <a class="dropdown-item" href="{% url 'members_detailed' membership_package.organisation_name %}">Members Detailed</a>
-                                                </div>
-                                            </div>
+                                            {% include 'org_menu.html' %}
                                         </div>
                                     </div>
                                 </div>
