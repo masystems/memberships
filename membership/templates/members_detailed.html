@@ -102,6 +102,9 @@
                                     <th>Comments</th>
                                     <th>Membership Start</th>
                                     <th>Membership Expiry</th>
+                                    {% for field in custom_fields %}
+                                        <th>{{ field }}</th>
+                                    {% endfor %}
                                 </tr>
                             </tfoot>
                         </table>
