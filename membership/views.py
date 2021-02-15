@@ -595,8 +595,21 @@ def get_members_detailed(request, title):
             for key, field in custom_fields.items():
                 try:
                     value = field['field_value']
+                    
+                    # if tickbox has been ticked in the past, ...
+                    # ... set it indicating whether it is ticked now
+                    if field['field_type'] == 'bool':
+                        if field['field_value'] == 'on':
+                            value = '<i class="fad fa-check-square fa-2x"></i>'
+                        else:
+                            value = '<i class="fad fa-times-square fa-2x"></i>'
                 except KeyError:
                     value = ""
+                    
+                    # if tick box has never been ticked, show times icon
+                    if field['field_type'] == 'bool':
+                        value = '<i class="fad fa-times-square fa-2x"></i>'
+
                 row.update({field['field_name']: value})
 
             # append all data to the list
