@@ -574,6 +574,7 @@ def get_members_detailed(request, title):
                 'address': address_string,
                 'contact': f'{subscription.member.contact_number or "NULL"}',
                 'membership_type': membership_type,
+                'membership_status': membership_status,
                 'payment_method': payment_method,
                 'billing_interval': billing_interval,
                 'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",

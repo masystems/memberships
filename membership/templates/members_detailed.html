@@ -4,6 +4,7 @@
 
 {% block header %}
     <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -66,13 +67,14 @@
                         <a href="#!" class="toggle-vis" data-column="4"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Address</button></a>
                         <a href="#!" class="toggle-vis" data-column="5"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Contact</button></a>
                         <a href="#!" class="toggle-vis" data-column="6"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Membership Type</button></a>
-                        <a href="#!" class="toggle-vis" data-column="7"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Payment Type</button></a>
-                        <a href="#!" class="toggle-vis" data-column="8"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Billing Interval</button></a>
-                        <a href="#!" class="toggle-vis" data-column="9"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Comments</button></a>
-                        <a href="#!" class="toggle-vis" data-column="10"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Date Created</button></a>
-                        <a href="#!" class="toggle-vis" data-column="11"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Membership Expiry</button></a>
+                        <a href="#!" class="toggle-vis" data-column="7"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Membership Status</button></a>
+                        <a href="#!" class="toggle-vis" data-column="8"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Payment Type</button></a>
+                        <a href="#!" class="toggle-vis" data-column="9"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Billing Interval</button></a>
+                        <a href="#!" class="toggle-vis" data-column="10"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Comments</button></a>
+                        <a href="#!" class="toggle-vis" data-column="11"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Date Created</button></a>
+                        <a href="#!" class="toggle-vis" data-column="12"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Membership Expiry</button></a>
                         {% for field in custom_fields %}
-                            <a href="#!" class="toggle-vis" data-column="{{ forloop.counter0|add:11|add:1 }}"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">
+                            <a href="#!" class="toggle-vis" data-column="{{ forloop.counter0|add:12|add:1 }}"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">
                                 {{ field }}</button></a>
                         {% endfor %}
 
@@ -89,6 +91,7 @@
                                     <th>Address</th>
                                     <th>Contact</th>
                                     <th>Membership Type</th>
+                                    <th>Membership Status</th>
                                     <th>Payment Method</th>
                                     <th>Billing Interval</th>
                                     <th>Comments</th>
@@ -109,6 +112,7 @@
                                     <th>Address</th>
                                     <th>Contact</th>
                                     <th>Membership Type</th>
+                                    <th>Membership Status</th>
                                     <th>Payment Method</th>
                                     <th>Billing Interval</th>
                                     <th>Comments</th>
@@ -158,6 +162,7 @@
                 { data: "address" },
                 { data: "contact" },
                 { data: "membership_type" },
+                { data: "membership_status" },
                 { data: "payment_method" },
                 { data: "billing_interval" },
                 { data: "comments" },
