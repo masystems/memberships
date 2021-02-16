@@ -13,6 +13,7 @@ import stripe
 from re import match
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+import csv
 
 
 def generate_site_vars(request):
@@ -574,8 +575,8 @@ def get_members_detailed(request, title):
                 'payment_method': payment_method,
                 'billing_interval': billing_interval,
                 'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
-                'membership_start': f'{membership_start_date or "NULL"}',
-                'membership_expiry': f'{subscription.membership_expiry  or "NULL"}',
+                'membership_start': f'{membership_start_date or ""}',
+                'membership_expiry': f'{subscription.membership_expiry  or ""}',
                 'action': f"""<div class="btn-group">
                                     <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         Administer
@@ -600,9 +601,9 @@ def get_members_detailed(request, title):
                     # ... set it indicating whether it is ticked now
                     if field['field_type'] == 'bool':
                         if field['field_value'] == 'on':
-                            value = '<i class="fad fa-check-square fa-2x"></i>'
+                            value = '<i class="fad fa-check text-success text-center"></i>'
                         else:
-                            value = '<i class="fad fa-times-square fa-2x"></i>'
+                            value = '<i class="fad fa-times"></i>'
                 except KeyError:
                     value = ""
                     
@@ -629,6 +630,61 @@ def get_members_detailed(request, title):
         }
     return HttpResponse(dumps(complete_data))
 
+
+def export_members_detailed(request, title):
+    if request.POST:
+        print(request.POST)
+        membership_package = MembershipPackage.objects.get(organisation_name=title)
+        date = datetime.now()
+        stripe.api_key = get_stripe_secret_key(request)
+
+        search = request.POST.get('search_param')
+        if search == "":
+            all_subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package,
+                                                                      price__isnull=False).distinct()
+        else:
+            all_subscriptions = MembershipSubscription.objects.filter(
+                Q(member__user_account__first_name__icontains=search) |
+                Q(member__user_account__last_name__icontains=search) |
+                Q(member__user_account__email__icontains=search) |
+                Q(membership_number__icontains=search) |
+                Q(comments__icontains=search),
+                Q(custom_fields__icontains=search),
+                membership_package=membership_package)
+        if 'csv' in request.POST:
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.csv"'
+
+            writer = csv.writer(response, delimiter=",")
+            for subscription in all_subscriptions.all():
+                try:
+                    payment_type = subscription.payment_method.payment_name
+                except AttributeError:
+                    payment_type = ""
+                if subscription.price:
+                    billing_interval = subscription.price.interval.title()
+                else:
+                    billing_interval = ""
+
+                membership_start_date = subscription.membership_start
+                if subscription.stripe_subscription_id:
+                    stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
+                                                                       stripe_account=membership_package.stripe_acct_id)
+                    membership_start_date = datetime.fromtimestamp(stripe_subscription.start_date).strftime(
+                        "%d/%m/%Y<br/>%H:%M")
+                writer.writerow([subscription.membership_number,
+                                 subscription.member.user_account.get_full_name(),
+                                 subscription.member.user_account.email,
+                                 f"""{subscription.member.company}\n{subscription.member.address_line_1}\n{subscription.member.address_line_2}\n{subscription.member.company}\n{subscription.member.county}\n{subscription.member.postcode}""",
+                                 subscription.member.contact_number,
+                                 subscription.price.nickname,
+                                 payment_type,
+                                 billing_interval,
+                                 subscription.comments,
+                                 f'{membership_start_date or ""}',
+                                 f'{subscription.membership_expiry or ""}',
+                                 ])
+            return response
 
 def update_membership_status(request, pk, status, title):
     member = Member.objects.get(id=pk)

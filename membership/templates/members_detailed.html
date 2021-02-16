@@ -46,7 +46,19 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">{{ package.organisation_name }} Members</h4>
+                    <form action="{% url 'export_members_detailed' membership_package.organisation_name %}" method="POST" class="form-horizontal">
+                        {% csrf_token %}
+                        <input id="search_param" name="search_param" type="hidden">
+                        <div class="btn-group float-right">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Export
+                            </button>
+                            <div class="dropdown-menu" style="">
+                                <button type="submit" class="btn btn-light dropdown-item" name="csv">CSV</button>
+                            </div>
+                        </div>
+                    </form>
+                    <h4 class="card-title">{{ membership_package.organisation_name }} Members</h4>
 
                     <div class="mb-2">
                         Toggle columns: <a href="#!" class="toggle-vis" data-column="2"><button class="btn btn-info" onclick="$(this).toggleClass('btn-info btn-dark');">Name</button></a>
@@ -233,4 +245,10 @@
             });
         });
     </script>
+<!--export-->
+<script>
+    $('input[type=search]').keyup(function() {
+        $('#search_param').val($('input[type=search]').val());
+    })
+</script>
 {% endblock %}

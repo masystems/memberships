@@ -13,6 +13,7 @@ urlpatterns = [
     path('org/select-package', views.SelectMembershipPackageView.as_view(), name="select_package"),
     path('get-members/<str:title>', views.get_members, name="get_members"),
     path('get-members-detailed/<str:title>', views.get_members_detailed, name="get_members_detailed"),
+    path('export_members_detailed/<str:title>', views.export_members_detailed, name="export_members_detailed"),
     path('organisation-payment', views.organisation_payment, name='organisation_payment'),
     path('create-package-on-stripe', views.create_package_on_stripe, name='create_package_on_stripe'),
     path('membership-package-settings', views.CreateMembershipPackage.as_view(), name="membership_package_settings"),
