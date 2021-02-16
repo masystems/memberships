@@ -46,7 +46,19 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <h4 class="card-title">{{ package.organisation_name }} Members</h4>
+                    <form action="{% url 'export_members_detailed' membership_package.organisation_name %}" method="POST" class="form-horizontal">
+                        {% csrf_token %}
+                        <input id="search_param" name="search_param" type="hidden">
+                        <div class="btn-group float-right">
+                            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Export
+                            </button>
+                            <div class="dropdown-menu" style="">
+                                <button type="submit" class="btn btn-light dropdown-item" name="csv">CSV</button>
+                            </div>
+                        </div>
+                    </form>
+                    <h4 class="card-title">{{ membership_package.organisation_name }} Members</h4>
 
                     <div class="mb-2">
                         Toggle columns: <a href="#!" class="toggle-vis" data-column="2"><button class="btn btn-info" onclick="$(this).toggleClass('btn-info btn-dark');">Name</button></a>
@@ -102,6 +114,9 @@
                                     <th>Comments</th>
                                     <th>Membership Start</th>
                                     <th>Membership Expiry</th>
+                                    {% for field in custom_fields %}
+                                        <th>{{ field }}</th>
+                                    {% endfor %}
                                 </tr>
                             </tfoot>
                         </table>
@@ -128,6 +143,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.32/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.print.min.js"></script>
+    <script src="{% static 'assets/libs/bootstrap-switch/dist/js/bootstrap-switch.min.js' %}"></script>
     <script>
         var members_table = $('#show_hide_col').DataTable({
             "processing": true,
@@ -151,13 +167,14 @@
                     { data: "{{ field }}" },
                 {% endfor %}
             ],
+            {% include 'membership_status_switch.js' %}
             columnDefs: [
                 { targets: 'no-sort', orderable: false },
                 {
                     render: function (data, type, full, meta) {
                         return "<div class='text-wrap width-200'>" + data + "</div>";
                     },
-                    targets: 9
+                    targets: '_all'
                 }
             ],
             action: function ( e, dt, button, conf ) {
@@ -230,4 +247,10 @@
             });
         });
     </script>
+<!--export-->
+<script>
+    $('input[type=search]').keyup(function() {
+        $('#search_param').val($('input[type=search]').val());
+    })
+</script>
 {% endblock %}
