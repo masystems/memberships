@@ -598,7 +598,7 @@ def get_members_detailed(request, title):
             try:
                 custom_fields = loads(subscription.custom_fields)
             except JSONDecodeError:
-                custom_fields = {}
+                custom_fields = loads(membership_package.custom_fields)
             for key, field in custom_fields.items():
                 try:
                     value = field['field_value']
