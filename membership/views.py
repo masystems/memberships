@@ -683,7 +683,8 @@ def get_members(request, title):
                                         <input type="checkbox" value="{ subscription.member.id }" class="membership-status" 
                                         data-on-color="success" 
                                         data-off-color="danger" data-on-text="Active"
-                                        data-off-text="Inactive">
+                                        data-off-text="Inactive"
+                                        data-size="mini">
                                     </div>
                                     """
 
@@ -691,8 +692,9 @@ def get_members(request, title):
                     membership_status = f"""<div class="mb-4">
                                                 <input type="checkbox" value="{ subscription.member.id }" 
                                                 class="membership-status" data-on-color="success" 
-                                                data-off-color="danger" data-on-text="Active" 
-                                                data-off-text="Inactive" checked>
+                                                data-off-color="none" data-on-text="Active" 
+                                                data-off-text="Inactive"
+                                                data-size="mini" checked>
                                             </div>
                                             """
             except AttributeError:
