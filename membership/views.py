@@ -609,7 +609,7 @@ def get_members_detailed(request, title):
                     
                     # if tick box has never been ticked, show times icon
                     if field['field_type'] == 'bool':
-                        value = '<i class="fad fa-times-square fa-2x"></i>'
+                        value = '<i class="fad fa-times"></i>'
 
                 row.update({field['field_name']: value})
 
