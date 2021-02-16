@@ -152,6 +152,7 @@
     <script src="https://cdn.datatables.net/buttons/1.5.1/js/buttons.print.min.js"></script>
     <script src="{% static 'assets/libs/bootstrap-switch/dist/js/bootstrap-switch.min.js' %}"></script>
     <script>
+        var page = 'members-detailed';
         var members_table = $('#show_hide_col').DataTable({
             "processing": true,
             "serverSide": true,

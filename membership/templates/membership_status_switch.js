@@ -8,7 +8,7 @@ drawCallback: function () {
             }
 
             $('#update-membership-status-modal').modal('show');
-            $('#updateStatusUrl').attr("href", "/membership/update-membership-status/"+memberId+"/"+status+"/{{ membership_package.organisation_name }}");
+            $('#updateStatusUrl').attr("href", "/membership/update-membership-status/"+memberId+"/"+status+"/{{ membership_package.organisation_name }}/"+page);
 
             $(this).bootstrapSwitch('toggleState', true, true);
 

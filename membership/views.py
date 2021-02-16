@@ -704,14 +704,17 @@ def export_members_detailed(request, title):
                 writer.writerow(inbuilt_items)
             return response
 
-def update_membership_status(request, pk, status, title):
+
+def update_membership_status(request, pk, status, title, page):
     member = Member.objects.get(id=pk)
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     subscription = member.subscription.get(member=member, membership_package=membership_package)
 
     subscription.active = status
     subscription.save()
-    return HttpResponseRedirect('/membership/org/' + membership_package.organisation_name)
+
+    # redirect user depending on where they have come from
+    return HttpResponseRedirect('/membership/' + page + '/' + membership_package.organisation_name)
 
 
 def get_members(request, title):
