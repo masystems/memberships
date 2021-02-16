@@ -76,10 +76,7 @@
                         <a href="#!" class="toggle-vis" data-column="10"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Comments</button></a>
                         <a href="#!" class="toggle-vis" data-column="11"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Date Created</button></a>
                         <a href="#!" class="toggle-vis" data-column="12"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Membership Expiry</button></a>
-                        {% for field in custom_fields %}
-                            <a href="#!" class="toggle-vis" data-column="{{ forloop.counter0|add:12|add:1 }}"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">
-                                {{ field }}</button></a>
-                        {% endfor %}
+
 
                     </div>
                     <div class="table-responsive">
@@ -100,9 +97,7 @@
                                     <th>Comments</th>
                                     <th>Membership Start</th>
                                     <th>Membership Expiry</th>
-                                    {% for field in custom_fields %}
-                                        <th>{{ field }}</th>
-                                    {% endfor %}
+
                                 </tr>
                             </thead>
 
@@ -121,9 +116,7 @@
                                     <th>Comments</th>
                                     <th>Membership Start</th>
                                     <th>Membership Expiry</th>
-                                    {% for field in custom_fields %}
-                                        <th>{{ field }}</th>
-                                    {% endfor %}
+
                                 </tr>
                             </tfoot>
                         </table>
@@ -172,9 +165,7 @@
                 { data: "comments" },
                 { data: "membership_start" },
                 { data: "membership_expiry" },
-                {% for field in custom_fields %}
-                    { data: "{{ field }}" },
-                {% endfor %}
+
             ],
             {% include 'membership_status_switch.js' %}
             columnDefs: [
