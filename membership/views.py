@@ -647,7 +647,7 @@ def export_members_detailed(request, title):
                 Q(member__user_account__last_name__icontains=search) |
                 Q(member__user_account__email__icontains=search) |
                 Q(membership_number__icontains=search) |
-                Q(comments__icontains=search),
+                Q(comments__icontains=search) |
                 Q(custom_fields__icontains=search),
                 membership_package=membership_package)
         if 'csv' in request.POST:
@@ -656,6 +656,10 @@ def export_members_detailed(request, title):
 
             writer = csv.writer(response, delimiter=",")
             for subscription in all_subscriptions.all():
+                try:
+                    membership_type = subscription.price.nickname
+                except AttributeError:
+                    membership_type = ""
                 try:
                     payment_type = subscription.payment_method.payment_name
                 except AttributeError:
@@ -671,18 +675,30 @@ def export_members_detailed(request, title):
                                                                        stripe_account=membership_package.stripe_acct_id)
                     membership_start_date = datetime.fromtimestamp(stripe_subscription.start_date).strftime(
                         "%d/%m/%Y<br/>%H:%M")
-                writer.writerow([subscription.membership_number,
+
+                # custom fields
+                custom_fields = []
+                custom_fields_raw = loads(subscription.custom_fields)
+                for key, field in custom_fields_raw.items():
+                    try:
+                        custom_fields.append(field['field_value'])
+                    except KeyError:
+                        custom_fields.append("")
+
+                inbuilt_items = [subscription.membership_number,
                                  subscription.member.user_account.get_full_name(),
                                  subscription.member.user_account.email,
                                  f"""{subscription.member.company}\n{subscription.member.address_line_1}\n{subscription.member.address_line_2}\n{subscription.member.company}\n{subscription.member.county}\n{subscription.member.postcode}""",
                                  subscription.member.contact_number,
-                                 subscription.price.nickname,
+                                 membership_type,
                                  payment_type,
                                  billing_interval,
                                  subscription.comments,
                                  f'{membership_start_date or ""}',
-                                 f'{subscription.membership_expiry or ""}',
-                                 ])
+                                 f'{subscription.membership_expiry or ""}']
+                # add custom fields to the mix
+                inbuilt_items.extend(custom_fields)
+                writer.writerow(inbuilt_items)
             return response
 
 def update_membership_status(request, pk, status, title):
