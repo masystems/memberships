@@ -595,7 +595,10 @@ def get_members_detailed(request, title):
                                 </div>"""}
 
             # custom fields
-            custom_fields = loads(subscription.custom_fields)
+            try:
+                custom_fields = loads(subscription.custom_fields)
+            except JSONDecodeError:
+                custom_fields = {}
             for key, field in custom_fields.items():
                 try:
                     value = field['field_value']
