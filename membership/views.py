@@ -494,7 +494,8 @@ def get_members_detailed(request, title):
                                         <input type="checkbox" value="{subscription.member.id}" class="membership-status" 
                                         data-on-color="success" 
                                         data-off-color="danger" data-on-text="Active"
-                                        data-off-text="Inactive">
+                                        data-off-text="Inactive"
+                                        data-size="mini">
                                     </div>
                                     """
 
@@ -503,7 +504,8 @@ def get_members_detailed(request, title):
                                                 <input type="checkbox" value="{subscription.member.id}" 
                                                 class="membership-status" data-on-color="success" 
                                                 data-off-color="danger" data-on-text="Active" 
-                                                data-off-text="Inactive" checked>
+                                                data-off-text="Inactive"
+                                                data-size="mini" checked>
                                             </div>
                                             """
             except AttributeError:
@@ -572,6 +574,7 @@ def get_members_detailed(request, title):
                 'address': address_string,
                 'contact': f'{subscription.member.contact_number or "NULL"}',
                 'membership_type': membership_type,
+                'membership_status': membership_status,
                 'payment_method': payment_method,
                 'billing_interval': billing_interval,
                 'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
@@ -701,14 +704,17 @@ def export_members_detailed(request, title):
                 writer.writerow(inbuilt_items)
             return response
 
-def update_membership_status(request, pk, status, title):
+
+def update_membership_status(request, pk, status, title, page):
     member = Member.objects.get(id=pk)
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     subscription = member.subscription.get(member=member, membership_package=membership_package)
 
     subscription.active = status
     subscription.save()
-    return HttpResponseRedirect('/membership/org/' + membership_package.organisation_name)
+
+    # redirect user depending on where they have come from
+    return HttpResponseRedirect('/membership/' + page + '/' + membership_package.organisation_name)
 
 
 def get_members(request, title):
@@ -767,7 +773,8 @@ def get_members(request, title):
                                         <input type="checkbox" value="{ subscription.member.id }" class="membership-status" 
                                         data-on-color="success" 
                                         data-off-color="danger" data-on-text="Active"
-                                        data-off-text="Inactive">
+                                        data-off-text="Inactive"
+                                        data-size="mini">
                                     </div>
                                     """
 
@@ -775,8 +782,9 @@ def get_members(request, title):
                     membership_status = f"""<div class="mb-4">
                                                 <input type="checkbox" value="{ subscription.member.id }" 
                                                 class="membership-status" data-on-color="success" 
-                                                data-off-color="danger" data-on-text="Active" 
-                                                data-off-text="Inactive" checked>
+                                                data-off-color="none" data-on-text="Active" 
+                                                data-off-text="Inactive"
+                                                data-size="mini" checked>
                                             </div>
                                             """
             except AttributeError:
