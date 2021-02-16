@@ -425,6 +425,7 @@ def get_members_detailed(request, title):
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
+    stripe.api_key = get_stripe_secret_key(request)
 
     # desc or asc
     if request.GET.get('order[0][dir]') == 'asc':
@@ -468,9 +469,9 @@ def get_members_detailed(request, title):
             Q(member__user_account__last_name__icontains=search) |
             Q(member__user_account__email__icontains=search) |
             Q(membership_number__icontains=search) |
-            Q(comments__icontains=search),
+            Q(comments__icontains=search) |
             Q(custom_fields__icontains=search),
-            membership_package=membership_package).order_by(sort_by_col)[start:start + end]
+            membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
         total_members = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
     else:
@@ -478,7 +479,7 @@ def get_members_detailed(request, title):
                                                               Q(member__user_account__last_name__icontains=search) |
                                                               Q(member__user_account__email__icontains=search) |
                                                               Q(membership_number__icontains=search) |
-                                                              Q(comments__icontains=search),
+                                                              Q(comments__icontains=search) |
                                                               Q(custom_fields__icontains=search),
                                                               membership_package=membership_package).order_by(
             sort_by_col).count()
@@ -559,7 +560,6 @@ def get_members_detailed(request, title):
                 address_string = 'NULL'
 
             # set start date based on whether it is a stripe subscription
-            stripe.api_key = get_stripe_secret_key(request)
             membership_start_date = subscription.membership_start
             if subscription.stripe_subscription_id:
                 stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
@@ -633,7 +633,6 @@ def get_members_detailed(request, title):
 
 def export_members_detailed(request, title):
     if request.POST:
-        print(request.POST)
         membership_package = MembershipPackage.objects.get(organisation_name=title)
         date = datetime.now()
         stripe.api_key = get_stripe_secret_key(request)
