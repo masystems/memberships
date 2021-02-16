@@ -65,7 +65,7 @@
                     <h4 class="card-title">{{ membership_package.organisation_name }} Members</h4>
 
                     <div class="mb-2">
-                        Toggle columns: <a href="#!" class="toggle-vis" data-column="2"><button class="btn btn-info" onclick="$(this).toggleClass('btn-info btn-dark');">Name</button></a>
+                        Toggle columns: <a href="#!" class="toggle-vis" data-column="2"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Name</button></a>
                         <a href="#!" class="toggle-vis" data-column="3"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Email</button></a>
                         <a href="#!" class="toggle-vis" data-column="4"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Address</button></a>
                         <a href="#!" class="toggle-vis" data-column="5"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Contact</button></a>
@@ -76,7 +76,10 @@
                         <a href="#!" class="toggle-vis" data-column="10"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Comments</button></a>
                         <a href="#!" class="toggle-vis" data-column="11"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Date Created</button></a>
                         <a href="#!" class="toggle-vis" data-column="12"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Membership Expiry</button></a>
-
+                        {% for field in custom_fields %}
+                            <a href="#!" class="toggle-vis" data-column="{{ forloop.counter0|add:12|add:1 }}"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">
+                                {{ field }}</button></a>
+                        {% endfor %}
 
                     </div>
                     <div class="table-responsive">
@@ -97,7 +100,9 @@
                                     <th>Comments</th>
                                     <th>Membership Start</th>
                                     <th>Membership Expiry</th>
-
+                                    {% for field in custom_fields %}
+                                        <th>{{ field }}</th>
+                                    {% endfor %}
                                 </tr>
                             </thead>
 
@@ -116,7 +121,9 @@
                                     <th>Comments</th>
                                     <th>Membership Start</th>
                                     <th>Membership Expiry</th>
-
+                                    {% for field in custom_fields %}
+                                        <th>{{ field }}</th>
+                                    {% endfor %}
                                 </tr>
                             </tfoot>
                         </table>
@@ -150,6 +157,7 @@
             "processing": true,
             "serverSide": true,
             "responsive": true,
+            "lengthMenu": [ 5, 10, 25, 50, 100 ],
             "ajax": "{% url 'get_members_detailed' membership_package.organisation_name %}",
             "columns": [
                 { data: "action" },
@@ -165,7 +173,9 @@
                 { data: "comments" },
                 { data: "membership_start" },
                 { data: "membership_expiry" },
-
+                {% for field in custom_fields %}
+                    { data: "{{ field }}" },
+                {% endfor %}
             ],
             {% include 'membership_status_switch.js' %}
             columnDefs: [
