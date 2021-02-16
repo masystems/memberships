@@ -14,7 +14,10 @@
 <div class="page-breadcrumb">
     <div class="row">
         <div class="col-md-4 align-self-center">
-            <h4 class="page-title">{{ membership_package }} Member Payments: <span class="text-success">{{ member.user_account.get_full_name }}</span></h4>
+            <h4 class="page-title">
+                {{ membership_package }} Member Payments: 
+                <a href="{% url 'member_profile' member.id %}"><span class="text-success">{{ member.user_account.get_full_name }}</span></a>
+            </h4>
             <div class="d-flex align-items-center">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
