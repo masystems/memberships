@@ -16,7 +16,7 @@
         <div class="col-md-4 align-self-center">
             <h4 class="page-title">
                 {{ membership_package }} Member Payments: 
-                <a href="{% url 'member_profile' member.id %}"><span class="text-success">{{ member.user_account.get_full_name }}</span></a>
+                <a href="{% url 'member_profile' member.id %}" data-toggle="tooltip" title="View Profile"><span class="text-success">{{ member.user_account.get_full_name }}</span></a>
             </h4>
             <div class="d-flex align-items-center">
                 <nav aria-label="breadcrumb">
