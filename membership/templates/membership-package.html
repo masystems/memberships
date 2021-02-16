@@ -30,27 +30,8 @@
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
-<!-- Modal to update membership status -->
-<div id="update-membership-status-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="update-membership-statusLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header modal-colored-header bg-danger">
-                <h4 class="modal-title text-white" id="update-membership-statusLabel">Update Membership Status</h4>
-                <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip" title="Exit Window" aria-hidden="true">×</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to update the status of the membership for this member?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="cancelStatusModal" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                <a id="updateStatusUrl" href="">
-                    <button type="button" class="btn btn-danger">Continue</button>
-                </a>
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
-
+<!-- modal to update membership status -->
+{% include 'update_membership_status.html' %}
 
 {% include 'comments-modal.html' %}
 <!-- ============================================================== -->
@@ -438,6 +419,8 @@
         });
     </script>
     <script>
+        // create variable so that we are redirected back to this page
+        var page = 'org';
         var members_table = $('#default_order').DataTable({
             "processing": true,
             "serverSide": true,
