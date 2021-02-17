@@ -215,6 +215,59 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                <hr>
+                                <h3 class="text-danger">Overdue Members</h3>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered nowrap display" id="overdueMembersTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Membership Type</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for member in overdue_members %}
+                                                <tr>
+                                                    <td>
+                                                        <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
+                                                    </td>
+                                                    <td>{{ member.user_account.email }}</td>
+                                                    <td>
+                                                        <span class="badge py-1 badge-danger">
+                                                            No membership selected
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {% for subscription in member.subscription.all %}
+                                                            {% if subscription.membership_package == membership_package %}
+                                                                <!--{% if subscription.payment_method or subscription.stripe_subscription_id %}
+                                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
+                                                                            <i class="fad fa-credit-card-front text-success"></i>
+                                                                        </button>
+                                                                    </a>
+                                                                {% else %}-->
+                                                                <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
+                                                                    <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                        <i class="fad fa-credit-card-front text-danger"></i>
+                                                                    </button>
+                                                                </a>
+                                                                <!--{% endif %}-->
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                        <a href="{% url 'member_form' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
+                                                        <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>
+                                                        <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                                    </td>
+                                                </tr>
+                                            {% empty %}
+                                                <td colspan="4">No overdue members</td>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                         <!-- Tabs -->
