@@ -601,28 +601,29 @@ def get_members_detailed(request, title):
                 custom_fields = loads(membership_package.custom_fields)
             counter = 1
             for key, field in custom_fields.items():
-                try:
-                    value = field['field_value']
+                if not counter == 23:
+                    try:
+                        value = field['field_value']
 
-                    # if tickbox has been ticked in the past, ...
-                    # ... set it indicating whether it is ticked now
-                    if field['field_type'] == 'bool':
-                        if field['field_value'] == 'on':
-                            value = '<i class="fad fa-check text-success text-center"></i>'
-                        else:
+                        # if tickbox has been ticked in the past, ...
+                        # ... set it indicating whether it is ticked now
+                        if field['field_type'] == 'bool':
+                            if field['field_value'] == 'on':
+                                value = '<i class="fad fa-check text-success text-center"></i>'
+                            else:
+                                value = '<i class="fad fa-times"></i>'
+                    except KeyError:
+                        value = ""
+
+                        # if tick box has never been ticked, show times icon
+                        if field['field_type'] == 'bool':
                             value = '<i class="fad fa-times"></i>'
-                except KeyError:
-                    value = ""
 
-                    # if tick box has never been ticked, show times icon
-                    if field['field_type'] == 'bool':
-                        value = '<i class="fad fa-times"></i>'
-
-                row.update({field['field_name']: value})
-                if counter == 23:
-                    break
-                else:
-                    counter += 1
+                    row.update({field['field_name']: value})
+                # if counter == 23:
+                #     break
+                # else:
+                counter += 1
 
             # append all data to the list
             members.append(row)
@@ -1263,11 +1264,12 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         self.context['custom_fields'] = []
         counter = 1
         for key, field in custom_fields_raw.items():
-            self.context['custom_fields'].append(field['field_name'])
-            if counter == 23:
-                break
-            else:
-                counter += 1
+            if not counter == 23:
+                self.context['custom_fields'].append(field['field_name'])
+            # if counter == 23:
+            #     break
+            # else:
+            counter += 1
         return self.context
 
 
