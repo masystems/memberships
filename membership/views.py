@@ -601,7 +601,7 @@ def get_members_detailed(request, title):
                 custom_fields = loads(membership_package.custom_fields)
             counter = 1
             for key, field in custom_fields.items():
-                if not counter == 23 or not counter == 24:
+                if counter not in (23, 24, 25):
                     try:
                         value = field['field_value']
 
@@ -619,7 +619,7 @@ def get_members_detailed(request, title):
                         if field['field_type'] == 'bool':
                             value = '<i class="fad fa-times"></i>'
 
-                    row.update({field['field_name']: value})
+                row.update({field['field_name']: value})
                 # if counter == 23:
                 #     break
                 # else:
@@ -640,6 +640,8 @@ def get_members_detailed(request, title):
             "recordsFiltered": 0,
             "data": []
         }
+    from sys import getsizeof
+    print(f'SIZE: {getsizeof(dumps(complete_data))}')
     return HttpResponse(dumps(complete_data))
 
 
@@ -1264,7 +1266,7 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         self.context['custom_fields'] = []
         counter = 1
         for key, field in custom_fields_raw.items():
-            if not counter == 23 or not counter == 24:
+            if counter not in (23, 24, 25):
                 self.context['custom_fields'].append(field['field_name'])
             # if counter == 23:
             #     break
