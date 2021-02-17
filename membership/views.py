@@ -601,7 +601,7 @@ def get_members_detailed(request, title):
                 custom_fields = loads(membership_package.custom_fields)
             counter = 1
             for key, field in custom_fields.items():
-                if counter not in (23, 24, 25, 26, 27):
+                if counter not in (22, 23, 24, 25, 26, 27):
                     try:
                         value = field['field_value']
 
@@ -1266,7 +1266,7 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         self.context['custom_fields'] = []
         counter = 1
         for key, field in custom_fields_raw.items():
-            if counter not in (23, 24, 25, 26, 27):
+            if counter not in (22, 23, 24, 25, 26, 27):
                 self.context['custom_fields'].append(field['field_name'])
             # if counter == 23:
             #     break
