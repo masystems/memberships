@@ -619,7 +619,7 @@ def get_members_detailed(request, title):
                         value = '<i class="fad fa-times"></i>'
 
                 row.update({field['field_name']: value})
-                if counter == 15:
+                if counter == 20:
                     break
                 else:
                     counter += 1
@@ -1264,7 +1264,7 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         counter = 1
         for key, field in custom_fields_raw.items():
             self.context['custom_fields'].append(field['field_name'])
-            if counter == 15:
+            if counter == 20:
                 break
             else:
                 counter += 1
