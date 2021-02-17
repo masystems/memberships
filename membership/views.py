@@ -662,6 +662,27 @@ def export_members_detailed(request, title):
             response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.csv"'
 
             writer = csv.writer(response, delimiter=",")
+            headers = ['Member ID',
+                       'Name',
+                       'Email',
+                       'Address',
+                       'Contact',
+                       'Membership Status',
+                       'Payment Method',
+                       'Billing Interval',
+                       'Comments',
+                       'Membership Start',
+                       'Membership Expiry']
+            # custom fields
+            custom_fields = []
+            custom_fields_raw = loads(membership_package.custom_fields)
+            for key, field in custom_fields_raw.items():
+                try:
+                    custom_fields.append(field['field_name'])
+                except KeyError:
+                    custom_fields.append("")
+            headers.extend(custom_fields)
+            writer.writerow(headers)
             for subscription in all_subscriptions.all():
                 try:
                     membership_type = subscription.price.nickname
@@ -921,11 +942,10 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         # get active members with overdue subscriptions
         context['overdue_members'] = {}
-        for member in context['members'].all():
+        for member in context['members'].all()[:500]:
             sub = member.subscription.get(member=member, membership_package=context['membership_package'])
             if get_overdue_and_next(self.request, sub)['overdue'] and sub.active:
                 context['overdue_members'][member] = get_overdue_and_next(self.request, sub)['next_payment_date']
-        print(context['overdue_members'])
         return context
 
 
