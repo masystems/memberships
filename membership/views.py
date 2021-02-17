@@ -921,6 +921,12 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # url for donation page
         context['donation_url'] = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={context['membership_package'].organisation_name}"
 
+        # # get overdue members
+        # context['overdue_members'] = []
+        # subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)
+        # for sub in subscriptions.all():
+        #     if is_overdue(sub)
+
         return context
 
 
@@ -1878,28 +1884,7 @@ def edit_sub_comment(request, id):
                                    'message': "Comments updated"}))
 
 
-def is_overdue(subscription, last_payment_date, next_payment_date):
-    # work out if they are overdue
-    overdue = False
-    # their subscription is free
-    if float(subscription.price.amount) == 0:
-        pass
-    # if they have never paid, they are overdue
-    elif not last_payment_date:
-        overdue = True
-    # if next payment due is in the past
-    elif next_payment_date < datetime.now().date():
-        overdue = True
-
-    return overdue
-
-
-@login_required(login_url='/accounts/login/')
-def member_payments(request, title, pk):
-    membership_package = MembershipPackage.objects.get(organisation_name=title)
-    member = Member.objects.get(id=pk)
-    subscription = member.subscription.get(member=member, membership_package=membership_package)
-
+def get_overdue_and_next(request, subscription):
     # get date of last payment in our DB, if it exists
     last_db_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
     last_db_payment_date = None
@@ -1950,9 +1935,35 @@ def member_payments(request, title, pk):
     # set next payment to sub start date
     else:
         next_payment_date = subscription.membership_start
+    
+    # work out if they are overdue
+    overdue = False
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    # if they have never paid, they are overdue
+    elif not last_payment_date:
+        overdue = True
+    # if next payment due is in the past
+    elif next_payment_date < datetime.now().date():
+        overdue = True
 
-    # find out whether the member is overdue
-    overdue = is_overdue(subscription, last_payment_date, next_payment_date)
+    return {
+        'next_payment_date': next_payment_date,
+        'overdue': overdue
+    }
+
+
+@login_required(login_url='/accounts/login/')
+def member_payments(request, title, pk):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    member = Member.objects.get(id=pk)
+    subscription = member.subscription.get(member=member, membership_package=membership_package)
+
+    # find out whether the member is overdue, and date of next payment
+    overdue_and_next = get_overdue_and_next(request, subscription)
+    next_payment_date = overdue_and_next['next_payment_date']
+    overdue = overdue_and_next['overdue']
     
     return render(request, 'member_payments.html', {'membership_package': membership_package,
                                                     'member': member,
