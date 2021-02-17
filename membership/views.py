@@ -421,14 +421,14 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
 
 def get_members_detailed(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
-    start = int(request.GET.get('start', 0))
-    end = int(request.GET.get('length', 20))
-    search = request.GET.get('search[value]', "")
-    sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
+    start = int(request.POST.get('start', 0))
+    end = int(request.POST.get('length', 20))
+    search = request.POST.get('search[value]', "")
+    sort_by = request.POST.get(f'columns[{request.POST.get("order[0][column]")}][data]')
     stripe.api_key = get_stripe_secret_key(request)
 
     # desc or asc
-    if request.GET.get('order[0][dir]') == 'asc':
+    if request.POST.get('order[0][dir]') == 'asc':
         direction = ""
     else:
         direction = "-"
@@ -635,8 +635,6 @@ def get_members_detailed(request, title):
             "recordsFiltered": 0,
             "data": []
         }
-    from sys import getsizeof
-    print(f'SIZE: {getsizeof(dumps(complete_data))}')
     return HttpResponse(dumps(complete_data))
 
 
