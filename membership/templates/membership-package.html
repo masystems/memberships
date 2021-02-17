@@ -235,9 +235,11 @@
                                                     </td>
                                                     <td>{{ member.user_account.email }}</td>
                                                     <td>
-                                                        <span class="badge py-1 badge-danger">
-                                                            No membership selected
-                                                        </span>
+                                                        {% for subscription in member.subscription.all %}
+                                                            {% if subscription.membership_package == membership_package %}
+                                                                <span class="badge py-1 badge-info">{{ subscription.price.nickname }}</span>
+                                                            {% endif %}
+                                                        {% endfor %}
                                                     </td>
                                                     <td>
                                                         {% for subscription in member.subscription.all %}
