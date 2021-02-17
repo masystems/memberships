@@ -1879,6 +1879,23 @@ def edit_sub_comment(request, id):
 
 
 @login_required(login_url='/accounts/login/')
+def is_overdue(subscription, last_payment_date, next_payment_date):
+    # work out if they are overdue
+    overdue = False
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    # if they have never paid, they are overdue
+    elif not last_payment_date:
+        overdue = True
+    # if next payment due is in the past
+    elif next_payment_date < datetime.now().date():
+        overdue = True
+
+    return overdue
+
+
+@login_required(login_url='/accounts/login/')
 def member_payments(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
