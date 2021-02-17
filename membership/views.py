@@ -14,6 +14,7 @@ from re import match
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import csv
+import xlwt
 
 
 def generate_site_vars(request):
@@ -948,6 +949,45 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
                 context['overdue_members'][member] = get_overdue_and_next(self.request, sub)['next_payment_date']
         return context
 
+
+def reports(request, title, report, file_type):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    date = datetime.now()
+    if file_type == 'xlsx':
+        response = HttpResponse(content_type='application/ms-excel')
+        response[
+            'Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xlsx"'
+        # creating workbook
+        workbook = xlwt.Workbook(encoding='utf-8')
+
+        # adding sheet
+        worksheet = workbook.add_sheet("sheet1")
+
+        # Sheet header, first row
+        row_num = 0
+
+        font_style = xlwt.XFStyle()
+        # headers are bold
+        font_style.font.bold = True
+
+        # column header names, you can use your own headers here
+        columns = ['Column 1', 'Column 2', 'Column 3', 'Column 4', ]
+
+        # write column headers in sheet
+        for col_num in range(len(columns)):
+            worksheet.write(row_num, col_num, columns[col_num], font_style)
+
+        # Sheet body, remaining rows
+        font_style = xlwt.XFStyle()
+
+        # get your data, from database or from a text file...
+        subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)  # dummy method to fetch data.
+        for subscription in subscriptions:
+            row_num = row_num + 1
+            worksheet.write(row_num, 0, subscription.membership_number, font_style)
+            worksheet.write(row_num, 1, subscription.member.user_account.get_full_name(), font_style)
+        workbook.save(response)
+        return response
 
 class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
     template_name = 'membership-package-settings.html'
