@@ -100,7 +100,9 @@
                                     <th>Comments</th>
                                     <th>Membership Start</th>
                                     <th>Membership Expiry</th>
-
+                                    {% for field in custom_fields %}
+                                        <th>{{ field }}</th>
+                                    {% endfor %}
                                 </tr>
                             </thead>
 
@@ -119,7 +121,9 @@
                                     <th>Comments</th>
                                     <th>Membership Start</th>
                                     <th>Membership Expiry</th>
-
+                                    {% for field in custom_fields %}
+                                        <th>{{ field }}</th>
+                                    {% endfor %}
                                 </tr>
                             </tfoot>
                         </table>
@@ -169,7 +173,9 @@
                 { data: "comments" },
                 { data: "membership_start" },
                 { data: "membership_expiry" },
-
+                {% for field in custom_fields %}
+                    { data: "{{ field }}" },
+                {% endfor %}
             ],
             {% include 'membership_status_switch.js' %}
             columnDefs: [
