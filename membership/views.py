@@ -1878,7 +1878,6 @@ def edit_sub_comment(request, id):
                                    'message': "Comments updated"}))
 
 
-@login_required(login_url='/accounts/login/')
 def is_overdue(subscription, last_payment_date, next_payment_date):
     # work out if they are overdue
     overdue = False
@@ -1951,18 +1950,9 @@ def member_payments(request, title, pk):
     # set next payment to sub start date
     else:
         next_payment_date = subscription.membership_start
-    
-    # work out if they are overdue
-    overdue = False
-    # their subscription is free
-    if float(subscription.price.amount) == 0:
-        pass
-    # if they have never paid, they are overdue
-    elif not last_payment_date:
-        overdue = True
-    # if next payment due is in the past
-    elif next_payment_date < datetime.now().date():
-        overdue = True
+
+    # find out whether the member is overdue
+    overdue = is_overdue(subscription, last_payment_date, next_payment_date)
     
     return render(request, 'member_payments.html', {'membership_package': membership_package,
                                                     'member': member,
