@@ -919,6 +919,13 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # url for donation page
         context['donation_url'] = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={context['membership_package'].organisation_name}"
 
+        # get active members with overdue subscriptions
+        context['overdue_members'] = {}
+        for member in context['members'].all():
+            sub = member.subscription.get(member=member, membership_package=context['membership_package'])
+            if get_overdue_and_next(self.request, sub)['overdue'] and sub.active:
+                context['overdue_members'][member] = get_overdue_and_next(self.request, sub)['next_payment_date']
+        print(context['overdue_members'])
         return context
 
 
@@ -1876,12 +1883,7 @@ def edit_sub_comment(request, id):
                                    'message': "Comments updated"}))
 
 
-@login_required(login_url='/accounts/login/')
-def member_payments(request, title, pk):
-    membership_package = MembershipPackage.objects.get(organisation_name=title)
-    member = Member.objects.get(id=pk)
-    subscription = member.subscription.get(member=member, membership_package=membership_package)
-
+def get_overdue_and_next(request, subscription):
     # get date of last payment in our DB, if it exists
     last_db_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
     last_db_payment_date = None
@@ -1944,6 +1946,23 @@ def member_payments(request, title, pk):
     # if next payment due is in the past
     elif next_payment_date < datetime.now().date():
         overdue = True
+
+    return {
+        'next_payment_date': next_payment_date,
+        'overdue': overdue
+    }
+
+
+@login_required(login_url='/accounts/login/')
+def member_payments(request, title, pk):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    member = Member.objects.get(id=pk)
+    subscription = member.subscription.get(member=member, membership_package=membership_package)
+
+    # find out whether the member is overdue, and date of next payment
+    overdue_and_next = get_overdue_and_next(request, subscription)
+    next_payment_date = overdue_and_next['next_payment_date']
+    overdue = overdue_and_next['overdue']
     
     return render(request, 'member_payments.html', {'membership_package': membership_package,
                                                     'member': member,
