@@ -921,11 +921,11 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # url for donation page
         context['donation_url'] = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={context['membership_package'].organisation_name}"
 
-        # # get overdue members
-        # context['overdue_members'] = []
-        # subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)
-        # for sub in subscriptions.all():
-        #     if is_overdue(sub)
+        # get members with overdue subscriptions
+        context['overdue_members'] = []
+        for member in context['members'].all():
+            if get_overdue_and_next(self.request, member.subscription.get(member=member, membership_package=context['membership_package']))['overdue']:
+                context['overdue_members'].append(member)
 
         return context
 
