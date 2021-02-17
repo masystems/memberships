@@ -158,7 +158,11 @@
             "serverSide": true,
             "responsive": true,
             "lengthMenu": [ 5, 10, 25, 50, 100 ],
-            "ajax": "{% url 'get_members_detailed' membership_package.organisation_name %}",
+            "ajax": {
+                url: "{% url 'get_members_detailed' membership_package.organisation_name %}",
+                type: "POST",
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            },
             "columns": [
                 { data: "action" },
                 { data: "id" },
