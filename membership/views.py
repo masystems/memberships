@@ -950,7 +950,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         return context
 
 
-    @login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def reports(request, title, report, file_type):
     # just do it for SHS for now
     title = 'Suffolk Horse Society'
