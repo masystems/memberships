@@ -14,6 +14,7 @@ from re import match
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import csv
+import xlwt
 
 
 def generate_site_vars(request):
@@ -662,6 +663,27 @@ def export_members_detailed(request, title):
             response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.csv"'
 
             writer = csv.writer(response, delimiter=",")
+            headers = ['Member ID',
+                       'Name',
+                       'Email',
+                       'Address',
+                       'Contact',
+                       'Membership Status',
+                       'Payment Method',
+                       'Billing Interval',
+                       'Comments',
+                       'Membership Start',
+                       'Membership Expiry']
+            # custom fields
+            custom_fields = []
+            custom_fields_raw = loads(membership_package.custom_fields)
+            for key, field in custom_fields_raw.items():
+                try:
+                    custom_fields.append(field['field_name'])
+                except KeyError:
+                    custom_fields.append("")
+            headers.extend(custom_fields)
+            writer.writerow(headers)
             for subscription in all_subscriptions.all():
                 try:
                     membership_type = subscription.price.nickname
@@ -919,7 +941,54 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # url for donation page
         context['donation_url'] = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={context['membership_package'].organisation_name}"
 
+        # get active members with overdue subscriptions
+        context['overdue_members'] = {}
+        for member in context['members'].all()[:500]:
+            sub = member.subscription.get(member=member, membership_package=context['membership_package'])
+            if get_overdue_and_next(self.request, sub)['overdue'] and sub.active:
+                context['overdue_members'][member] = get_overdue_and_next(self.request, sub)['next_payment_date']
         return context
+
+
+def reports(request, title, report, file_type):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    date = datetime.now()
+    if file_type == 'xlsx':
+        response = HttpResponse(content_type='application/ms-excel')
+        response[
+            'Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xlsx"'
+        # creating workbook
+        workbook = xlwt.Workbook(encoding='utf-8')
+
+        # adding sheet
+        worksheet = workbook.add_sheet("sheet1")
+
+        # Sheet header, first row
+        row_num = 0
+
+        font_style = xlwt.XFStyle()
+        # headers are bold
+        font_style.font.bold = True
+
+        # column header names
+        # member_number, name, email etc
+        columns = ['Column 1', 'Column 2', 'Column 3', 'Column 4', ]
+
+        # write column headers in sheet
+        for col_num in range(len(columns)):
+            worksheet.write(row_num, col_num, columns[col_num], font_style)
+
+        # Sheet body, remaining rows
+        font_style = xlwt.XFStyle()
+
+        # get rows
+        subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)
+        for subscription in subscriptions:
+            row_num = row_num + 1
+            worksheet.write(row_num, 0, subscription.membership_number, font_style)
+            worksheet.write(row_num, 1, subscription.member.user_account.get_full_name(), font_style)
+        workbook.save(response)
+        return response
 
 
 class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
@@ -1876,12 +1945,7 @@ def edit_sub_comment(request, id):
                                    'message': "Comments updated"}))
 
 
-@login_required(login_url='/accounts/login/')
-def member_payments(request, title, pk):
-    membership_package = MembershipPackage.objects.get(organisation_name=title)
-    member = Member.objects.get(id=pk)
-    subscription = member.subscription.get(member=member, membership_package=membership_package)
-
+def get_overdue_and_next(request, subscription):
     # get date of last payment in our DB, if it exists
     last_db_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
     last_db_payment_date = None
@@ -1944,6 +2008,23 @@ def member_payments(request, title, pk):
     # if next payment due is in the past
     elif next_payment_date < datetime.now().date():
         overdue = True
+
+    return {
+        'next_payment_date': next_payment_date,
+        'overdue': overdue
+    }
+
+
+@login_required(login_url='/accounts/login/')
+def member_payments(request, title, pk):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    member = Member.objects.get(id=pk)
+    subscription = member.subscription.get(member=member, membership_package=membership_package)
+
+    # find out whether the member is overdue, and date of next payment
+    overdue_and_next = get_overdue_and_next(request, subscription)
+    next_payment_date = overdue_and_next['next_payment_date']
+    overdue = overdue_and_next['overdue']
     
     return render(request, 'member_payments.html', {'membership_package': membership_package,
                                                     'member': member,

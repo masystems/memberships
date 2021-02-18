@@ -215,6 +215,80 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                <hr>
+                                <h3 class="text-danger">Overdue Membership Applications</h3>
+                                <div class="table-responsive" style="overflow: visible;">
+                                    <table class="table table-bordered nowrap display" id="overdueMembersTable">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Name</th>
+                                                <th>Missed Payment</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for member, next_payment_date in overdue_members.items %}
+                                                {% for subscription in member.subscription.all %}
+                                                    {% if subscription.membership_package == membership_package %}
+                                                        <tr>
+                                                            <!-- id -->
+                                                            <td>{{ subscription.membership_number }}</td>
+                                                            <!-- name -->
+                                                            <td>
+                                                                <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
+                                                            </td>
+                                                            <!-- missed payment -->
+                                                            <td>
+                                                                £{{ subscription.price.amount|price }} due on {{ next_payment_date }}
+                                                            </td>
+                                                            <!-- action -->
+                                                            <td>
+                                                                <div class="btn-group dropleft">
+                                                                    <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                                        Administer
+                                                                    </button>
+                                                                    <ul class="dropdown-menu" role="menu">
+                                                                        <!-- payment page -->
+                                                                        <li>
+                                                                            {% if subscription.payment_method or subscription.stripe_subscription_id %}
+                                                                                <a href="{% url 'member_payment' membership_package.organisation_name member.id %}" class="dropdown-item"><i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page</a>
+                                                                            {% else %}
+                                                                                <a href="{% url 'member_payment' membership_package.organisation_name member.id %}" class="dropdown-item"><i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page</a>
+                                                                            {% endif %}
+                                                                        </li>
+                                                                        <!-- member payments -->
+                                                                        <li>
+                                                                            <a href="{% url 'member_payments' membership_package.organisation_name member.id %}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>
+                                                                        </li>
+                                                                        <!-- edit member -->
+                                                                        <li>
+                                                                            <a href="{% url 'member_form' membership_package.organisation_name member.id %}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>
+                                                                        </li>
+                                                                        <!-- reset password -->
+                                                                        <li>
+                                                                            <a href="javascript:resetMemberPwd('{{ member.user_account.email }}');" value="{{ member.user_account.email }}" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>
+                                                                        </li>
+                                                                        <!-- payment reminder -->
+                                                                        <li>
+                                                                            <a href="{% url 'payment_reminder' membership_package.organisation_name member.id %}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>
+                                                                        </li>
+                                                                        <!-- remove member -->
+                                                                        <li>
+                                                                            <a href="javascript:removeMember({{ member.id }});" value="{{ member.id }}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>
+                                                                        </li>
+                                                                    </ul>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                                {% empty %}
+                                                <td colspan="4">No overdue members</td>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                         <!-- Tabs -->
