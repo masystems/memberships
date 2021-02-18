@@ -970,7 +970,8 @@ def reports(request, title, report, file_type):
         # headers are bold
         font_style.font.bold = True
 
-        # column header names, you can use your own headers here
+        # column header names
+        # member_number, name, email etc
         columns = ['Column 1', 'Column 2', 'Column 3', 'Column 4', ]
 
         # write column headers in sheet
@@ -980,14 +981,15 @@ def reports(request, title, report, file_type):
         # Sheet body, remaining rows
         font_style = xlwt.XFStyle()
 
-        # get your data, from database or from a text file...
-        subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)  # dummy method to fetch data.
+        # get rows
+        subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)
         for subscription in subscriptions:
             row_num = row_num + 1
             worksheet.write(row_num, 0, subscription.membership_number, font_style)
             worksheet.write(row_num, 1, subscription.member.user_account.get_full_name(), font_style)
         workbook.save(response)
         return response
+
 
 class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
     template_name = 'membership-package-settings.html'
