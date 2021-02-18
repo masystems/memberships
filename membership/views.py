@@ -950,50 +950,21 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         return context
 
 
+@login_required(login_url='/accounts/login/')
 def reports(request, title, report, file_type):
-    # membership_package = MembershipPackage.objects.get(organisation_name=title)
-    # date = datetime.now()
-    # if file_type == 'xlsx':
-    #     response = HttpResponse(content_type='application/ms-excel')
-    #     response[
-    #         'Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xlsx"'
-    #     # creating workbook
-    #     workbook = xlwt.Workbook(encoding='utf-8')
-
-    #     # adding sheet
-    #     worksheet = workbook.add_sheet("sheet1")
-
-    #     # Sheet header, first row
-    #     row_num = 0
-
-    #     font_style = xlwt.XFStyle()
-    #     # headers are bold
-    #     font_style.font.bold = True
-
-    #     # column header names
-    #     # member_number, name, email etc
-    #     columns = ['Column 1', 'Column 2', 'Column 3', 'Column 4', ]
-
-    #     # write column headers in sheet
-    #     for col_num in range(len(columns)):
-    #         worksheet.write(row_num, col_num, columns[col_num], font_style)
-
-    #     # Sheet body, remaining rows
-    #     font_style = xlwt.XFStyle()
-
-    #     # get rows
-    #     subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package)
-    #     for subscription in subscriptions:
-    #         row_num = row_num + 1
-    #         worksheet.write(row_num, 0, subscription.membership_number, font_style)
-    #         worksheet.write(row_num, 1, subscription.member.user_account.get_full_name(), font_style)
-    #     workbook.save(response)
-    #     return response
-
+    # just do it for SHS for now
+    title = 'Suffolk Horse Society'
+    
+    # validate request user is owner or admin of organisation
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                            Q(admins=request.user),
+                                            organisation_name=title,
+                                            enabled=True).exists():
+        return redirect('dashboard')
+    
     file_type = 'xlsx'
 
-    #membership_package = MembershipPackage.objects.get(organisation_name='Suffolk Horse Society')
-    membership_package = MembershipPackage.objects.get(organisation_name='Golf Nest')
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
     date = datetime.now()
     if file_type == 'xlsx':
         response = HttpResponse(content_type='application/ms-excel')
