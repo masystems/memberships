@@ -332,6 +332,37 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- generate report -->
+                                {% if 'Suffolk Horse Society' in membership_package.organisation_name  %}
+                                    {% if request.user == membership_package.owner or request.user in membership_package.admins.all %}
+                                        <div>
+                                            <hr>
+                                            <a class="float-right" href="{% url 'reports' membership_package.organisation_name 'some_report' 'xlsx' %}"><button class="btn btn-success">Generate Report</button></a>
+                                            <h4 class="card-title">Generate Report</h4>
+                                            <p>
+                                                Click the button to the right to generate a report of the members of Suffolk Horse Society.
+                                            </p>
+                                            <p>
+                                                A spreadsheet will be created which contains the following details for members that have active subscriptions and have not ticked the "Do not mail" tickbox:
+                                                <ul>
+                                                    <li>Title</li>
+                                                    <li>First Name</li>
+                                                    <li>Surname</li>
+                                                    <li>Second Name <i>(for joint accounts)</i></li>
+                                                    <li>Membership Type</li>
+                                                    <li>Company Name</li>
+                                                    <li>Address 1</li>
+                                                    <li>Address 2</li>
+                                                    <li>Address 3</li>
+                                                    <li>Address 4</li>
+                                                    <li>Postcode</li>
+                                                    <li>Country</li>
+                                                    <li>Raffle Tickets <i>(Yes or No)</i></li>
+                                                </ul>
+                                            </p>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
                             </div>
                         </div>
                         <!-- Tabs -->
