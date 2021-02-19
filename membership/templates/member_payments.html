@@ -8,6 +8,27 @@
 
 {% block content %}
 
+<!-- Modal to delete payment -->
+<div id="delete-payment-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="remove-member-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-danger">
+                <h4 class="modal-title text-white" id="delete-payment-modalLabel">Delete Payment</h4>
+                <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip" title="Exit Window" aria-hidden="true">×</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this payment?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                <a id="deletePaymentUrl" href="{% url 'delete_payment' membership_package.organisation_name member.id payment.id %}">
+                    <button type="button" class="btn btn-danger">Continue</button>
+                </a>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
