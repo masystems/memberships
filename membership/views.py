@@ -953,7 +953,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 @login_required(login_url='/accounts/login/')
 def reports(request, title, report, file_type):
     # just do it for SHS for now
-    title = 'Suffolk Horse Society'
+    title = 'Golf Nest'
     
     # validate request user is owner or admin of organisation
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
