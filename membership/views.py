@@ -967,7 +967,7 @@ def reports(request, title, report, file_type):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     date = datetime.now()
     if file_type == 'xlsx':
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8')
         response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xlsx"'
         
         # creating workbook
