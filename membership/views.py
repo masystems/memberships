@@ -2376,7 +2376,13 @@ def member_payment_form(request, title, pk):
                 payment.amount = subscription.price.amount
             # if it has been set, convert it to pennies
             else:
-                payment.amount = int(float(payment.amount) * 100)
+                try:
+                    payment.amount = int(float(payment.amount) * 100)
+                except ValueError:
+                    form.add_error('amount', f"Please enter a valid amount.")
+                    return render(request, 'payment_form.html', {'form': form,
+                                                 'membership_package': membership_package,
+                                                 'member': member})
 
             payment.save()
 
