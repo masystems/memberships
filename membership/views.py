@@ -2215,7 +2215,6 @@ def delete_payment(request, title, pk, payment_id):
     try:
         payment = Payment.objects.get(id=payment_id)
         payment.delete()
-        payment.save()
     except Payment.DoesNotExist:
         pass
     
