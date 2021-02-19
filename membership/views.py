@@ -2370,7 +2370,14 @@ def member_payment_form(request, title, pk):
             payment.subscription = subscription
             # get next payment number
             payment.payment_number = payment_number
-            payment.amount = subscription.price.amount
+
+            # if payment.amount not set, set it to subscription amount
+            if payment.amount == '':
+                payment.amount = subscription.price.amount
+            # if it has been set, convert it to pennies
+            else:
+                payment.amount = int(float(payment.amount) * 100)
+
             payment.save()
 
             return redirect('member_payments', membership_package.organisation_name, member.id)
