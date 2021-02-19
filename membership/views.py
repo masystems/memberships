@@ -2097,6 +2097,25 @@ def get_overdue_and_next(request, subscription):
 
 
 @login_required(login_url='/accounts/login/')
+def delete_payment(request, title, pk, payment_id):
+    # validate request user is owner or admin of org
+    if not MembershipPackage.objects.filter(Q(owner=request.user) |
+                                        Q(admins=request.user),
+                                        organisation_name=title,
+                                        enabled=True).exists():
+        return redirect('dashboard')
+    
+    try:
+        payment = Payment.objects.get(id=payment_id)
+        payment.delete()
+        payment.save()
+    except Payment.DoesNotExist:
+        pass
+    
+    return redirect('member_payments', title, pk)
+
+
+@login_required(login_url='/accounts/login/')
 def member_payments(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
@@ -2167,7 +2186,8 @@ def get_member_payments(request, title, pk):
             # set params
             payments.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id, 'payment_id': payment.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
-                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button>""",
+                                            <a href="{reverse('delete_payment', kwargs={'title': membership_package.organisation_name,
+                                                                                'pk': member.id, 'payment_id': payment.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
                              'id': payment.payment_number,
                              'method': payment.payment_method.payment_name,
                              'type': payment.type,

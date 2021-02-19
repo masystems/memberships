@@ -19,6 +19,7 @@ urlpatterns = [
     path('create-package-on-stripe', views.create_package_on_stripe, name='create_package_on_stripe'),
     path('membership-package-settings', views.CreateMembershipPackage.as_view(), name="membership_package_settings"),
     path('members-detailed/<str:title>', views.MembersDetailed.as_view(), name="members_detailed"),
+    path('delete_payment/<str:title>/<int:pk>/<int:payment_id>', views.delete_payment, name="delete_payment"),
     path('member-payments/<str:title>/<int:pk>', views.member_payments, name="member_payments"),
     path('member-payment-form/<str:title>/<int:pk>', views.member_payment_form, name="member_payment_form"),
     path('member-payment-form-edit/<str:title>/<int:pk>/<int:payment_id>', views.member_payment_form_edit, name="member_payment_form_edit"),
