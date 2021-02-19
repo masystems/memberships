@@ -333,7 +333,7 @@
                                     </div>
                                 </div>
                                 <!-- generate report -->
-                                {% if 'Suffolk Horse Society' in membership_package.organisation_name  %}
+                                {% if membership_package.organisation_name == 'Suffolk Horse Society' %}
                                     {% if request.user == membership_package.owner or request.user in membership_package.admins.all %}
                                         <div>
                                             <hr>
