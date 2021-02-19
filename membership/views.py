@@ -953,7 +953,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 @login_required(login_url='/accounts/login/')
 def reports(request, title, report, file_type):
     # just do it for SHS for now
-    title = 'Golf Nest'
+    title = 'Suffolk Horse Society'
     
     # validate request user is owner or admin of organisation
     if not MembershipPackage.objects.filter(Q(owner=request.user) |
@@ -970,7 +970,7 @@ def reports(request, title, report, file_type):
         # generate the raffle report
         if report == 'raffle':
             response = HttpResponse(content_type='application/ms-excel')
-            response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xlsx"'
+            response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xls"'
             
             # creating workbook
             workbook = xlwt.Workbook(encoding='utf-8')
@@ -1076,7 +1076,7 @@ def reports(request, title, report, file_type):
         # generate the gift aid report
         elif report == 'gift_aid':
             response = HttpResponse(content_type='application/ms-excel')
-            response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xlsx"'
+            response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xls"'
             
             # creating workbook
             workbook = xlwt.Workbook(encoding='utf-8')
