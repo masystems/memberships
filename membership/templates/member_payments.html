@@ -21,7 +21,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                <a id="deletePaymentUrl" href="{% url 'delete_payment' membership_package.organisation_name member.id payment.id %}">
+                <a id="deletePaymentUrl" href="">
                     <button type="button" class="btn btn-danger">Continue</button>
                 </a>
             </div>
@@ -194,5 +194,12 @@
             column.visible(!column.visible());
         });
 
+    </script>
+
+    <script>
+        var deletePayment = function (member_id, payment_id) {
+            $('#delete-payment-modal').modal('show');
+            $('#deletePaymentUrl').attr("href", "/membership/delete-payment/{{ membership_package.organisation_name }}/" + member_id + '/' + payment_id);
+        }
     </script>
 {% endblock %}
