@@ -2370,7 +2370,20 @@ def member_payment_form(request, title, pk):
             payment.subscription = subscription
             # get next payment number
             payment.payment_number = payment_number
-            payment.amount = subscription.price.amount
+
+            # if payment.amount not set, set it to subscription amount
+            if payment.amount == '':
+                payment.amount = subscription.price.amount
+            # if it has been set, convert it to pennies
+            else:
+                try:
+                    payment.amount = int(float(payment.amount) * 100)
+                except ValueError:
+                    form.add_error('amount', f"Please enter a valid amount.")
+                    return render(request, 'payment_form.html', {'form': form,
+                                                 'membership_package': membership_package,
+                                                 'member': member})
+
             payment.save()
 
             return redirect('member_payments', membership_package.organisation_name, member.id)
