@@ -969,7 +969,7 @@ def reports(request, title, report, file_type):
     if file_type == 'xlsx':
         # generate the raffle report
         if report == 'raffle':
-            response = HttpResponse(content_type='application/ms-excel')
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
             response['Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xls"'
             
             # creating workbook
