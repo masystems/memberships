@@ -125,7 +125,7 @@
             "serverSide": true,
             "responsive": true,
             "ajax": {
-                url: "{% url 'get_payments_detailed' membership_package.organisation_name %}",
+                url: "{% url 'get_all_member_payments' membership_package.organisation_name %}",
                 type: "POST",
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
             },

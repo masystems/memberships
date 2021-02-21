@@ -1871,6 +1871,11 @@ def delete_payment(request, title, pk, payment_id):
 
 
 @login_required(login_url='/accounts/login/')
+def payments_detailed(request, title):
+    return render(request, 'payments_detailed.html', {'membership_package': MembershipPackage.objects.get(organisation_name=title)})
+
+
+@login_required(login_url='/accounts/login/')
 def member_payments(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)

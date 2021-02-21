@@ -361,7 +361,130 @@ def get_members(request, title):
 
 
 @login_required(login_url='/accounts/login/')
-def get_member_payments(request, title, pk):
+def get_all_member_payments(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+
+    start = int(request.POST.get('start', 0))
+    end = int(request.POST.get('length', 20))
+    search = request.POST.get('search[value]', "")
+    sort_by = request.POST.get(f'columns[{request.POST.get("order[0][column]")}][data]')
+
+    # desc or asc
+    if request.POST.get('order[0][dir]') == 'asc':
+        direction = ""
+    else:
+        direction = "-"
+    # sort map
+    if sort_by == "payment_id":
+        sort_by_col = f"{direction}payment_number"
+    elif sort_by == "name":
+        sort_by_col = f"{direction}subscription__member__user_account__first_name"
+    elif sort_by == "membership_id":
+        sort_by_col = f"{direction}subscription__member__membership_number"
+    elif sort_by == "method":
+        sort_by_col = f"{direction}payment_method"
+    elif sort_by == "type":
+        sort_by_col = f"{direction}type"
+    elif sort_by == "amount":
+        sort_by_col = f"{direction}amount"
+    elif sort_by == "comments":
+        sort_by_col = f"{direction}comments"
+    elif sort_by == "created":
+        sort_by_col = f"{direction}created"
+    elif sort_by == "gift_aid":
+        sort_by_col = f"{direction}gift_aid"
+    elif sort_by == "gift_aid_percentage":
+        sort_by_col = f"{direction}gift_aid_percentage"
+    else:
+        sort_by_col = f"{direction}created"
+
+    payments = []
+    if search == "":
+        all_payments = Payment.objects.filter(subscription__membership_package=membership_package).order_by(sort_by_col)[start:start + end]
+    else:
+        all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
+                                              Q(payment_number__icontains=search) |
+                                              Q(type__icontains=search) |
+                                              Q(comments__icontains=search) |
+                                              Q(created__icontains=search) |
+                                              Q(gift_aid_percentage__icontains=search) |
+                                              Q(amount__icontains=search),
+                                              subscription__membership_package=membership_package).distinct().order_by(sort_by_col)[start:start + end]
+    # get stripe payments
+    total_payments = Payment.objects.filter(subscription__membership_package=membership_package).distinct().count()
+
+    for payment in all_payments.all():
+        if payment.subscription.stripe_id:
+            stripe.api_key = get_stripe_secret_key(request)
+            stripe_payments = stripe.Charge.list(customer=payment.subscription.stripe_id,
+                                                 stripe_account=payment.subscription.membership_package.stripe_acct_id)
+            for stripe_payment in stripe_payments:
+                # get the amount as a variable so it can be converted to the correct format to be displayed
+                temp_amount = int(stripe_payment['amount']) / 100
+                payments.append({
+                                    'action': f"""<a href="{stripe_payment['receipt_url']}"><button class="btn btn-sm btn-rounded btn-light" data-toggle="tooltip" title="View Receipt"><i class="fad fa-file-invoice text-info"></i></button></a>""",
+                                    'payment_id': stripe_payment['id'],
+                                    'name': payment.subscription.member.user_account.get_full_name(),
+                                    'membership_id': payment.subscription.membership_number,
+                                    'method': 'Card Payment',
+                                    'type': 'Card Payment',
+                                    'amount': "£%.2f" % temp_amount,
+                                    'comments': f"<small>Managed by Stripe</small><br>{stripe_payment['description']}",
+                                    'created': datetime.fromtimestamp(stripe_payment['created']).strftime('%c'),
+                                    'gift_aid': 'n/a',
+                                    'gift_aid_percentage': 'n/a'})
+
+        # if there are payments in our database, or if it is a stripe subscription
+        if all_payments.count() > 0 or payment.subscription.stripe_id:
+            for payment in all_payments:
+                # get the amount as a variable so it can be converted to the correct format to be displayed
+                temp_amount = float(payment.amount) / 100
+                if payment.gift_aid:
+                    giftaid = '<i class="fad fa-check text-success"></i>'
+                else:
+                    giftaid = '<i class="fad fa-times text-danger"></i>'
+                # set params
+                payments.append({
+                                    'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
+                                                                                                        'pk': payment.subscription.member.id, 'payment_id': payment.id})}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
+                                                    <a href="javascript:deletePayment({payment.subscription.member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
+                                    'payment_id': payment.payment_number,
+                                    'name': payment.subscription.member.user_account.get_full_name(),
+                                    'membership_id': payment.subscription.membership_number,
+                                    'method': payment.payment_method.payment_name,
+                                    'type': payment.type,
+                                    'amount': "£%.2f" % temp_amount,
+                                    'comments': payment.comments,
+                                    'created': str(payment.created),
+                                    'gift_aid': giftaid,
+                                    'gift_aid_percentage': payment.gift_aid_percentage})
+                # sorting
+                members_sorted = payments
+            complete_data = {
+                "draw": 0,
+                "recordsTotal": all_payments.count(),
+                "recordsFiltered": total_payments,
+                "data": members_sorted
+            }
+        else:
+            complete_data = {
+                "draw": 0,
+                "recordsTotal": 0,
+                "recordsFiltered": 0,
+                "data": []
+            }
+        return HttpResponse(dumps(complete_data))
+    else:
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "data": []
+        }
+    return HttpResponse(dumps(complete_data))
+
+@login_required(login_url='/accounts/login/')
+def get_member_payments(request, title, pk=None):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
     subscription = MembershipSubscription.objects.get(membership_package=membership_package,
