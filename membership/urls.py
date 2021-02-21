@@ -1,6 +1,6 @@
 from django.urls import path
 from . import views
-
+from . import tabledata
 
 urlpatterns = [
     path('', views.SelectMembershipPackageView.as_view(), name="membership"),
@@ -12,8 +12,8 @@ urlpatterns = [
     path('org/<str:title>/manage-payment-reminder', views.manage_payment_reminder, name="manage_payment_reminder"),
     path('org/<str:title>/report/<str:report>/<str:file_type>', views.reports, name="reports"),
     path('org/select-package', views.SelectMembershipPackageView.as_view(), name="select_package"),
-    path('get-members/<str:title>', views.get_members, name="get_members"),
-    path('get-members-detailed/<str:title>', views.get_members_detailed, name="get_members_detailed"),
+    path('get-members/<str:title>', tabledata.get_members, name="get_members"),
+    path('get-members-detailed/<str:title>', tabledata.get_members_detailed, name="get_members_detailed"),
     path('export_members_detailed/<str:title>', views.export_members_detailed, name="export_members_detailed"),
     path('organisation-payment', views.organisation_payment, name='organisation_payment'),
     path('create-package-on-stripe', views.create_package_on_stripe, name='create_package_on_stripe'),
@@ -23,7 +23,7 @@ urlpatterns = [
     path('member-payments/<str:title>/<int:pk>', views.member_payments, name="member_payments"),
     path('member-payment-form/<str:title>/<int:pk>', views.member_payment_form, name="member_payment_form"),
     path('member-payment-form-edit/<str:title>/<int:pk>/<int:payment_id>', views.member_payment_form_edit, name="member_payment_form_edit"),
-    path('get-member-payments/<str:title>/<int:pk>', views.get_member_payments, name="get_member_payments"),
+    path('get-member-payments/<str:title>/<int:pk>', tabledata.get_member_payments, name="get_member_payments"),
     path('member-form/<str:title>/<int:pk>', views.member_reg_form, name="member_form"),
     path('member-bolton-form/<str:title>/<int:pk>', views.member_bolton_form, name="member_bolton_form"),
     path('edit-sub-comment/<int:id>', views.edit_sub_comment, name="edit_sub_comment"),
