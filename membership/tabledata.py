@@ -380,7 +380,7 @@ def get_all_member_payments(request, title):
     elif sort_by == "name":
         sort_by_col = f"{direction}subscription__member__user_account__first_name"
     elif sort_by == "membership_id":
-        sort_by_col = f"{direction}subscription__member__membership_number"
+        sort_by_col = f"{direction}subscription__membership_number"
     elif sort_by == "method":
         sort_by_col = f"{direction}payment_method"
     elif sort_by == "type":

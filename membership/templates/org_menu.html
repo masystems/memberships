@@ -1,14 +1,24 @@
-<div class="btn-group">
-    <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        Manage
-    </button>
-    <div class="dropdown-menu" style="">
-        <a class="dropdown-item" href="{% url 'manage_admins' membership_package.organisation_name %}">Admins</a>
-        <a class="dropdown-item" href="{% url 'manage_membership_types' membership_package.organisation_name %}">Membership Types</a>
-        <a class="dropdown-item" href="{% url 'manage_payment_methods' membership_package.organisation_name %}">Payment Methods</a>
-        <a class="dropdown-item" href="{% url 'manage_custom_fields' membership_package.organisation_name %}">Custom Fields</a>
-        <a class="dropdown-item" href="{% url 'members_detailed' membership_package.organisation_name %}">Members Detailed</a>
-        <a class="dropdown-item" href="{% url 'payments_detailed' membership_package.organisation_name %}">Payments Detailed</a>
-        <a class="dropdown-item" href="{% url 'manage_payment_reminder' membership_package.organisation_name %}">Payment Reminder</a>
+<div class="btn-list float-right">
+    <div class="btn-group">
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Manage
+        </button>
+        <div class="dropdown-menu" style="">
+            <a class="dropdown-item" href="{% url 'manage_admins' membership_package.organisation_name %}">Admins</a>
+            <a class="dropdown-item" href="{% url 'manage_membership_types' membership_package.organisation_name %}">Membership Types</a>
+            <a class="dropdown-item" href="{% url 'manage_payment_methods' membership_package.organisation_name %}">Payment Methods</a>
+            <a class="dropdown-item" href="{% url 'manage_custom_fields' membership_package.organisation_name %}">Custom Fields</a>
+
+        </div>
+    </div>
+    <a class="dropdown-item" href="{% url 'members_detailed' membership_package.organisation_name %}"><button class="btn btn-info">Members Detailed</button></a>
+    <div class="btn-group">
+        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Payments
+        </button>
+        <div class="dropdown-menu" style="">
+            <a class="dropdown-item" href="{% url 'payments_detailed' membership_package.organisation_name %}">Payments Detailed</a>
+            <a class="dropdown-item" href="{% url 'manage_payment_reminder' membership_package.organisation_name %}">Payment Reminder</a>
+        </div>
     </div>
 </div>

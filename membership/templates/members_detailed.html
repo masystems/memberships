@@ -50,11 +50,12 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
+                    <span class="float-right">{% include 'org_menu.html' %}</span>
                     <form action="{% url 'export_members_detailed' membership_package.organisation_name %}" method="POST" class="form-horizontal">
                         {% csrf_token %}
                         <input id="search_param" name="search_param" type="hidden">
                         <div class="btn-group float-right">
-                            <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <button type="button" class="btn btn-success dropdown-toggle mr-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 Export
                             </button>
                             <div class="dropdown-menu" style="">
