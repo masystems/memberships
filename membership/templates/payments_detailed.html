@@ -8,8 +8,9 @@
 
 {% block content %}
 
-
 {% include 'comments-modal.html' %}
+
+{% include 'delete_payment_modal.html' %}
 
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
@@ -173,5 +174,12 @@
             // Toggle the visibility
             column.visible(!column.visible());
         });
+    </script>
+
+    <script>
+        var deletePayment = function (member_id, payment_id) {
+            $('#delete-payment-modal').modal('show');
+            $('#deletePaymentUrl').attr("href", "/membership/delete-payment/{{ membership_package.organisation_name }}/" + member_id + '/' + payment_id);
+        }
     </script>
 {% endblock %}
