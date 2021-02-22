@@ -180,7 +180,7 @@
     <script>
         var deletePayment = function (member_id, payment_id) {
             $('#delete-payment-modal').modal('show');
-            $('#deletePaymentUrl').attr("href", "/membership/delete-payment/{{ membership_package.organisation_name }}/" + member_id + '/' + payment_id);
+            $('#deletePaymentUrl').attr("href", "/membership/delete-payment/{{ membership_package.organisation_name }}/" + member_id + '/' + payment_id + '/?next=member_payments');
         }
     </script>
 {% endblock %}
