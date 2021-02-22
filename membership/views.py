@@ -1872,7 +1872,7 @@ def delete_payment(request, title, pk, payment_id):
     if next_page == 'member_payments':
         return redirect('member_payments', title, pk)
     else:
-        return redirect('members_detailed', title)
+        return redirect('payments_detailed', title)
 
 
 @login_required(login_url='/accounts/login/')
