@@ -1867,7 +1867,12 @@ def delete_payment(request, title, pk, payment_id):
     except Payment.DoesNotExist:
         pass
     
-    return redirect('member_payments', title, pk)
+    # redirect to member payments or members detailed
+    next_page =  request.GET.get('next', '')
+    if next_page == 'member_payments':
+        return redirect('member_payments', title, pk)
+    else:
+        return redirect('payments_detailed', title)
 
 
 @login_required(login_url='/accounts/login/')
