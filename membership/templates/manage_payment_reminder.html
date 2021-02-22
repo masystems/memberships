@@ -46,11 +46,11 @@
         <div class="col-lg-4 col-xlg-3">
             <div class="card">
                 <div class="card-body">
-                    <center>{% include 'org_menu.html' %}</center>
-                    <center class="mt-4">
+                    <div class="text-center">{% include 'org_menu.html' %}</div>
+                    <div class="mt-4 text-center">
                         <h4 class="card-title mt-2">{{ membership_package.organisation_name }}</h4>
                         <h6 class="card-title mt-2">Owner: {{ membership_package.owner.get_full_name }}</h6>
-                    </center>
+                    </div>
                 </div>
                 <hr>
                 <div class="card-body">
