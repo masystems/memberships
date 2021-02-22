@@ -11,7 +11,9 @@
 
         </div>
     </div>
-    <a class="dropdown-item" href="{% url 'members_detailed' membership_package.organisation_name %}"><button class="btn btn-info">Members Detailed</button></a>
+    <div class="btn-group">
+        <a class="dropdown-item" href="{% url 'members_detailed' membership_package.organisation_name %}"><button class="btn btn-info">Members Detailed</button></a>
+    </div>
     <div class="btn-group">
         <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Payments
