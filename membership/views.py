@@ -1978,7 +1978,27 @@ def member_payment_form_edit(request, title, pk, payment_id):
         form = PaymentForm(request.POST, instance=payment)
         # check whether it's valid:
         if form.is_valid():
-            form.save()
+
+            payment = form.save(commit=False)
+
+            # if payment.amount not set, set it to subscription amount
+            if payment.amount == '':
+                form.add_error('amount', f"Please enter an amount.")
+                return render(request, 'payment_form.html', {'form': form,
+                                                 'membership_package': membership_package,
+                                                 'member': member})
+            # if it has been set, convert it to pennies
+            else:
+                try:
+                    payment.amount = int(float(payment.amount) * 100)
+                except ValueError:
+                    form.add_error('amount', f"Please enter a valid amount.")
+                    return render(request, 'payment_form.html', {'form': form,
+                                                 'membership_package': membership_package,
+                                                 'member': member})
+
+            payment.save()
+
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
         form = PaymentForm(instance=payment)
