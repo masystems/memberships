@@ -1986,7 +1986,8 @@ def member_payment_form_edit(request, title, pk, payment_id):
     return render(request, 'payment_form_edit.html', {'form': form,
                                                       'membership_package': membership_package,
                                                       'member': member,
-                                                      'payment': payment})
+                                                      'payment': payment,
+                                                      'next_page': request.POST.get('next', '')})
 
 
 @login_required(login_url="/accounts/login")
