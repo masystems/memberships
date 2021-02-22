@@ -50,19 +50,21 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <span class="float-right">{% include 'org_menu.html' %}</span>
-                    <form action="{% url 'export_members_detailed' membership_package.organisation_name %}" method="POST" class="form-horizontal">
-                        {% csrf_token %}
-                        <input id="search_param" name="search_param" type="hidden">
-                        <div class="btn-group float-right">
-                            <button type="button" class="btn btn-success dropdown-toggle mr-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Export
-                            </button>
-                            <div class="dropdown-menu" style="">
-                                <button type="submit" class="btn btn-light dropdown-item" name="csv">CSV</button>
-                            </div>
+                    <div class="btn-list float-right">
+                        <div class="btn-group mr-2">
+                            <form action="{% url 'export_members_detailed' membership_package.organisation_name %}" method="POST" class="form-horizontal">
+                                {% csrf_token %}
+                                <input id="search_param" name="search_param" type="hidden">
+                                    <button type="button" class="btn btn-success dropdown-toggle mr-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Export
+                                    </button>
+                                    <div class="dropdown-menu" style="">
+                                        <button type="submit" class="btn btn-light dropdown-item" name="csv">CSV</button>
+                                    </div>
+                            </form>
                         </div>
-                    </form>
+                        {% include 'org_menu.html' %}
+                    </div>
                     <h4 class="card-title">{{ membership_package.organisation_name }} Members</h4>
 
                     <div class="mb-2">

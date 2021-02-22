@@ -130,18 +130,20 @@
                             <div class="card-body">
                                 <div class="d-flex no-block align-items-center mb-4">
                                     <div class="ml-auto">
-                                        <div class="btn-list">
-                                            {% if not stripe_package_setup %}
-                                                <a href="{% url 'member_form' membership_package.organisation_name 0 %}">
-                                                    <button type="button" class="btn btn-success">
+                                        <div class="btn-list float-right">
+                                            <div class="btn-group mr-3">
+                                                {% if not stripe_package_setup %}
+                                                    <a href="{% url 'member_form' membership_package.organisation_name 0 %}">
+                                                        <button type="button" class="btn btn-success">
+                                                            Add New Member
+                                                        </button>
+                                                    </a>
+                                                {% else %}
+                                                    <button type="button" class="btn btn-light" data-toggle="tooltip" data-placement="top" title="Cannot add new members until setup is completed.">
                                                         Add New Member
                                                     </button>
-                                                </a>
-                                            {% else %}
-                                                <button type="button" class="btn btn-light" data-toggle="tooltip" data-placement="top" title="Cannot add new members until setup is completed.">
-                                                    Add New Member
-                                                </button>
-                                            {% endif %}
+                                                {% endif %}
+                                            </div>
                                             {% include 'org_menu.html' %}
                                         </div>
                                     </div>
