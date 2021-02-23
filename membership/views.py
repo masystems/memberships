@@ -1093,9 +1093,12 @@ def payment_reminder(request, title, pk):
         body = body.replace('\n', '<br/>')
     
     send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email, customised=customised)
-
-    # add note to comments
-    subscription.comments = subscription.comments + f"\nPayment reminder sent ({datetime.now().strftime('%d/%m/%Y')})"
+    
+    # add note to comments. Don't add new line at the beginning if comments are empty.
+    if subscription.comments == '':
+        subscription.comments = subscription.comments + f"Payment reminder sent ({datetime.now().strftime('%d/%m/%Y')})"
+    else:
+        subscription.comments = subscription.comments + f"\nPayment reminder sent ({datetime.now().strftime('%d/%m/%Y')})"
     # set last_reminder
     subscription.last_reminder = datetime.now()
     subscription.save()
