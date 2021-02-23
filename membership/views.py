@@ -1096,6 +1096,8 @@ def payment_reminder(request, title, pk):
 
     # add note to comments
     subscription.comments = subscription.comments + f"Payment reminder sent ({datetime.now().strftime('%d/%m/%Y')})\n"
+    # set last_reminder
+    subscription.last_reminder = datetime.now()
     subscription.save()
 
     return redirect('membership_package', membership_package.organisation_name)
