@@ -7,6 +7,7 @@ from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
 from json import dumps, loads, JSONDecodeError
 import stripe
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 def get_members_detailed(request, title):
@@ -131,6 +132,13 @@ def get_members_detailed(request, title):
             reset_password_button = f"""<a href="javascript:resetMemberPwd('{subscription.member.user_account.email}');" value="{subscription.member.user_account.email}" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
             payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                         'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+            
+            # if date of last reminder is less than 30 days ago, add tooltip and make italic
+            if subscription.last_reminder:
+                if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
+                    payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                        'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+
             remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id});" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # create a string for address to avoid including extra line breaks
@@ -157,6 +165,9 @@ def get_members_detailed(request, title):
                 stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
                 membership_start_date = datetime.fromtimestamp(stripe_subscription.start_date).strftime("%d/%m/%Y<br/>%H:%M")
 
+            # make the new lines in the comments show in the table
+            comments = subscription.comments.replace('\n', '<br/>')
+
             # # set member id, name, email, mambership_type and buttons
             row = {'id': subscription.membership_number,
                 'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
@@ -167,7 +178,7 @@ def get_members_detailed(request, title):
                 'membership_status': membership_status,
                 'payment_method': payment_method,
                 'billing_interval': billing_interval,
-                'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+                'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                 'membership_start': f'{membership_start_date or ""}',
                 'membership_expiry': f'{subscription.membership_expiry  or ""}',
                 'action': f"""<div class="btn-group">
@@ -321,13 +332,22 @@ def get_members(request, title):
             reset_password_button = f"""<a href="javascript:resetMemberPwd('{ subscription.member.user_account.email }');" value="{ subscription.member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
             payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                         'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+            # if date of last reminder is less than 30 days ago, add tooltip and make italic
+            if subscription.last_reminder:
+                if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
+                    payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                        'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+
             remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id });" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
+
+            # make the new lines in the comments show in the table
+            comments = subscription.comments.replace('\n', '<br/>')
 
             # # set member id, name, email, mambership_type and buttons
             members.append({'id': subscription.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
                             'email': f"{subscription.member.user_account.email}",
-                            'comments': f"""{subscription.comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+                            'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
                             'membership_type': membership_type,
                             'membership_status': membership_status,
                             'action': f"""<div class="btn-group dropleft">

@@ -99,6 +99,7 @@ class MembershipSubscription(models.Model):
     gift_aid = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
     custom_fields = models.TextField(blank=True)
+    last_reminder = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.membership_package.organisation_name
