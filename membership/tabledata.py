@@ -7,6 +7,7 @@ from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
 from json import dumps, loads, JSONDecodeError
 import stripe
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
 
 
 def get_members_detailed(request, title):
@@ -131,6 +132,13 @@ def get_members_detailed(request, title):
             reset_password_button = f"""<a href="javascript:resetMemberPwd('{subscription.member.user_account.email}');" value="{subscription.member.user_account.email}" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
             payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                         'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+            
+            # if date of last reminder is less than 30 days ago, add tooltip and make italic
+            if subscription.last_reminder:
+                if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
+                    payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                        'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+
             remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id});" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # create a string for address to avoid including extra line breaks
@@ -324,6 +332,12 @@ def get_members(request, title):
             reset_password_button = f"""<a href="javascript:resetMemberPwd('{ subscription.member.user_account.email }');" value="{ subscription.member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
             payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                         'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+            # if date of last reminder is less than 30 days ago, add tooltip and make italic
+            if subscription.last_reminder:
+                if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
+                    payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                        'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+
             remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id });" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # make the new lines in the comments show in the table
