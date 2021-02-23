@@ -1996,8 +1996,12 @@ def member_payment_form_edit(request, title, pk, payment_id):
                                                  'member': member})
 
             payment.save()
-
-            return redirect('member_payments', membership_package.organisation_name, member.id)
+            
+            # redirect to the correct page based on POST request
+            if request.POST.get('next_page', '') == 'member_payments':
+                return redirect('member_payments', membership_package.organisation_name, member.id)
+            else:
+                return redirect('payments_detailed', title)
     else:
         # create a variable to store amount in pounds
         payment_for_form = payment
