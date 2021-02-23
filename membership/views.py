@@ -1959,7 +1959,7 @@ def member_payment_form(request, title, pk):
 
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
-        form = PaymentForm()
+        form = PaymentForm(initial={'gift_aid': subscription.gift_aid})
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
