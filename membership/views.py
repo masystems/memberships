@@ -1304,7 +1304,7 @@ def member_reg_form(request, title, pk):
                                           country=form.cleaned_data['country'],
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
-                    
+
             elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # edit member
                 # validate email not already in use
@@ -1323,16 +1323,6 @@ def member_reg_form(request, title, pk):
                 finally:
                     member.user_account.first_name = form.cleaned_data['first_name']
                     member.user_account.last_name = form.cleaned_data['last_name']
-                    # Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
-                    #                                     company=form.cleaned_data['company'],
-                    #                                     address_line_1=form.cleaned_data['address_line_1'],
-                    #                                     address_line_2=form.cleaned_data['address_line_2'],
-                    #                                     town=form.cleaned_data['town'],
-                    #                                     county=form.cleaned_data['county'],
-                    #                                     country=form.cleaned_data['country'],
-                    #                                     postcode=form.cleaned_data['postcode'],
-                    #                                     contact_number=form.cleaned_data['contact_number']
-                    #                                     )
                     member.title = form.cleaned_data['title']
                     member.company = form.cleaned_data['company']
                     member.address_line_1 = form.cleaned_data['address_line_1']
@@ -1394,6 +1384,9 @@ def member_reg_form(request, title, pk):
 
             subscription.membership_package = membership_package
             subscription.member = member
+
+            # set gift aid field
+            subscription.gift_aid = form.cleaned_data['gift_aid']
 
             # create/ update stripe customer
             stripe.api_key = get_stripe_secret_key(request)
@@ -1867,7 +1860,12 @@ def delete_payment(request, title, pk, payment_id):
     except Payment.DoesNotExist:
         pass
     
-    return redirect('member_payments', title, pk)
+    # redirect to member payments or members detailed
+    next_page =  request.GET.get('next', '')
+    if next_page == 'member_payments':
+        return redirect('member_payments', title, pk)
+    else:
+        return redirect('payments_detailed', title)
 
 
 @login_required(login_url='/accounts/login/')
@@ -1961,7 +1959,7 @@ def member_payment_form(request, title, pk):
 
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
-        form = PaymentForm()
+        form = PaymentForm(initial={'gift_aid': subscription.gift_aid})
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
@@ -1978,11 +1976,36 @@ def member_payment_form_edit(request, title, pk, payment_id):
         form = PaymentForm(request.POST, instance=payment)
         # check whether it's valid:
         if form.is_valid():
-            form.save()
+
+            payment = form.save(commit=False)
+
+            # if payment.amount not set, set it to subscription amount
+            if payment.amount == '':
+                form.add_error('amount', f"Please enter an amount.")
+                return render(request, 'payment_form.html', {'form': form,
+                                                 'membership_package': membership_package,
+                                                 'member': member})
+            # if it has been set, convert it to pennies
+            else:
+                try:
+                    payment.amount = int(float(payment.amount) * 100)
+                except ValueError:
+                    form.add_error('amount', f"Please enter a valid amount.")
+                    return render(request, 'payment_form.html', {'form': form,
+                                                 'membership_package': membership_package,
+                                                 'member': member})
+
+            payment.save()
+
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
-        form = PaymentForm(instance=payment)
+        # create a variable to store amount in pounds
+        payment_for_form = payment
+        payment_for_form.amount = float(int(payment.amount) / 100)
+        payment_for_form.amount = "%.2f" % payment_for_form.amount
 
+        form = PaymentForm(instance=payment_for_form)
+        
     return render(request, 'payment_form_edit.html', {'form': form,
                                                       'membership_package': membership_package,
                                                       'member': member,
