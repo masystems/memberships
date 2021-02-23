@@ -35,6 +35,9 @@ class MemberForm(forms.ModelForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
 
+    # subscription field
+    gift_aid = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': ''}))
+
     class Meta:
         model = Member
         fields = '__all__'
@@ -51,7 +54,7 @@ class MemberForm(forms.ModelForm):
             'county': forms.TextInput(attrs={'class': 'form-control'}),
             'country': forms.TextInput(attrs={'class': 'form-control'}),
             'postcode': forms.TextInput(attrs={'class': 'form-control'}),
-            'contact_number': forms.TextInput(attrs={'class': 'form-control'})
+            'contact_number': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 
@@ -63,7 +66,8 @@ class MemberSubscriptionForm(forms.ModelForm):
                    'membership_package',
                    'stripe_id',
                    'stripe_subscription_id',
-                   'validated')
+                   'validated',
+                   'last_reminder')
         help_texts = {
             # 'service': _('If your query is not regarding a service, leave this blank.'),
         }

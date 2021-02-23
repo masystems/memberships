@@ -1093,6 +1093,15 @@ def payment_reminder(request, title, pk):
         body = body.replace('\n', '<br/>')
     
     send_email(f"Payment Reminder: {membership_package.organisation_name}", request.user.get_full_name(), body, send_to=member.user_account.email, customised=customised)
+    
+    # add note to comments. Don't add new line at the beginning if comments are empty.
+    if subscription.comments == '':
+        subscription.comments = subscription.comments + f"Payment reminder sent ({datetime.now().strftime('%d/%m/%Y')})"
+    else:
+        subscription.comments = subscription.comments + f"\nPayment reminder sent ({datetime.now().strftime('%d/%m/%Y')})"
+    # set last_reminder
+    subscription.last_reminder = datetime.now()
+    subscription.save()
 
     return redirect('membership_package', membership_package.organisation_name)
 
@@ -1304,7 +1313,7 @@ def member_reg_form(request, title, pk):
                                           country=form.cleaned_data['country'],
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
-                    
+
             elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # edit member
                 # validate email not already in use
@@ -1323,16 +1332,6 @@ def member_reg_form(request, title, pk):
                 finally:
                     member.user_account.first_name = form.cleaned_data['first_name']
                     member.user_account.last_name = form.cleaned_data['last_name']
-                    # Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
-                    #                                     company=form.cleaned_data['company'],
-                    #                                     address_line_1=form.cleaned_data['address_line_1'],
-                    #                                     address_line_2=form.cleaned_data['address_line_2'],
-                    #                                     town=form.cleaned_data['town'],
-                    #                                     county=form.cleaned_data['county'],
-                    #                                     country=form.cleaned_data['country'],
-                    #                                     postcode=form.cleaned_data['postcode'],
-                    #                                     contact_number=form.cleaned_data['contact_number']
-                    #                                     )
                     member.title = form.cleaned_data['title']
                     member.company = form.cleaned_data['company']
                     member.address_line_1 = form.cleaned_data['address_line_1']
@@ -1394,6 +1393,9 @@ def member_reg_form(request, title, pk):
 
             subscription.membership_package = membership_package
             subscription.member = member
+
+            # set gift aid field
+            subscription.gift_aid = form.cleaned_data['gift_aid']
 
             # create/ update stripe customer
             stripe.api_key = get_stripe_secret_key(request)
@@ -1966,7 +1968,7 @@ def member_payment_form(request, title, pk):
 
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
-        form = PaymentForm()
+        form = PaymentForm(initial={'gift_aid': subscription.gift_aid})
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
@@ -2003,8 +2005,12 @@ def member_payment_form_edit(request, title, pk, payment_id):
                                                  'member': member})
 
             payment.save()
-
-            return redirect('member_payments', membership_package.organisation_name, member.id)
+            
+            # redirect to the correct page based on POST request
+            if request.POST.get('next_page', '') == 'member_payments':
+                return redirect('member_payments', membership_package.organisation_name, member.id)
+            else:
+                return redirect('payments_detailed', title)
     else:
         # create a variable to store amount in pounds
         payment_for_form = payment
@@ -2016,7 +2022,8 @@ def member_payment_form_edit(request, title, pk, payment_id):
     return render(request, 'payment_form_edit.html', {'form': form,
                                                       'membership_package': membership_package,
                                                       'member': member,
-                                                      'payment': payment})
+                                                      'payment': payment,
+                                                      'next_page': request.GET.get('next', '')})
 
 
 @login_required(login_url="/accounts/login")

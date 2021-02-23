@@ -96,8 +96,10 @@ class MembershipSubscription(models.Model):
     comments = models.TextField(blank=True)
     membership_start = models.DateField(null=True, blank=True, default=datetime.now)
     membership_expiry = models.DateField(null=True, blank=True)
+    gift_aid = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
     custom_fields = models.TextField(blank=True)
+    last_reminder = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return self.membership_package.organisation_name
