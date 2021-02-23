@@ -2010,7 +2010,7 @@ def member_payment_form_edit(request, title, pk, payment_id):
                                                       'membership_package': membership_package,
                                                       'member': member,
                                                       'payment': payment,
-                                                      'next_page': request.POST.get('next', '')})
+                                                      'next_page': request.GET.get('next', '')})
 
 
 @login_required(login_url="/accounts/login")
