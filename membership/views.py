@@ -1304,7 +1304,7 @@ def member_reg_form(request, title, pk):
                                           country=form.cleaned_data['country'],
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
-                    
+
             elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
                 # edit member
                 # validate email not already in use
@@ -1323,16 +1323,6 @@ def member_reg_form(request, title, pk):
                 finally:
                     member.user_account.first_name = form.cleaned_data['first_name']
                     member.user_account.last_name = form.cleaned_data['last_name']
-                    # Member.objects.filter(pk=pk).update(title=form.cleaned_data['title'],
-                    #                                     company=form.cleaned_data['company'],
-                    #                                     address_line_1=form.cleaned_data['address_line_1'],
-                    #                                     address_line_2=form.cleaned_data['address_line_2'],
-                    #                                     town=form.cleaned_data['town'],
-                    #                                     county=form.cleaned_data['county'],
-                    #                                     country=form.cleaned_data['country'],
-                    #                                     postcode=form.cleaned_data['postcode'],
-                    #                                     contact_number=form.cleaned_data['contact_number']
-                    #                                     )
                     member.title = form.cleaned_data['title']
                     member.company = form.cleaned_data['company']
                     member.address_line_1 = form.cleaned_data['address_line_1']
@@ -1394,6 +1384,9 @@ def member_reg_form(request, title, pk):
 
             subscription.membership_package = membership_package
             subscription.member = member
+
+            # set gift aid field
+            subscription.gift_aid = form.cleaned_data['gift_aid']
 
             # create/ update stripe customer
             stripe.api_key = get_stripe_secret_key(request)

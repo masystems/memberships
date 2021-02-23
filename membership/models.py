@@ -96,6 +96,7 @@ class MembershipSubscription(models.Model):
     comments = models.TextField(blank=True)
     membership_start = models.DateField(null=True, blank=True, default=datetime.now)
     membership_expiry = models.DateField(null=True, blank=True)
+    gift_aid = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
     custom_fields = models.TextField(blank=True)
 

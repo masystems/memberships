@@ -1,5 +1,18 @@
 <div class="btn-list">
     <div class="btn-group">
+        {% if not stripe_package_setup %}
+            <a href="{% url 'member_form' membership_package.organisation_name 0 %}">
+                <button type="button" class="btn btn-success">
+                    Add New Member
+                </button>
+            </a>
+        {% else %}
+            <button type="button" class="btn btn-light" data-toggle="tooltip" data-placement="top" title="Cannot add new members until setup is completed.">
+                Add New Member
+            </button>
+        {% endif %}
+    </div>
+    <div class="btn-group">
         <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             Manage
         </button>
