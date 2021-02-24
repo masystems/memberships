@@ -81,7 +81,7 @@
                         <a href="#!" class="toggle-vis" data-column="12"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Date Created</button></a>
                         <a href="#!" class="toggle-vis" data-column="13"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">Membership Expiry</button></a>
                         {% for field in custom_fields %}
-                            <a href="#!" class="toggle-vis" data-column="{{ forloop.counter0|add:12|add:1 }}"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">
+                            <a href="#!" class="toggle-vis" data-column="{{ forloop.counter0|add:13|add:1 }}"><button class="btn btn-info mb-1" onclick="$(this).toggleClass('btn-info btn-dark');">
                                 {{ field }}</button></a>
                         {% endfor %}
 
