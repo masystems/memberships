@@ -42,6 +42,8 @@ def get_members_detailed(request, title):
         sort_by_col = f"{direction}price__interval"
     elif sort_by == "comments":
         sort_by_col = f"{direction}comments"
+    elif sort_by == "gift_aid":
+        sort_by_col = f"{direction}gift_aid"
     elif sort_by == "membership_start":
         sort_by_col = f"{direction}membership_start"
     elif sort_by == "membership_expiry":
@@ -59,6 +61,8 @@ def get_members_detailed(request, title):
             Q(member__user_account__first_name__icontains=search) |
             Q(member__user_account__last_name__icontains=search) |
             Q(member__user_account__email__icontains=search) |
+            Q(member__address_line_1__icontains=search) |
+            Q(member__contact_number__icontains=search) |
             Q(membership_number__icontains=search) |
             Q(comments__icontains=search) |
             Q(custom_fields__icontains=search),
@@ -69,6 +73,8 @@ def get_members_detailed(request, title):
         total_members = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
                                                               Q(member__user_account__last_name__icontains=search) |
                                                               Q(member__user_account__email__icontains=search) |
+                                                              Q(member__address_line_1__icontains=search) |
+                                                              Q(member__contact_number__icontains=search) |
                                                               Q(membership_number__icontains=search) |
                                                               Q(comments__icontains=search) |
                                                               Q(custom_fields__icontains=search),
@@ -168,20 +174,27 @@ def get_members_detailed(request, title):
             # make the new lines in the comments show in the table
             comments = subscription.comments.replace('\n', '<br/>')
 
+            # set gift aid value
+            if subscription.gift_aid:
+                gift_aid = '<i class="fad fa-check text-success"></i>'
+            else:
+                gift_aid = '<i class="fad fa-times text-dark"></i>'
+
             # # set member id, name, email, mambership_type and buttons
             row = {'id': subscription.membership_number,
-                'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
-                'email': subscription.member.user_account.email,
-                'address': address_string,
-                'contact': f'{subscription.member.contact_number or "NULL"}',
-                'membership_type': membership_type,
-                'membership_status': membership_status,
-                'payment_method': payment_method,
-                'billing_interval': billing_interval,
-                'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
-                'membership_start': f'{membership_start_date or ""}',
-                'membership_expiry': f'{subscription.membership_expiry  or ""}',
-                'action': f"""<div class="btn-group">
+                   'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
+                   'email': subscription.member.user_account.email,
+                   'address': address_string,
+                   'contact': f'{subscription.member.contact_number or "NULL"}',
+                   'membership_type': membership_type,
+                   'membership_status': membership_status,
+                   'payment_method': payment_method,
+                   'billing_interval': billing_interval,
+                   'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+                   'gift_aid': gift_aid,
+                   'membership_start': f'{membership_start_date or ""}',
+                   'membership_expiry': f'{subscription.membership_expiry  or ""}',
+                   'action': f"""<div class="btn-group">
                                     <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                         Administer
                                     </button>
