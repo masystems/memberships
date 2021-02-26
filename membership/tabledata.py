@@ -668,7 +668,7 @@ def get_donations(request, title):
         complete_data = {
             "draw": 0,
             "recordsTotal": all_donations.count(),
-              "recordsFiltered": total_donations,
+            "recordsFiltered": total_donations,
             "data": donations
         }
     else:
