@@ -595,3 +595,30 @@ def get_member_payments(request, title, pk=None):
             "data": []
         }
     return HttpResponse(dumps(complete_data))
+
+@login_required(login_url='/accounts/login/')
+def get_donations(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+
+    start = int(request.POST.get('start', 0))
+    end = int(request.POST.get('length', 20))
+    search = request.POST.get('search[value]', "")
+    sort_by = request.POST.get(f'columns[{request.POST.get("order[0][column]")}][data]')
+
+    # desc or asc
+    if request.POST.get('order[0][dir]') == 'asc':
+        direction = ""
+    else:
+        direction = "-"
+
+    # sort map
+    if sort_by == "name":
+        sort_by_col = f"{direction}donation__full_name"
+    elif sort_by == "email":
+        sort_by_col = f"{direction}donation__email_address"
+    elif sort_by == "amount":
+        sort_by_col = f"{direction}donation__amount"
+    elif sort_by == "message":
+        sort_by_col = f"{direction}donation__message"
+    elif sort_by == "date":
+        sort_by_col = f"{direction}donation__created"
