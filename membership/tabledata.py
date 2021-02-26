@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirec
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from memberships.functions import *
-from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription
+from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Donation
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
 from json import dumps, loads, JSONDecodeError
 import stripe
@@ -613,15 +613,15 @@ def get_donations(request, title):
 
     # sort map
     if sort_by == "name":
-        sort_by_col = f"{direction}donation__full_name"
+        sort_by_col = f"{direction}full_name"
     elif sort_by == "email":
-        sort_by_col = f"{direction}donation__email_address"
+        sort_by_col = f"{direction}email_address"
     elif sort_by == "amount":
-        sort_by_col = f"{direction}donation__amount"
+        sort_by_col = f"{direction}amount"
     elif sort_by == "message":
-        sort_by_col = f"{direction}donation__message"
+        sort_by_col = f"{direction}message"
     elif sort_by == "date_time":
-        sort_by_col = f"{direction}donation__created"
+        sort_by_col = f"{direction}created"
 
     donations = []
     if search == "":
@@ -629,21 +629,21 @@ def get_donations(request, title):
                             start:start + end]
     else:
         all_donations = Donation.objects.filter(
-                Q(donation__full_name__icontains=search) |
-                Q(donation__email_address__icontains=search) |
-                Q(donation__amount__icontains=search) |
-                Q(donation__message__icontains=search) |
-                Q(donation__created__icontains=search),
+                Q(full_name__icontains=search) |
+                Q(email_address__icontains=search) |
+                Q(amount__icontains=search) |
+                Q(message__icontains=search) |
+                Q(created__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
         total_donations = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
     else:
         total_donations = MembershipSubscription.objects.filter(
-                Q(donation__full_name__icontains=search) |
-                Q(donation__email_address__icontains=search) |
-                Q(donation__amount__icontains=search) |
-                Q(donation__message__icontains=search) |
-                Q(donation__created__icontains=search),
+                Q(full_name__icontains=search) |
+                Q(email_address__icontains=search) |
+                Q(amount__icontains=search) |
+                Q(message__icontains=search) |
+                Q(created__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).count()
 
     if all_donations.count() > 0:
