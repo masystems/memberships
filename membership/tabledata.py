@@ -650,7 +650,7 @@ def get_donations(request, title):
         for donation in all_donations.all():
             name = f"""<div>{donation.full_name}</div>"""
             email = f"""<div>{donation.email_address}</div>"""
-            amount = f"""<div>{donation.amount}</div>"""
+            amount = f"""<div>{"£%.2f" % float(donation.amount)}</div>"""
             message = f"""<div>{donation.message}</div>"""
             date_time = f"""<div>{donation.created.strftime("%d/%m/%Y<br/>%H:%M")}</div>"""
 
