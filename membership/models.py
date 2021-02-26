@@ -182,3 +182,4 @@ class Donation(models.Model):
     stripe_payment_id = models.CharField(max_length=255, blank=True)
     validated = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
+    gift_aid = models.BooleanField(default=False)
