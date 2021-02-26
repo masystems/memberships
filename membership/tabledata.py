@@ -652,7 +652,7 @@ def get_donations(request, title):
             email = f"""<div>{donation.email_address}</div>"""
             amount = f"""<div>{donation.amount}</div>"""
             message = f"""<div>{donation.message}</div>"""
-            date_time = f"""<div>{donation.created}</div>"""
+            date_time = f"""<div>{donation.created.strftime("%d/%m/%Y<br/>%H:%M")}</div>"""
 
             row = {
                 'name': name,
