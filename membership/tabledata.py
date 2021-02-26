@@ -648,10 +648,15 @@ def get_donations(request, title):
 
     if all_donations.count() > 0:
         for donation in all_donations.all():
+            # if no message given, display blank
+            donation_message = donation.message
+            if donation.message == 'No message given':
+                donation_message = ''
+            
             name = f"""<div>{donation.full_name}</div>"""
             email = f"""<div>{donation.email_address}</div>"""
             amount = f"""<div>{"£%.2f" % float(donation.amount)}</div>"""
-            message = f"""<div>{donation.message}</div>"""
+            message = f"""<div>{donation_message}</div>"""
             date_time = f"""<div>{donation.created.strftime("%d/%m/%Y<br/>%H:%M")}</div>"""
 
             row = {
