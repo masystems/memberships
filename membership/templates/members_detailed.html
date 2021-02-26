@@ -280,7 +280,7 @@
 <script>
     var removeMember = function (user_id) {
         $('#remove-member-modal').modal('show');
-        $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id);
+        $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id + "/?next=members_detailed");
     }
 </script>
 {% endblock %}
