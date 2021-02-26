@@ -9,26 +9,8 @@
 
 {% block content %}
 
-<!-- Modal to remove member -->
-<div id="remove-member-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="remove-member-modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header modal-colored-header bg-danger">
-                <h4 class="modal-title text-white" id="remove-member-modalLabel">Remove Member</h4>
-                <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip" title="Exit Window" aria-hidden="true">×</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to remove this member from {{ membership_package.organisation_name}}?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                <a id="removeUserUrl" href="">
-                    <button type="button" class="btn btn-danger">Continue</button>
-                </a>
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+<!-- modal to remove member -->
+{% include 'remove_member_modal.html' %}
 
 <!-- modal to update membership status -->
 {% include 'update_membership_status.html' %}
