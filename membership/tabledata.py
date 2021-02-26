@@ -620,5 +620,63 @@ def get_donations(request, title):
         sort_by_col = f"{direction}donation__amount"
     elif sort_by == "message":
         sort_by_col = f"{direction}donation__message"
-    elif sort_by == "date":
+    elif sort_by == "date_time":
         sort_by_col = f"{direction}donation__created"
+
+    donations = []
+    if search == "":
+        all_donations = Donation.objects.filter(membership_package=membership_package).order_by(sort_by_col).distinct()[
+                            start:start + end]
+    else:
+        all_donations = Donation.objects.filter(
+                Q(donation__full_name__icontains=search) |
+                Q(donation__email_address__icontains=search) |
+                Q(donation__amount__icontains=search) |
+                Q(donation__message__icontains=search) |
+                Q(donation__created__icontains=search),
+                membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
+    if search == "":
+        total_donations = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
+    else:
+        total_donations = MembershipSubscription.objects.filter(
+                Q(donation__full_name__icontains=search) |
+                Q(donation__email_address__icontains=search) |
+                Q(donation__amount__icontains=search) |
+                Q(donation__message__icontains=search) |
+                Q(donation__created__icontains=search),
+                membership_package=membership_package).order_by(sort_by_col).count()
+
+    if all_donations.count() > 0:
+        for donation in all_donations.all():
+            name = f"""<div>{donation.full_name}</div>"""
+            email = f"""<div>{donation.email_address}</div>"""
+            amount = f"""<div>{donation.amount}</div>"""
+            message = f"""<div>{donation.message}</div>"""
+            date_time = f"""<div>{donation.created}</div>"""
+
+            row = {
+                'name': name,
+                'email': email,
+                'amount': amount,
+                'message': message,
+                'date_time': date_time
+            }
+
+                # append all data to the list
+            donations.append(row)
+        
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": all_donations.count(),
+              "recordsFiltered": total_donations,
+            "data": donations
+        }
+    else:
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "data": []
+        }
+    
+    return HttpResponse(dumps(complete_data))
