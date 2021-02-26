@@ -34,7 +34,7 @@
             <!-- no organisation given -->
             <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not given.</p>
             <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
-            <div class="input-group mb-3">
+            <div class="input-group">
                 <div id="orgs">
                     <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
                 </div>
@@ -43,12 +43,15 @@
             <!-- no organisation matches the given organisation -->
             <p style="font-style: italic;" class="text-danger">The organisation you are trying to donate to was not recognised.</p>
             <p>To make your donation, type and select the name of the organisation below, and fill out the other fields.</p>
-            <div class="input-group mb-3">
+            <div class="input-group">
                 <div id="orgs">
                     <input class="typeahead1 form-control" type="text" id="organisation-donation" name="membership_package" placeholder="Type organisation name">
                 </div>
             </div>
         {% endif %}
+        <div class="input-group">
+            <label class="control-label col-form-label">Gift Aid<input id="gift-aid" class="mt-2 ml-2" type="checkbox" name="gift_aid" style="height:13px; width:13px"></label>
+        </div>
         <div class="form-group">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
