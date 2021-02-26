@@ -38,4 +38,5 @@ urlpatterns = [
     path('update-membership-status/<int:pk>/<str:status>/<str:title>/<str:page>', views.update_membership_status, name="update_membership_status"),
     path('update_user/<int:pk>', views.update_user, name='update_user'),
     path('payment-reminder/<str:title>/<int:pk>', views.payment_reminder, name='payment_reminder'),
+    path('get-donations/<str:title>', tabledata.get_donations, name="get_donations"),
 ]
