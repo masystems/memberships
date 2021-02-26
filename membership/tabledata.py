@@ -636,9 +636,9 @@ def get_donations(request, title):
                 Q(created__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
-        total_donations = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
+        total_donations = Donation.objects.filter(membership_package=membership_package).distinct().count()
     else:
-        total_donations = MembershipSubscription.objects.filter(
+        total_donations = Donation.objects.filter(
                 Q(full_name__icontains=search) |
                 Q(email_address__icontains=search) |
                 Q(amount__icontains=search) |
