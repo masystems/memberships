@@ -23,6 +23,12 @@ def donation_payment(request):
     else:
         message = "No message given"
 
+    # process the gift aid input
+    if 'gift_aid' in form_data.keys():
+        gift_aid = True
+    else:
+        gift_aid = False
+
     if request.POST:
         # create donation object
         try:
@@ -32,7 +38,7 @@ def donation_payment(request):
                                                full_name=full_name,
                                                email_address=form_data['email_address'][0],
                                                message=message,
-                                               gift_aid=form_date['gift_aid'][0])
+                                               gift_aid=gift_aid)
         except ValueError:
             donation = Donation.objects.create(membership_package=MembershipPackage.objects.get(
                                                    organisation_name=form_data['membership_package'][0]),
@@ -40,7 +46,7 @@ def donation_payment(request):
                                                full_name=full_name,
                                                email_address=form_data['email_address'][0],
                                                message=message,
-                                               gift_aid=form_date['gift_aid'][0])
+                                               gift_aid=gift_aid)
 
         # check for existing membership
         subscription = False
