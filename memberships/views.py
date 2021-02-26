@@ -31,14 +31,16 @@ def donation_payment(request):
                                                amount=form_data['amount'][0],
                                                full_name=full_name,
                                                email_address=form_data['email_address'][0],
-                                               message=message)
+                                               message=message,
+                                               gift_aid=form_date['gift_aid'][0])
         except ValueError:
             donation = Donation.objects.create(membership_package=MembershipPackage.objects.get(
                                                    organisation_name=form_data['membership_package'][0]),
                                                amount=form_data['amount'][0],
                                                full_name=full_name,
                                                email_address=form_data['email_address'][0],
-                                               message=message)
+                                               message=message,
+                                               gift_aid=form_date['gift_aid'][0])
 
         # check for existing membership
         subscription = False
