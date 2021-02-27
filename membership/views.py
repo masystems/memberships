@@ -2180,4 +2180,10 @@ def remove_member(request, title, pk):
 
     subscription.delete()
 
-    return redirect('membership')
+    # redirect to next page depending on next parameter
+    next_page =  request.GET.get('next', '')
+    if next_page == 'members_detailed':
+        return redirect('members_detailed', title)
+    else:
+        return redirect('membership_package', title)
+
