@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirec
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from memberships.functions import *
-from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription
+from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Donation
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
 from json import dumps, loads, JSONDecodeError
 import stripe
@@ -605,4 +605,94 @@ def get_member_payments(request, title, pk=None):
             "recordsFiltered": 0,
             "data": []
         }
+    return HttpResponse(dumps(complete_data))
+
+@login_required(login_url='/accounts/login/')
+def get_donations(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+
+    start = int(request.POST.get('start', 0))
+    end = int(request.POST.get('length', 20))
+    search = request.POST.get('search[value]', "")
+    sort_by = request.POST.get(f'columns[{request.POST.get("order[0][column]")}][data]')
+
+    # desc or asc
+    if request.POST.get('order[0][dir]') == 'asc':
+        direction = ""
+    else:
+        direction = "-"
+
+    # sort map
+    if sort_by == "name":
+        sort_by_col = f"{direction}full_name"
+    elif sort_by == "email":
+        sort_by_col = f"{direction}email_address"
+    elif sort_by == "amount":
+        sort_by_col = f"{direction}amount"
+    elif sort_by == "message":
+        sort_by_col = f"{direction}message"
+    elif sort_by == "date_time":
+        sort_by_col = f"{direction}created"
+
+    donations = []
+    if search == "":
+        all_donations = Donation.objects.filter(membership_package=membership_package).order_by(sort_by_col).distinct()[
+                            start:start + end]
+    else:
+        all_donations = Donation.objects.filter(
+                Q(full_name__icontains=search) |
+                Q(email_address__icontains=search) |
+                Q(amount__icontains=search) |
+                Q(message__icontains=search) |
+                Q(created__icontains=search),
+                membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
+    if search == "":
+        total_donations = Donation.objects.filter(membership_package=membership_package).distinct().count()
+    else:
+        total_donations = Donation.objects.filter(
+                Q(full_name__icontains=search) |
+                Q(email_address__icontains=search) |
+                Q(amount__icontains=search) |
+                Q(message__icontains=search) |
+                Q(created__icontains=search),
+                membership_package=membership_package).order_by(sort_by_col).count()
+
+    if all_donations.count() > 0:
+        for donation in all_donations.all():
+            # if no message given, display blank
+            donation_message = donation.message
+            if donation.message == 'No message given':
+                donation_message = ''
+            
+            name = f"""<div>{donation.full_name}</div>"""
+            email = f"""<div>{donation.email_address}</div>"""
+            amount = f"""<div>{"£%.2f" % float(donation.amount)}</div>"""
+            message = f"""<div>{donation_message}</div>"""
+            date_time = f"""<div>{donation.created.strftime("%d/%m/%Y<br/>%H:%M")}</div>"""
+
+            row = {
+                'name': name,
+                'email': email,
+                'amount': amount,
+                'message': message,
+                'date_time': date_time
+            }
+
+                # append all data to the list
+            donations.append(row)
+        
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": all_donations.count(),
+            "recordsFiltered": total_donations,
+            "data": donations
+        }
+    else:
+        complete_data = {
+            "draw": 0,
+            "recordsTotal": 0,
+            "recordsFiltered": 0,
+            "data": []
+        }
+    
     return HttpResponse(dumps(complete_data))

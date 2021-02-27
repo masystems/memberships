@@ -9,6 +9,9 @@
 
 {% block content %}
 
+<!-- modal to remove member -->
+{% include 'remove_member_modal.html' %}
+
 <!-- modal to update membership status -->
 {% include 'update_membership_status.html' %}
 
@@ -272,5 +275,12 @@
     $('input[type=search]').keyup(function() {
         $('#search_param').val($('input[type=search]').val());
     })
+</script>
+<!-- remove member -->
+<script>
+    var removeMember = function (user_id) {
+        $('#remove-member-modal').modal('show');
+        $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id + "/?next=members_detailed");
+    }
 </script>
 {% endblock %}
