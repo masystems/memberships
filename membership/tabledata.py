@@ -401,6 +401,7 @@ def get_all_member_payments(request, title):
     end = int(request.POST.get('length', 20))
     search = request.POST.get('search[value]', "")
     sort_by = request.POST.get(f'columns[{request.POST.get("order[0][column]")}][data]')
+    stripe.api_key = get_stripe_secret_key(request)
 
     # desc or asc
     if request.POST.get('order[0][dir]') == 'asc':
@@ -442,13 +443,23 @@ def get_all_member_payments(request, title):
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
-                                              subscription__membership_package=membership_package).distinct().order_by(sort_by_col)[start:start + end]
+                                              subscription__membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     # get stripe payments
     total_payments = Payment.objects.filter(subscription__membership_package=membership_package).distinct().count()
+    if search == "":
+        total_payments = Payment.objects.filter(subscription__membership_package=membership_package).distinct().count()
+    else:
+        total_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
+                                              Q(payment_number__icontains=search) |
+                                              Q(type__icontains=search) |
+                                              Q(comments__icontains=search) |
+                                              Q(created__icontains=search) |
+                                              Q(gift_aid_percentage__icontains=search) |
+                                              Q(amount__icontains=search),
+                                              subscription__membership_package=membership_package).order_by(sort_by_col).count()
 
     for payment in all_payments.all():
         if payment.subscription.stripe_id:
-            stripe.api_key = get_stripe_secret_key(request)
             stripe_payments = stripe.Charge.list(customer=payment.subscription.stripe_id,
                                                  stripe_account=payment.subscription.membership_package.stripe_acct_id)
             for stripe_payment in stripe_payments:
