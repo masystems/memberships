@@ -2139,7 +2139,7 @@ def send_payment_error(error):
 
 
 @login_required(login_url='/accounts/login/')
-def remove_member(request, title, pk):
+def remove_member(request, title):
     """
     Validate request.user is owner/admin
     cancel subscription
@@ -2164,7 +2164,7 @@ def remove_member(request, title, pk):
         # return to previous page
         return redirect('membership_package', membership_package.organisation_name)
 
-    member = Member.objects.get(id=pk)
+    member = Member.objects.get(id=request.POST['user_id'])
     subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
     stripe.api_key = get_stripe_secret_key(request)
 
