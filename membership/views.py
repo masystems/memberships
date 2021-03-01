@@ -2172,12 +2172,12 @@ def remove_member(request, title):
         try:
             member = Member.objects.get(id=request.POST['user_id'])
         except Member.DoesNotExist:
-            return return redirect('membership_package', membership_package.organisation_name)
+            return redirect('membership_package', membership_package.organisation_name)
         
         try:
             subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
         except MembershipSubscription.DoesNotExist:
-            return return redirect('membership_package', membership_package.organisation_name)
+            return redirect('membership_package', membership_package.organisation_name)
         
         stripe.api_key = get_stripe_secret_key(request)
 
