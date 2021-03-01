@@ -9,26 +9,8 @@
 
 {% block content %}
 
-<!-- Modal to remove member -->
-<div id="remove-member-modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="remove-member-modalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header modal-colored-header bg-danger">
-                <h4 class="modal-title text-white" id="remove-member-modalLabel">Remove Member</h4>
-                <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip" title="Exit Window" aria-hidden="true">×</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to remove this member from {{ membership_package.organisation_name}}?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                <a id="removeUserUrl" href="">
-                    <button type="button" class="btn btn-danger">Continue</button>
-                </a>
-            </div>
-        </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-</div><!-- /.modal -->
+<!-- modal to remove member -->
+{% include 'remove_member_modal.html' %}
 
 <!-- modal to update membership status -->
 {% include 'update_membership_status.html' %}
@@ -462,7 +444,36 @@
                         <!-- Tabs -->
                         <div class="tab-pane" id="donation" role="tabpanel">
                             <div class="card-body">
-                                <h4 class="card-title">Donation Button</h4>
+                                <!-- table to show donations made to this organisation -->
+                                <h3 class="card-title">Donations</h4>
+                                <div class="table-responsive">
+                                    <table id="donations_table" class="table table-striped table-bordered display no-wrap"
+                                        style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Amount</th>
+                                                <th>Message</th>
+                                                <th>Date and Time</th>
+                                            </tr>
+                                        </thead>
+            
+                                        <tfoot>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Amount</th>
+                                                <th>Message</th>
+                                                <th>Date and Time</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+
+                                <hr>
+                                <!-- button to copy donation link button to clipboard -->
+                                <h3 class="card-title">Donation Button</h4>
                                 <p>
                                     To insert a button in your website that allows your viewers to easily make a donation to {{ membership_package.organisation_name }}, choose which of the buttons below would fit well into your website. Then, click that button to copy a code snippet to clipboard so it can be pasted into your website HTML.
                                 </p>
@@ -557,7 +568,7 @@
 
         var removeMember = function (user_id) {
             $('#remove-member-modal').modal('show');
-            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id);
+            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id + "/?next=org_page");
         }
 
         $('.removeUserBtn').on('click',function(){
@@ -655,5 +666,44 @@
             document.execCommand("Copy");
             textArea.remove();
         }
+    </script>
+    <!-- donations table -->
+    <script>
+        var members_table = $('#donations_table').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "responsive": true,
+            "ajax": {
+                url: "{% url 'get_donations' membership_package.organisation_name %}",
+                type: "POST",
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            },
+            "columns": [
+                { data: "name" },
+                { data: "email" },
+                { data: "amount" },
+                { data: "message" },
+                { data: "date_time" },
+            ],
+            columnDefs: [
+                { targets: 'no-sort', orderable: false },
+                {
+                    render: function (data, type, full, meta) {
+                        return "<div class='text-wrap width-200'>" + data + "</div>";
+                    },
+                    targets: '_all'
+                }
+            ],
+            action: function ( e, dt, button, conf ) {
+               var col = dt.columns( conf.columns );
+               var curr = col.visible();
+
+               col.visible( conf.visibility !== undefined ?
+                               conf.visibility :
+                               ! (curr.length ? curr[0] : false )
+               );
+               this.active( col.visible() );   // added this line
+            }
+        });
     </script>
 {% endblock %}
