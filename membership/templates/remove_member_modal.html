@@ -23,19 +23,27 @@
     $('#continue').click(function(e){
         $.ajax({
             url: "{% url 'remove_member' membership_package.organisation_name %}",
-            type: 'post',
+            type: 'POST',
             dataType: 'text',
             headers: {'X-CSRFToken': '{{ csrf_token }}'},
             data: {
                 'user_id': $("#user-id").val(),
             },
             beforeSend: function() {
-                $('#overlay-spinner').modal();
+                //$('#overlay-spinner').modal();
                 $('#remove-member-modal').modal('hide');
             },
-            success: function () {
-                $('#show_hide_col').DataTable().ajax.reload(null, false);
-                $('#overlay-spinner').modal('hide');
+            success: function (data) {
+                var result = JSON.parse(data);
+                
+                if (result['status'] == "fail") {
+                    errorMsg(result['message']);
+                    //$('#overlay-spinner').modal('hide');
+                } else {
+                    $('#show_hide_col').DataTable().ajax.reload(null, false);
+                    //$('#overlay-spinner').modal('hide');
+                }
+                //$('#overlay-spinner').modal('hide');
             }
         })
     });
