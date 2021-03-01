@@ -195,40 +195,6 @@
             }
         });
 
-        function submitDonationForm() {
-            // submit donation form
-            // Get form
-            var form = $('#donationForm')[0];
-
-            // Create an FormData object
-            var data = new FormData(form);
-
-            $.ajax({
-                url: '{% url 'donation_payment' %}',
-                type: 'POST',
-                processData: false,
-                contentType: false,
-                cache: false,
-                dataType: 'text',
-                headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                data: data,
-                beforeSend: function() {
-                },
-                success: function(data) {
-                    var result = JSON.parse(data);
-                    if (result['result'] == "fail") {
-                        $('#formError').removeClass('d-none');
-                        $('#donation-overlay-spinner').modal('hide');
-                    } else {
-                        $('#formError').addClass('d-none');
-                        generateCardToken(data);
-                    }
-                 },
-                error: function(jqXHR, textStatus, errorThrown){
-                }
-            });
-        }
-
         // STRIPE STUFF
         var stripe = Stripe('{{ public_api_key }}');
         var elements = stripe.elements();
