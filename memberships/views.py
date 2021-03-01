@@ -11,7 +11,6 @@ import stripe
 
 
 def donation_payment(request):
-    print(request.POST)
     form_data = parse_qs(request.POST['form'])
     
     # handle non mandatory fields not being specified
@@ -161,6 +160,12 @@ def donation_payment(request):
             donation.stripe_payment_id = payment_confirm['id']
             donation.save()
 
+            # display yes or no for gift aid
+            if donation.gift_aid:
+                gift_aid_string = 'Yes'
+            else:
+                gift_aid_string = 'No'
+
             # send confirmation email
             donator_body = f"""<p>Congratulations! You just made a new donation.
                     <p>Donation details:</p>
@@ -168,6 +173,7 @@ def donation_payment(request):
                     <li>Donated to: {donation.membership_package.organisation_name}</li>
                     <li>Donated by: {donation.full_name or "Anonymous"}</li>
                     <li>Amount: £{donation.amount}</li>
+                    <li>Gift aid: {gift_aid_string}</li>
                     <li>Receipt: {payment_confirm.charges.data[0].receipt_url}</li>
                     </ul>
                     """
@@ -177,6 +183,7 @@ def donation_payment(request):
                     <li>Donated to: {donation.membership_package.organisation_name}</li>
                     <li>Donated by: {donation.full_name or "Anonymous"}</li>
                     <li>Amount: £{donation.amount}</li>
+                    <li>Gift aid: {gift_aid_string}</li>
                     <li>Receipt: {payment_confirm.charges.data[0].receipt_url}</li>
                     <li>Message from donator: {donation.message or "No message given"}</li>
                     </ul>
