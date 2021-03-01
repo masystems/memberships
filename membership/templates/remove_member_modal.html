@@ -29,9 +29,13 @@
             data: {
                 'user_id': $("#user-id").val(),
             },
+            beforeSend: function() {
+                $('#overlay-spinner').modal();
+                $('#remove-member-modal').modal('hide');
+            },
             success: function () {
                 $('#show_hide_col').DataTable().ajax.reload(null, false);
-                $('#remove-member-modal').modal('toggle');
+                $('#overlay-spinner').modal('hide');
             }
         })
     });
