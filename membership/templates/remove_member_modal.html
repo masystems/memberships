@@ -11,10 +11,34 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                <a id="removeUserUrl" href="">
-                    <button type="button" class="btn btn-danger">Continue</button>
-                </a>
+                <button type="button" class="btn btn-danger" id="continue">Continue</button>
+                <input id="user-id" type="hidden">
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
+
+<!-- POST request to remove user -->
+<script>
+    $('#continue').click(function(e){
+        $.ajax({
+            url: "{% url 'remove_member' membership_package.organisation_name %}",
+            type: 'POST',
+            dataType: 'text',
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            data: {
+                'user_id': $("#user-id").val(),
+            },
+            success: function (data) {
+                var result = JSON.parse(data);
+                
+                if (result['status'] == "fail") {
+                    errorMsg(result['message']);
+                } else {
+                    $('#show_hide_col').DataTable().ajax.reload(null, false);
+                    $('#remove-member-modal').modal('hide');
+                }
+            }
+        })
+    });
+</script>

@@ -629,6 +629,8 @@ def get_donations(request, title):
         sort_by_col = f"{direction}email_address"
     elif sort_by == "amount":
         sort_by_col = f"{direction}amount"
+    elif sort_by == "gift_aid":
+        sort_by_col = f"{direction}gift_aid"
     elif sort_by == "message":
         sort_by_col = f"{direction}message"
     elif sort_by == "date_time":
@@ -643,6 +645,7 @@ def get_donations(request, title):
                 Q(full_name__icontains=search) |
                 Q(email_address__icontains=search) |
                 Q(amount__icontains=search) |
+                Q(gift_aid__icontains=search) |
                 Q(message__icontains=search) |
                 Q(created__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
@@ -653,6 +656,7 @@ def get_donations(request, title):
                 Q(full_name__icontains=search) |
                 Q(email_address__icontains=search) |
                 Q(amount__icontains=search) |
+                Q(gift_aid__icontains=search) |
                 Q(message__icontains=search) |
                 Q(created__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).count()
@@ -667,6 +671,12 @@ def get_donations(request, title):
             name = f"""<div>{donation.full_name}</div>"""
             email = f"""<div>{donation.email_address}</div>"""
             amount = f"""<div>{"£%.2f" % float(donation.amount)}</div>"""
+
+            if donation.gift_aid:
+                gift_aid = f"""<div>Yes</div"""
+            else:
+                gift_aid = f"""<div>No</div"""
+
             message = f"""<div>{donation_message}</div>"""
             date_time = f"""<div>{donation.created.strftime("%d/%m/%Y<br/>%H:%M")}</div>"""
 
@@ -674,6 +684,7 @@ def get_donations(request, title):
                 'name': name,
                 'email': email,
                 'amount': amount,
+                'gift_aid': gift_aid,
                 'message': message,
                 'date_time': date_time
             }
