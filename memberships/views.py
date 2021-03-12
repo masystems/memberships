@@ -23,6 +23,12 @@ def donation_payment(request):
     else:
         message = "No message given"
 
+    # process the gift aid input
+    if 'gift_aid' in form_data.keys():
+        gift_aid = True
+    else:
+        gift_aid = False
+
     if request.POST:
         # create donation object
         try:
@@ -31,14 +37,16 @@ def donation_payment(request):
                                                amount=form_data['amount'][0],
                                                full_name=full_name,
                                                email_address=form_data['email_address'][0],
-                                               message=message)
+                                               message=message,
+                                               gift_aid=gift_aid)
         except ValueError:
             donation = Donation.objects.create(membership_package=MembershipPackage.objects.get(
                                                    organisation_name=form_data['membership_package'][0]),
                                                amount=form_data['amount'][0],
                                                full_name=full_name,
                                                email_address=form_data['email_address'][0],
-                                               message=message)
+                                               message=message,
+                                               gift_aid=gift_aid)
 
         # check for existing membership
         subscription = False
@@ -152,6 +160,12 @@ def donation_payment(request):
             donation.stripe_payment_id = payment_confirm['id']
             donation.save()
 
+            # display yes or no for gift aid
+            if donation.gift_aid:
+                gift_aid_string = 'Yes'
+            else:
+                gift_aid_string = 'No'
+
             # send confirmation email
             donator_body = f"""<p>Congratulations! You just made a new donation.
                     <p>Donation details:</p>
@@ -159,6 +173,7 @@ def donation_payment(request):
                     <li>Donated to: {donation.membership_package.organisation_name}</li>
                     <li>Donated by: {donation.full_name or "Anonymous"}</li>
                     <li>Amount: £{donation.amount}</li>
+                    <li>Gift aid: {gift_aid_string}</li>
                     <li>Receipt: {payment_confirm.charges.data[0].receipt_url}</li>
                     </ul>
                     """
@@ -168,6 +183,7 @@ def donation_payment(request):
                     <li>Donated to: {donation.membership_package.organisation_name}</li>
                     <li>Donated by: {donation.full_name or "Anonymous"}</li>
                     <li>Amount: £{donation.amount}</li>
+                    <li>Gift aid: {gift_aid_string}</li>
                     <li>Receipt: {payment_confirm.charges.data[0].receipt_url}</li>
                     <li>Message from donator: {donation.message or "No message given"}</li>
                     </ul>

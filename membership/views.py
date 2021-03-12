@@ -2139,7 +2139,7 @@ def send_payment_error(error):
 
 
 @login_required(login_url='/accounts/login/')
-def remove_member(request, title, pk):
+def remove_member(request, title):
     """
     Validate request.user is owner/admin
     cancel subscription
@@ -2151,39 +2151,46 @@ def remove_member(request, title, pk):
     :param id:
     :return:
     """
-    try:
-        membership_package = MembershipPackage.objects.filter(Q(owner=request.user) |
-                                                              Q(admins=request.user),
-                                                              organisation_name=title,
-                                                              enabled=True).distinct()
-        # sigh
-        membership_package = membership_package[0]
+    if request.method == 'POST':
+        if not request.POST.get('user_id'):
+            return HttpResponse(dumps({'status': "fail",
+                                       'message': "Failed to remove user"}), content_type='application/json')
 
-    except MembershipPackage.DoesNotExist:
-        # disallow access to page
-        # return to previous page
-        return redirect('membership_package', membership_package.organisation_name)
+        try:
+            membership_package = MembershipPackage.objects.filter(Q(owner=request.user) |
+                                                                Q(admins=request.user),
+                                                                organisation_name=title,
+                                                                enabled=True).distinct()
+            # sigh
+            membership_package = membership_package[0]
 
-    member = Member.objects.get(id=pk)
-    subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
-    stripe.api_key = get_stripe_secret_key(request)
+        except MembershipPackage.DoesNotExist:
+            # disallow access to page
+            # return to previous page
+            return redirect('dashboard')
 
-    # cancel subscription
-    if subscription.stripe_subscription_id:
-        stripe.Subscription.delete(subscription.stripe_subscription_id,
-                                   stripe_account=membership_package.stripe_acct_id)
+        try:
+            member = Member.objects.get(id=request.POST['user_id'])
+        except Member.DoesNotExist:
+            return redirect('membership_package', membership_package.organisation_name)
+        
+        try:
+            subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+        except MembershipSubscription.DoesNotExist:
+            return redirect('membership_package', membership_package.organisation_name)
+        
+        stripe.api_key = get_stripe_secret_key(request)
 
-    # delete customer from stripe account
-    if subscription.stripe_id:
-        stripe.Customer.delete(subscription.stripe_id,
-                               stripe_account=membership_package.stripe_acct_id)
+        # cancel subscription
+        if subscription.stripe_subscription_id:
+            stripe.Subscription.delete(subscription.stripe_subscription_id,
+                                    stripe_account=membership_package.stripe_acct_id)
 
-    subscription.delete()
+        # delete customer from stripe account
+        if subscription.stripe_id:
+            stripe.Customer.delete(subscription.stripe_id,
+                                stripe_account=membership_package.stripe_acct_id)
 
-    # redirect to next page depending on next parameter
-    next_page =  request.GET.get('next', '')
-    if next_page == 'members_detailed':
-        return redirect('members_detailed', title)
-    else:
-        return redirect('membership_package', title)
+        subscription.delete()
 
+        return HttpResponse(dumps({'status': "success"}), content_type='application/json')
