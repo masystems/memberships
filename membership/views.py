@@ -342,7 +342,7 @@ def manage_custom_fields(request, title):
                         custom_fields = loads(sub.custom_fields)
                     except JSONDecodeError:
                         custom_fields = {}
-
+                    custom_fields[request.POST.get('type_id')] = {}
                     custom_fields[request.POST.get('type_id')]['field_name'] = request.POST.get('field_name')
                     custom_fields[request.POST.get('type_id')]['field_type'] = field_type
                     custom_fields[request.POST.get('type_id')]['help_text'] = request.POST.get('help_text')
