@@ -457,12 +457,7 @@
                                                 <th>Gift Aid</th>
                                                 <th>Message</th>
                                                 <th>Date and Time</th>
-                                                <th>Address Line 1</th>
-                                                <th>Address Line 2</th>
-                                                <th>Town</th>
-                                                <th>County</th>
-                                                <th>Country</th>
-                                                <th>Postcode</th>
+                                                <th>Address</th>
                                             </tr>
                                         </thead>
             
@@ -474,12 +469,7 @@
                                                 <th>Gift Aid</th>
                                                 <th>Message</th>
                                                 <th>Date and Time</th>
-                                                <th>Address Line 1</th>
-                                                <th>Address Line 2</th>
-                                                <th>Town</th>
-                                                <th>County</th>
-                                                <th>Country</th>
-                                                <th>Postcode</th>
+                                                <th>Address</th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -683,7 +673,7 @@
     </script>
     <!-- donations table -->
     <script>
-        var members_table = $('#donations_table').DataTable({
+        var donations_table = $('#donations_table').DataTable({
             "processing": true,
             "serverSide": true,
             "responsive": true,
@@ -699,12 +689,7 @@
                 { data: "gift_aid" },
                 { data: "message" },
                 { data: "date_time" },
-                { data: "address_line_1" },
-                { data: "address_line_2" },
-                { data: "town" },
-                { data: "county" },
-                { data: "country" },
-                { data: "postcode" },
+                { data: "address" },
             ],
             columnDefs: [
                 { targets: 'no-sort', orderable: false },
