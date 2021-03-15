@@ -217,8 +217,13 @@
 
             // Address is mandatory if gift aid checked
             if ($('#gift-aid').is(':checked')) {
+                name = $("#donator-full-name").val();
                 address1 = $("#donator-address-1").val();
                 postcode = $("#donator-postcode").val();
+
+                if(name == ''){
+                    errorMsg("Name was not given!<br/>(Required for gift aid)");
+                }
 
                 if(address1 == ''){
                     errorMsg("Address line 1 was not given!<br/>(Required for gift aid)");
