@@ -201,9 +201,29 @@
                                                 <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
                                             </div>
                                         </div>
-                                        <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
+                                        <div class="col-lg-3">
+                                            <div class="form-group">
+                                                <input id="donator-address-1" type="text" class="form-control" name="address-1" placeholder="Address line 1">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-address-2" type="text" class="form-control" name="address-2" placeholder="Address line 2">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-town" type="text" class="form-control" name="town" placeholder="Town">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-county" type="text" class="form-control" name="county" placeholder="County">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-country" type="text" class="form-control" name="country" placeholder="Country">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-postcode" type="text" class="form-control" name="postcode" placeholder="Postcode">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-xlg-3 mb-4 offset-lg-0">
                                             <form id="donation-payment-form">
-                                                <label>Card Holders Name*:</label>
+                                                <label>Card Holder's Name*:</label>
                                                 <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
                                                 <!-- placeholder for Elements -->
                                                 <div id="donation-card-element"></div>
