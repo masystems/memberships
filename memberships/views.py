@@ -31,17 +31,34 @@ def donation_payment(request):
 
     # process address
     if 'address-1' in form_data.keys():
-        address_1 = form_data['address-1'][0]
+        address_line_1 = form_data['address-1'][0]
+    else:
+        address_line_1 = ''
+    
     if 'address-2' in form_data.keys():
-        address_2 = form_data['address-2'][0]
+        address_line_2 = form_data['address-2'][0]
+    else:
+        address_line_2 = ''
+    
     if 'town' in form_data.keys():
         town = form_data['town'][0]
+    else:
+        town = ''
+    
     if 'county' in form_data.keys():
         county = form_data['county'][0]
+    else:
+        county = ''
+    
     if 'country' in form_data.keys():
         country = form_data['country'][0]
+    else:
+        country = ''
+    
     if 'postcode' in form_data.keys():
         postcode = form_data['postcode'][0]
+    else:
+        postcode = ''
 
     if request.POST:
         # create donation object
