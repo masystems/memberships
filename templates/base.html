@@ -480,9 +480,34 @@
             var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             var emailCheck = emailRegex.test(email);
 
+            var nameCheck = true;
+            var address1Check = true;
+            var postcodeCheck = true;
+
+            // Address is mandatory if gift aid checked
+            if ($('#gift-aid').is(':checked')) {
+                name = $("#donator-full-name").val();
+                address1 = $("#donator-address-1").val();
+                postcode = $("#donator-postcode").val();
+
+                if(name == ''){
+                    nameCheck = false;
+                    errorMsg("Name was not given!<br/>(Required for gift aid)");
+                }
+
+                if(address1 == ''){
+                    address1Check = false;
+                    errorMsg("Address line 1 was not given!<br/>(Required for gift aid)");
+                }
+
+                if(postcode == ''){
+                    postcodeCheck = false;
+                    errorMsg("Postcode was not given!<br/>(Required for gift aid)");
+                }
+            }
 
             // Check organisation field
-            if (isOrganisation && organisationExists && amountCheck && emailCheck) {
+            if (isOrganisation && organisationExists && amountCheck && emailCheck && nameCheck && address1Check && postcodeCheck) {
                 $('#donation-overlay-spinner').modal();
                 sleep(2000).then(() => {
                     generateCardToken()
