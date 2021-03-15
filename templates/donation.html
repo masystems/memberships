@@ -23,6 +23,8 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
+    {% include 'gift_aid_modal.html' %}
+
     <form id="donationForm">
         <h4 class="mb-3">Donation Form</h4>
         {% if org_name != 'not_given' and org_name != 'not_match' %}
@@ -49,8 +51,9 @@
                 </div>
             </div>
         {% endif %}
-        <div class="input-group">
-            <label class="control-label col-form-label">Gift Aid<input id="gift-aid" class="mt-2 ml-2" type="checkbox" name="gift_aid" style="height:13px; width:13px"></label>
+        <div class="input-group mt-2 mb-2">
+            <label class="control-label col-form-label col-md-4">Gift Aid<input id="gift-aid" class="mt-2 ml-2" type="checkbox" name="gift_aid" style="height:13px; width:13px"></label>
+            <small style="font-style: italic;" class="col-md-8">By ticking this box you agree to the gift aid <a href="javascript:giftAidModal();">Terms & Conditions</a>.</small>
         </div>
         <div class="form-group">
             <div class="input-group mb-3">
@@ -285,6 +288,13 @@
             //update layout
             $('#donationResult').removeClass('d-none');
             $('#donationReceipt').attr("href", result.receipt);
+        }
+    </script>
+
+    <!-- display gift aid terms and conditions modal -->
+    <script>
+        function giftAidModal(){
+            $('#giftAidModal').modal();
         }
     </script>
 
