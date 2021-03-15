@@ -211,6 +211,12 @@
             if(amountCheck == false){
                errorMsg("The amount is invalid!");
             }
+
+            // Address is mandatory if gift aid checked
+            if ($('#gift-aid').is(':checked')) {
+                address1 = $("#donator-address-1").val();
+                postcode = $("#postcode").val();
+            }
         });
 
         // STRIPE STUFF
