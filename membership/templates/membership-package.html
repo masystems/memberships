@@ -115,7 +115,7 @@
                             <div class="card-body">
                                 <h3 class="text-success">Complete Membership Applications</h3>
                                 <div class="table-responsive" style="overflow: visible;">
-                                    <table id="default_order" class="table table-striped table-bordered display no-wrap" style="width:100%">
+                                    <table id="show_hide_col" class="table table-striped table-bordered display no-wrap" style="width:100%">
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
@@ -173,7 +173,7 @@
                                                         {% endfor %}
                                                         <a href="{% url 'member_form' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
                                                         <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>
-                                                        <button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                                        <a href="javascript:removeMember({{ member.id }}, 'incompleteMembersTable');"><button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button></a>
                                                     </td>
                                                 </tr>
                                             {% empty %}
@@ -242,7 +242,7 @@
                                                                         </li>
                                                                         <!-- remove member -->
                                                                         <li>
-                                                                            <a href="javascript:removeMember({{ member.id }});" value="{{ member.id }}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>
+                                                                            <a href="javascript:removeMember({{ member.id }}, 'overdueMembersTable');" value="{{ member.id }}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>
                                                                         </li>
                                                                     </ul>
                                                                 </div>
@@ -539,7 +539,7 @@
     <script>
         // create variable so that we are redirected back to this page
         var page = 'org';
-        var members_table = $('#default_order').DataTable({
+        var members_table = $('#show_hide_col').DataTable({
             "processing": true,
             "serverSide": true,
             "responsive": true,
@@ -570,14 +570,11 @@
 
     <script>
 
-        var removeMember = function (user_id) {
+        var removeMember = function (user_id, table_id) {
             $('#remove-member-modal').modal('show');
-            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id + "/?next=org_page");
+            $('#user-id').val(user_id);
+            $('#table-id').val(table_id);
         }
-
-        $('.removeUserBtn').on('click',function(){
-            removeMember($(this).attr("value"));
-        });
 
         var resetMemberPwd = function (user_email) {
             $.ajax({
