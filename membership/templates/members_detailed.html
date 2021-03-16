@@ -281,9 +281,10 @@
 </script>
 <!-- remove member -->
 <script>
-    var removeMember = function (user_id) {
+    var removeMember = function (user_id, table_id) {
         $('#remove-member-modal').modal('show');
         $('#user-id').val(user_id);
+        $('#table-id').val(table_id);
     }
 </script>
 {% endblock %}
