@@ -457,6 +457,7 @@
                                                 <th>Gift Aid</th>
                                                 <th>Message</th>
                                                 <th>Date and Time</th>
+                                                <th>Address</th>
                                             </tr>
                                         </thead>
             
@@ -468,6 +469,7 @@
                                                 <th>Gift Aid</th>
                                                 <th>Message</th>
                                                 <th>Date and Time</th>
+                                                <th>Address</th>
                                             </tr>
                                         </tfoot>
                                     </table>
@@ -671,7 +673,7 @@
     </script>
     <!-- donations table -->
     <script>
-        var members_table = $('#donations_table').DataTable({
+        var donations_table = $('#donations_table').DataTable({
             "processing": true,
             "serverSide": true,
             "responsive": true,
@@ -687,6 +689,7 @@
                 { data: "gift_aid" },
                 { data: "message" },
                 { data: "date_time" },
+                { data: "address" },
             ],
             columnDefs: [
                 { targets: 'no-sort', orderable: false },

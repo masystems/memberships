@@ -647,7 +647,8 @@ def get_donations(request, title):
                 Q(amount__icontains=search) |
                 Q(gift_aid__icontains=search) |
                 Q(message__icontains=search) |
-                Q(created__icontains=search),
+                Q(created__icontains=search) |
+                Q(address__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
         total_donations = Donation.objects.filter(membership_package=membership_package).distinct().count()
@@ -658,7 +659,8 @@ def get_donations(request, title):
                 Q(amount__icontains=search) |
                 Q(gift_aid__icontains=search) |
                 Q(message__icontains=search) |
-                Q(created__icontains=search),
+                Q(created__icontains=search) |
+                Q(address__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).count()
 
     if all_donations.count() > 0:
@@ -680,13 +682,30 @@ def get_donations(request, title):
             message = f"""<div>{donation_message}</div>"""
             date_time = f"""<div>{donation.created.strftime("%d/%m/%Y<br/>%H:%M")}</div>"""
 
+            # address
+            address = '<div>'
+            if donation.address_line_1 != '':
+                address += f'{donation.address_line_1}<br/>'
+            if donation.address_line_2 != '':
+                address += f'{donation.address_line_2}<br/>'
+            if donation.town != '':
+                address += f'{donation.town}<br/>'
+            if donation.county != '':
+                address += f'{donation.county}<br/>'
+            if donation.country != '':
+                address += f'{donation.country}<br/>'
+            if donation.postcode != '':
+                address += f'{donation.postcode}<br/>'
+            address += '</div>'
+
             row = {
                 'name': name,
                 'email': email,
                 'amount': amount,
                 'gift_aid': gift_aid,
                 'message': message,
-                'date_time': date_time
+                'date_time': date_time,
+                'address': address
             }
 
                 # append all data to the list
