@@ -71,7 +71,7 @@ class PaymentMethod(models.Model):
 class Member(models.Model):
     user_account = models.OneToOneField(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255, blank=True)
-    company = models.CharField(max_length=255, blank=True, help_text="Only to be used if is a company account")
+    company = models.CharField(max_length=255, blank=True, help_text="Company name (if a company membership)")
     address_line_1 = models.CharField(max_length=255, blank=True)
     address_line_2 = models.CharField(max_length=255, blank=True)
     town = models.CharField(max_length=255, blank=True)
