@@ -173,7 +173,7 @@
                                                         {% endfor %}
                                                         <a href="{% url 'member_form' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
                                                         <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>
-                                                        <button href="javascript:removeMember({{ member.id }}, incompleteMembersTable);" class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button>
+                                                        <a href="javascript:removeMember({{ member.id }}, 'incompleteMembersTable');"><button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button></a>
                                                     </td>
                                                 </tr>
                                             {% empty %}
@@ -242,7 +242,7 @@
                                                                         </li>
                                                                         <!-- remove member -->
                                                                         <li>
-                                                                            <a href="javascript:removeMember({{ member.id }}, overdueMembersTable);" value="{{ member.id }}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>
+                                                                            <a href="javascript:removeMember({{ member.id }}, 'overdueMembersTable');" value="{{ member.id }}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>
                                                                         </li>
                                                                     </ul>
                                                                 </div>
