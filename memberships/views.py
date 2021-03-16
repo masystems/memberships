@@ -29,6 +29,37 @@ def donation_payment(request):
     else:
         gift_aid = False
 
+    # process address
+    if 'address-1' in form_data.keys():
+        address_line_1 = form_data['address-1'][0]
+    else:
+        address_line_1 = ''
+    
+    if 'address-2' in form_data.keys():
+        address_line_2 = form_data['address-2'][0]
+    else:
+        address_line_2 = ''
+    
+    if 'town' in form_data.keys():
+        town = form_data['town'][0]
+    else:
+        town = ''
+    
+    if 'county' in form_data.keys():
+        county = form_data['county'][0]
+    else:
+        county = ''
+    
+    if 'country' in form_data.keys():
+        country = form_data['country'][0]
+    else:
+        country = ''
+    
+    if 'postcode' in form_data.keys():
+        postcode = form_data['postcode'][0]
+    else:
+        postcode = ''
+
     if request.POST:
         # create donation object
         try:
@@ -38,15 +69,27 @@ def donation_payment(request):
                                                full_name=full_name,
                                                email_address=form_data['email_address'][0],
                                                message=message,
-                                               gift_aid=gift_aid)
+                                               gift_aid=gift_aid,
+                                               address_line_1=address_line_1,
+                                               address_line_2 = address_line_2,
+                                               town=town,
+                                               county=county,
+                                               country=country,
+                                               postcode=postcode)
         except ValueError:
             donation = Donation.objects.create(membership_package=MembershipPackage.objects.get(
-                                                   organisation_name=form_data['membership_package'][0]),
+                                               organisation_name=form_data['membership_package'][0]),
                                                amount=form_data['amount'][0],
                                                full_name=full_name,
                                                email_address=form_data['email_address'][0],
                                                message=message,
-                                               gift_aid=gift_aid)
+                                               gift_aid=gift_aid,
+                                               address_line_1=address_line_1,
+                                               address_line_2 = address_line_2,
+                                               town=town,
+                                               county=county,
+                                               country=country,
+                                               postcode=postcode)
 
         # check for existing membership
         subscription = False

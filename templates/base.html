@@ -201,9 +201,29 @@
                                                 <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
                                             </div>
                                         </div>
-                                        <div class="col-lg-3 col-xlg-4 mb-4 offset-lg-0">
+                                        <div class="col-lg-3">
+                                            <div class="form-group">
+                                                <input id="donator-address-1" type="text" class="form-control" name="address-1" placeholder="Address line 1">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-address-2" type="text" class="form-control" name="address-2" placeholder="Address line 2">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-town" type="text" class="form-control" name="town" placeholder="Town">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-county" type="text" class="form-control" name="county" placeholder="County">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-country" type="text" class="form-control" name="country" placeholder="Country">
+                                            </div>
+                                            <div class="form-group">
+                                                <input id="donator-postcode" type="text" class="form-control" name="postcode" placeholder="Postcode">
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-xlg-3 mb-4 offset-lg-0">
                                             <form id="donation-payment-form">
-                                                <label>Card Holders Name*:</label>
+                                                <label>Card Holder's Name*:</label>
                                                 <input id="cardholder-name" type="text" class="form-control" value="{{ request.user.get_full_name }}">
                                                 <!-- placeholder for Elements -->
                                                 <div id="donation-card-element"></div>
@@ -460,9 +480,34 @@
             var emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             var emailCheck = emailRegex.test(email);
 
+            var nameCheck = true;
+            var address1Check = true;
+            var postcodeCheck = true;
+
+            // Address is mandatory if gift aid checked
+            if ($('#gift-aid').is(':checked')) {
+                name = $("#donator-full-name").val();
+                address1 = $("#donator-address-1").val();
+                postcode = $("#donator-postcode").val();
+
+                if(name == ''){
+                    nameCheck = false;
+                    errorMsg("Name was not given!<br/>(Required for gift aid)");
+                }
+
+                if(address1 == ''){
+                    address1Check = false;
+                    errorMsg("Address line 1 was not given!<br/>(Required for gift aid)");
+                }
+
+                if(postcode == ''){
+                    postcodeCheck = false;
+                    errorMsg("Postcode was not given!<br/>(Required for gift aid)");
+                }
+            }
 
             // Check organisation field
-            if (isOrganisation && organisationExists && amountCheck && emailCheck) {
+            if (isOrganisation && organisationExists && amountCheck && emailCheck && nameCheck && address1Check && postcodeCheck) {
                 $('#donation-overlay-spinner').modal();
                 sleep(2000).then(() => {
                     generateCardToken()
