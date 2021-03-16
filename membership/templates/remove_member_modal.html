@@ -13,6 +13,7 @@
                 <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="continue">Continue</button>
                 <input id="user-id" type="hidden">
+                <input id="table-id" type="hidden">
             </div>
         </div><!-- /.modal-content -->
     </div><!-- /.modal-dialog -->
@@ -35,7 +36,12 @@
                 if (result['status'] == "fail") {
                     errorMsg(result['message']);
                 } else {
-                    $('#show_hide_col').DataTable().ajax.reload(null, false);
+                    // if the id of the table is the id of complete members/members detailed table
+                    if($('#table-id').val() == 'show_hide_col') {
+                        $('#show_hide_col').DataTable().ajax.reload(null, false);
+                    } else { // if it's a normal table just reload the page
+                        location.reload();
+                    }
                     $('#remove-member-modal').modal('hide');
                 }
             }
