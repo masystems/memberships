@@ -36,9 +36,12 @@
                 if (result['status'] == "fail") {
                     errorMsg(result['message']);
                 } else {
-                    var tableId = $("#table-id").val();
-                    $('#' + tableId).DataTable().ajax.reload(null, false);
-                    //$('#show_hide_col').DataTable().ajax.reload(null, false);
+                    // if the id of the table is the id of complete members/members detailed table
+                    if($('#table-id') == 'show_hide_col') {
+                        $('#show_hide_col').DataTable().ajax.reload(null, false);
+                    } else { // if it's a normal table just reload the page
+                        location.reload();
+                    }
                     $('#remove-member-modal').modal('hide');
                 }
             }
