@@ -351,7 +351,7 @@ def get_members(request, title):
                     payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                         'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
 
-            remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id }, show_hide_col);" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
+            remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id }, 'show_hide_col');" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # make the new lines in the comments show in the table
             comments = subscription.comments.replace('\n', '<br/>')
