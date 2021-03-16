@@ -572,7 +572,7 @@
 
         var removeMember = function (user_id) {
             $('#remove-member-modal').modal('show');
-            $('#removeUserUrl').attr("href", "/membership/remove-member/{{ membership_package.organisation_name }}/" + user_id + "/?next=org_page");
+            $('#user-id').val(user_id);
         }
 
         $('.removeUserBtn').on('click',function(){
