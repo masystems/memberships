@@ -300,7 +300,7 @@
                                     </div>
                                 </div>
                                 <!-- generate report -->
-                                {% if membership_package.organisation_name == 'Suffolk Horse Society' %}
+                                {% if membership_package.organisation_name == 'Suffolk Horse Society' or request.user.is_superuser %}
                                     {% if request.user == membership_package.owner or request.user in membership_package.admins.all %}
                                         <!-- raffle report -->
                                         <div>
