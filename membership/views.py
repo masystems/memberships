@@ -178,7 +178,6 @@ def manage_membership_types(request, title):
                         request.POST.get('type_id'),
                         product=membership_package.stripe_product_id,
                         currency="gbp",
-                        type='one_time',
                         nickname=request.POST.get('nickname'),
                         unit_amount=int(float(request.POST.get('amount')) * 100),
                         stripe_account=membership_package.stripe_acct_id
