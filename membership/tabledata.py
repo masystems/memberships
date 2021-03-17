@@ -145,7 +145,7 @@ def get_members_detailed(request, title):
                     payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                         'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
 
-            remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id});" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
+            remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id}, 'show_hide_col');" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # create a string for address to avoid including extra line breaks
             address_string = ""
@@ -351,7 +351,7 @@ def get_members(request, title):
                     payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                         'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
 
-            remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id });" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
+            remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id }, 'show_hide_col');" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # make the new lines in the comments show in the table
             comments = subscription.comments.replace('\n', '<br/>')
@@ -647,7 +647,8 @@ def get_donations(request, title):
                 Q(amount__icontains=search) |
                 Q(gift_aid__icontains=search) |
                 Q(message__icontains=search) |
-                Q(created__icontains=search),
+                Q(created__icontains=search) |
+                Q(address__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
         total_donations = Donation.objects.filter(membership_package=membership_package).distinct().count()
@@ -658,7 +659,8 @@ def get_donations(request, title):
                 Q(amount__icontains=search) |
                 Q(gift_aid__icontains=search) |
                 Q(message__icontains=search) |
-                Q(created__icontains=search),
+                Q(created__icontains=search) |
+                Q(address__icontains=search),
                 membership_package=membership_package).order_by(sort_by_col).count()
 
     if all_donations.count() > 0:
@@ -680,13 +682,30 @@ def get_donations(request, title):
             message = f"""<div>{donation_message}</div>"""
             date_time = f"""<div>{donation.created.strftime("%d/%m/%Y<br/>%H:%M")}</div>"""
 
+            # address
+            address = '<div>'
+            if donation.address_line_1 != '':
+                address += f'{donation.address_line_1}<br/>'
+            if donation.address_line_2 != '':
+                address += f'{donation.address_line_2}<br/>'
+            if donation.town != '':
+                address += f'{donation.town}<br/>'
+            if donation.county != '':
+                address += f'{donation.county}<br/>'
+            if donation.country != '':
+                address += f'{donation.country}<br/>'
+            if donation.postcode != '':
+                address += f'{donation.postcode}<br/>'
+            address += '</div>'
+
             row = {
                 'name': name,
                 'email': email,
                 'amount': amount,
                 'gift_aid': gift_aid,
                 'message': message,
-                'date_time': date_time
+                'date_time': date_time,
+                'address': address
             }
 
                 # append all data to the list

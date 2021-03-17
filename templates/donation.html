@@ -23,6 +23,8 @@
         </div><!-- /.modal-dialog -->
     </div><!-- /.modal -->
 
+    {% include 'gift_aid_modal.html' %}
+
     <form id="donationForm">
         <h4 class="mb-3">Donation Form</h4>
         {% if org_name != 'not_given' and org_name != 'not_match' %}
@@ -49,8 +51,9 @@
                 </div>
             </div>
         {% endif %}
-        <div class="input-group">
-            <label class="control-label col-form-label">Gift Aid<input id="gift-aid" class="mt-2 ml-2" type="checkbox" name="gift_aid" style="height:13px; width:13px"></label>
+        <div class="input-group mt-2 mb-2">
+            <label class="control-label col-form-label col-md-4">Gift Aid<input id="gift-aid" class="mt-2 ml-2" type="checkbox" name="gift_aid" style="height:13px; width:13px"></label>
+            <small style="font-style: italic;" class="col-md-8">By ticking this box you agree to the gift aid <a href="javascript:giftAidModal();">Terms & Conditions</a>.</small>
         </div>
         <div class="form-group">
             <div class="input-group mb-3">
@@ -65,6 +68,24 @@
         </div>
         <div class="form-group">
             <input id="donator-email" type="email" class="form-control" name="email_address" placeholder="Email Address">
+        </div>
+        <div class="form-group">
+            <input id="donator-address-1" type="text" class="form-control" name="address-1" placeholder="Address line 1">
+        </div>
+        <div class="form-group">
+            <input id="donator-address-2" type="text" class="form-control" name="address-2" placeholder="Address line 2">
+        </div>
+        <div class="form-group">
+            <input id="donator-town" type="text" class="form-control" name="town" placeholder="Town">
+        </div>
+        <div class="form-group">
+            <input id="donator-county" type="text" class="form-control" name="county" placeholder="County">
+        </div>
+        <div class="form-group">
+            <input id="donator-country" type="text" class="form-control" name="country" placeholder="Country">
+        </div>
+        <div class="form-group">
+            <input id="donator-postcode" type="text" class="form-control" name="postcode" placeholder="Postcode">
         </div>
         <div class="form-group">
             <textarea class="form-control" id="donator-message" rows="3" name="message" placeholder="Message"></textarea>
@@ -174,8 +195,34 @@
                 var organisationExists = orgs.includes($('#organisation-donation').val());
             }
 
+            var nameCheck = true;
+            var address1Check = true;
+            var postcodeCheck = true;
+
+            // Address is mandatory if gift aid checked
+            if ($('#gift-aid').is(':checked')) {
+                name = $("#donator-full-name").val();
+                address1 = $("#donator-address-1").val();
+                postcode = $("#donator-postcode").val();
+
+                if(name == ''){
+                    nameCheck = false;
+                    errorMsg("Name was not given!<br/>(Required for gift aid)");
+                }
+
+                if(address1 == ''){
+                    address1Check = false;
+                    errorMsg("Address line 1 was not given!<br/>(Required for gift aid)");
+                }
+
+                if(postcode == ''){
+                    postcodeCheck = false;
+                    errorMsg("Postcode was not given!<br/>(Required for gift aid)");
+                }
+            }
+
             // If amount and email are okay, submit donation form
-            if (isOrganisation && organisationExists && amountCheck && emailCheck) {
+            if (isOrganisation && organisationExists && amountCheck && emailCheck && nameCheck && address1Check && postcodeCheck) {
                 $('#donation-overlay-spinner').modal();
                 sleep(2000).then(() => {
                     generateCardToken()
@@ -285,6 +332,13 @@
             //update layout
             $('#donationResult').removeClass('d-none');
             $('#donationReceipt').attr("href", result.receipt);
+        }
+    </script>
+
+    <!-- display gift aid terms and conditions modal -->
+    <script>
+        function giftAidModal(){
+            $('#giftAidModal').modal();
         }
     </script>
 
