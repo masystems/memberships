@@ -518,15 +518,19 @@
             var checkPostcode = function(){
                 // Define postcode checks
                 var postcode = $("#user-postcode").val();
-                var postcodeRegex = /^(([A-Z][0-9]{1,2})|(([A-Z][A-HJ-Y][0-9]{1,2})|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) [0-9][A-Z]{2}$/;
-                var postcodeCheck = postcodeRegex.test(postcode);
+                if (postcode == ''){
+                    errorMsg("The Postcode is invalid!");
+                    return false;
+                } else{
+                    var postcodeRegex = /^(([A-Z][0-9]{1,2})|(([A-Z][A-HJ-Y][0-9]{1,2})|(([A-Z][0-9][A-Z])|([A-Z][A-HJ-Y][0-9]?[A-Z])))) [0-9][A-Z]{2}$/;
+                    var postcodeCheck = postcodeRegex.test(postcode);
 
-                if (postcodeCheck || (postcode == "")){
-                    return true;
+                    if (postcodeCheck || (postcode == "")){
+                        return true;
+                    }
+                    errorMsg("The Postcode is invalid!");
+                    return false;
                 }
-                errorMsg("The Postcode is invalid!");
-                return false;
-
             }
 
             var checkName = function(){
