@@ -172,7 +172,7 @@ def manage_membership_types(request, title):
 
         else:
             # new price object - one time
-            if request.POST.get('interval') == 'one off':
+            if request.POST.get('interval') == 'one time':
                 try:
                     price = stripe.Price.create(
                         request.POST.get('type_id'),
