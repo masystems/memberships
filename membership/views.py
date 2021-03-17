@@ -171,29 +171,54 @@ def manage_membership_types(request, title):
                                            'message': "Price successfully updated"}), content_type='application/json')
 
         else:
-            # new price object
-            try:
-                price = stripe.Price.create(
-                    request.POST.get('type_id'),
-                    product=membership_package.stripe_product_id,
-                    currency="gbp",
-                    recurring={"interval": request.POST.get('interval')},
-                    nickname=request.POST.get('nickname'),
-                    unit_amount=int(float(request.POST.get('amount')) * 100),
-                    stripe_account=membership_package.stripe_acct_id
-                )
-                Price.objects.create(membership_package=membership_package,
-                                     stripe_price_id=price.id,
-                                     nickname=price.nickname,
-                                     interval=price.recurring.interval,
-                                     visible=visible_value,
-                                     amount=price.unit_amount,
-                                     active=True)
-                return HttpResponse(dumps({'status': "success",
-                                           'message': "Price successfully added"}), content_type='application/json')
-            except ValueError:
-                return HttpResponse(dumps({'status': "fail",
-                                           'message': "You must enter a valid amount"}), content_type='application/json')
+            # new price object - one time
+            if request.POST.get('interval') == 'one off':
+                try:
+                    price = stripe.Price.create(
+                        request.POST.get('type_id'),
+                        product=membership_package.stripe_product_id,
+                        currency="gbp",
+                        type='one_time',
+                        nickname=request.POST.get('nickname'),
+                        unit_amount=int(float(request.POST.get('amount')) * 100),
+                        stripe_account=membership_package.stripe_acct_id
+                    )
+                    Price.objects.create(membership_package=membership_package,
+                                        stripe_price_id=price.id,
+                                        nickname=price.nickname,
+                                        interval=price.type,
+                                        visible=visible_value,
+                                        amount=price.unit_amount,
+                                        active=True)
+                    return HttpResponse(dumps({'status': "success",
+                                            'message': "Price successfully added"}), content_type='application/json')
+                except ValueError:
+                    return HttpResponse(dumps({'status': "fail",
+                                            'message': "You must enter a valid amount"}), content_type='application/json')
+            # new price object - recurring
+            else:
+                try:
+                    price = stripe.Price.create(
+                        request.POST.get('type_id'),
+                        product=membership_package.stripe_product_id,
+                        currency="gbp",
+                        recurring={"interval": request.POST.get('interval')},
+                        nickname=request.POST.get('nickname'),
+                        unit_amount=int(float(request.POST.get('amount')) * 100),
+                        stripe_account=membership_package.stripe_acct_id
+                    )
+                    Price.objects.create(membership_package=membership_package,
+                                        stripe_price_id=price.id,
+                                        nickname=price.nickname,
+                                        interval=price.recurring.interval,
+                                        visible=visible_value,
+                                        amount=price.unit_amount,
+                                        active=True)
+                    return HttpResponse(dumps({'status': "success",
+                                            'message': "Price successfully added"}), content_type='application/json')
+                except ValueError:
+                    return HttpResponse(dumps({'status': "fail",
+                                            'message': "You must enter a valid amount"}), content_type='application/json')
 
     else:
         membership_types_list = []
