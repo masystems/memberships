@@ -76,6 +76,7 @@
                                             <select class="custom-select" id="interval{{ forloop.counter }}" name="interval" disabled>
                                                 <option {% if type.recurring.interval == 'month' %}selected{% endif %}>month</option>
                                                 <option {% if type.recurring.interval == 'year' %}selected{% endif %}>year</option>
+                                                <option {% if type.type == 'one_time' %}selected{% endif %}>one time</option>
                                             </select>
                                         </div>
                                     </div>
