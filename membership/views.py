@@ -1558,7 +1558,7 @@ def get_overdue_and_next(request, subscription):
         if subscription.price.interval == 'monthly':
             next_payment_date = last_payment_date + relativedelta(months=1)
         # must be yearly
-        else:
+        elif subscription.price.interval == 'yearly':
             next_payment_date = last_payment_date + relativedelta(years=1)
     # set next payment to sub start date
     else:
@@ -1573,8 +1573,9 @@ def get_overdue_and_next(request, subscription):
     elif not last_payment_date:
         overdue = True
     # if next payment due is in the past
-    elif next_payment_date < datetime.now().date():
-        overdue = True
+    elif next_payment_date:
+        if next_payment_date < datetime.now().date():
+            overdue = True
 
     return {
         'next_payment_date': next_payment_date,
