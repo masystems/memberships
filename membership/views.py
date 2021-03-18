@@ -1317,29 +1317,51 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             return HttpResponse(dumps(result))
 
         # new subscription
-        subscription_details = stripe.Subscription.create(
-            customer=subscription.stripe_id,
-            items=[
-                {
-                    "plan": subscription.price.stripe_price_id,
-                },
-            ],
-            stripe_account=package.stripe_acct_id,
-        )
-        subscription.stripe_subscription_id = subscription_details.id
-        subscription.active = True
-        subscription.save()
-        if subscription_details['status'] != 'active':
-            result = {'result': 'fail',
-                      'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
-            return HttpResponse(dumps(result))
+        # create stripe subscription if price is recurring
+        if subscription.price.interval != 'one_time':
+            subscription_details = stripe.Subscription.create(
+                customer=subscription.stripe_id,
+                items=[
+                    {
+                        "plan": subscription.price.stripe_price_id,
+                    },
+                ],
+                stripe_account=package.stripe_acct_id,
+            )
+            subscription.stripe_subscription_id = subscription_details.id
 
-        invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription_details.id,
-                                      limit=1, stripe_account=package.stripe_acct_id,)
-        receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+            subscription.active = True
+            subscription.save()
+            if subscription_details['status'] != 'active':
+                result = {'result': 'fail',
+                        'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
+                return HttpResponse(dumps(result))
+
+            invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription_details.id,
+                                        limit=1, stripe_account=package.stripe_acct_id,)
+            receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+        else:
+            payment_intent = stripe.PaymentIntent.create(
+                customer=subscription.stripe_id,
+                amount=subscription.price.amount,
+                currency="gbp",
+                payment_method_types=["card"],
+                receipt_email=request.user.email,
+                stripe_account=package.stripe_acct_id
+            )
+            # take payment
+            payment_confirm = stripe.PaymentIntent.confirm(
+                payment_intent['id'],
+                payment_method=result['feedback']['default_source'],
+                stripe_account=package.stripe_acct_id
+            )
+            receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+
+            subscription.active = True
+            subscription.save()
 
         result = {'result': 'success',
-                  'invoice': invoice.data[0].invoice_pdf,
+                  #'invoice': invoice.data[0].invoice_pdf,
                   'receipt': receipt.data[0].receipt_url
                   }
         return HttpResponse(dumps(result))
@@ -1787,7 +1809,7 @@ def validate_card(request, type, subscription=None):
         )
         return {'result': 'success',
               'feedback': payment_method}
-
+        
     except stripe.error.CardError as e:
         # Since it's a decline, stripe.error.CardError will be caught
         feedback = send_payment_error(e)
