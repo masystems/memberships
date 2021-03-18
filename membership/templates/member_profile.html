@@ -162,6 +162,7 @@
                                                 </div>
                                             {% endif %}
                                         {% endfor %}
+                                    <!-- cater for those who don't have a stripe subscription - this includes one time customers -->
                                     {% else %}
                                         <div class="row">
                                             <div class="col-md-3 col-xs-6 b-r"> <strong>Membership Status</strong>
@@ -194,7 +195,12 @@
                                             </div>
                                             <div class="col-md-3 col-xs-6"> <strong>Payment Method</strong>
                                                 <br>
-                                                <p class="text-muted">{{ subscription.payment_method.payment_name }}</p>
+                                                <!-- cater for one time customers, as they don't have stripe subscription -->
+                                                {% if subscription.payment_method %}
+                                                    <p class="text-muted">{{ subscription.payment_method.payment_name }}</p>
+                                                {% elif subscription.price.interval == "one_time" %}
+                                                    <p class="text-muted">Card</p>
+                                                {% endif %}
                                             </div>
                                             {% if subscription.price.interval == "month" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
