@@ -187,6 +187,8 @@
                                                         Monthly
                                                     {% elif subscription.price.interval == 'year' %}
                                                         Yearly
+                                                    {% elif subscription.price.interval == 'one_time' %}
+                                                        One Time
                                                     {% endif %}
                                                 </p>
                                             </div>
@@ -202,6 +204,12 @@
                                                 </div>
                                             {% elif subscription.price.interval == "year" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Year</strong>
+                                                    <p class="text-muted">
+                                                        £{{ subscription.price.amount|price }}
+                                                    </p>
+                                                </div>
+                                            {% elif subscription.price.interval == "one_time" %}
+                                                <div class="col-md-3 col-xs-6 b-r"> <strong>Price</strong>
                                                     <p class="text-muted">
                                                         £{{ subscription.price.amount|price }}
                                                     </p>
