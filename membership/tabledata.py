@@ -367,14 +367,14 @@ def get_members(request, title):
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
                                                 </button>
-                                                <ul class="dropdown-menu" role="menu">
-                                                    <li>{card_button}</li>
-                                                    <li>{member_payments_button}</li>
-                                                    <li>{edit_member_button}</li>
-                                                    <li>{reset_password_button}</li>
-                                                    <li>{payment_reminder_button}</li>
-                                                    <li>{remove_member_button}</li>
-                                                </ul>
+                                                <div class="dropdown-menu">
+                                                    {card_button}
+                                                    {member_payments_button}
+                                                    {edit_member_button}
+                                                    {reset_password_button}
+                                                    {payment_reminder_button}
+                                                    {remove_member_button}
+                                                </div>
                                             </div>"""})
 
         complete_data = {
