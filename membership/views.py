@@ -1555,10 +1555,10 @@ def get_overdue_and_next(request, subscription):
     if float(subscription.price.amount) == 0:
         pass
     elif last_payment_date:
-        if subscription.price.interval == 'monthly':
+        if subscription.price.interval in ('monthly', 'month'):
             next_payment_date = last_payment_date + relativedelta(months=1)
         # must be yearly
-        elif subscription.price.interval == 'yearly':
+        elif subscription.price.interval in ('yearly', 'year'):
             next_payment_date = last_payment_date + relativedelta(years=1)
     # set next payment to sub start date
     else:
