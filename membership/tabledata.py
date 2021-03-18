@@ -116,7 +116,10 @@ def get_members_detailed(request, title):
                 payment_method = "Card Payment"
 
             if subscription.price:
-                billing_interval = subscription.price.interval.title()
+                if subscription.price.interval == 'one_time':
+                    billing_interval = 'One Time'
+                else:
+                    billing_interval = subscription.price.interval.title()
             else:
                 billing_interval = ""
 
