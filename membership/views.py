@@ -1023,7 +1023,7 @@ def member_reg_form(request, title, pk):
                     if MembershipSubscription.objects.filter(member=Member.objects.get(user_account=User.objects.get(
                             email=form.cleaned_data['email']))).exclude(member=member).exists():
                         form.add_error('email',
-                                       f"This email address is already in use.")
+                                       f"Error: This email address is already in use.")
                     # email is in use for a different package, so it for the member
                     else:
                         member.user_account.email = form.cleaned_data['email']
