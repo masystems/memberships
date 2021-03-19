@@ -1339,7 +1339,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
 
             invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription_details.id,
                                         limit=1, stripe_account=package.stripe_acct_id,)
-            receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+            receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id, limit=1)
         else:
             payment_intent = stripe.PaymentIntent.create(
                 customer=subscription.stripe_id,
@@ -1355,13 +1355,13 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                 payment_method=result['feedback']['default_source'],
                 stripe_account=package.stripe_acct_id
             )
-            receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+            receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id, limit=1)
 
             subscription.active = True
             subscription.save()
 
         # store payment as a Payment object in the database
-        
+        # payment.stripe_id = receipt.id
 
         result = {'result': 'success',
                   #'invoice': invoice.data[0].invoice_pdf,
