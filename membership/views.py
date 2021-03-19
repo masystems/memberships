@@ -1360,14 +1360,15 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             subscription.active = True
             subscription.save()
 
-        # store payment as a Payment object in the database
-        payment = Payment.objects.create(
-            subscription=subscription,
-            payment_number=get_next_payment_number(),
-            amount=subscription.price.amount,
-            stripe_id=receipt.data[0].id,
-        )
-        payment.save()
+        # store payment as a Payment object in the database, if it isn't already in
+        if not Payment.objects.filter(stripe_id=receipt.data[0].id).exists():
+            payment = Payment.objects.create(
+                subscription=subscription,
+                payment_number=get_next_payment_number(),
+                amount=subscription.price.amount,
+                stripe_id=receipt.data[0].id,
+            )
+            payment.save()
 
         result = {'result': 'success',
                   #'invoice': invoice.data[0].invoice_pdf,
