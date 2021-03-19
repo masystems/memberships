@@ -8,6 +8,7 @@ from json import dumps, loads, JSONDecodeError
 import stripe
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from .views import get_overdue_and_next
 
 
 def get_members_detailed(request, title):
@@ -115,7 +116,10 @@ def get_members_detailed(request, title):
                 payment_method = "Card Payment"
 
             if subscription.price:
-                billing_interval = subscription.price.interval.title()
+                if subscription.price.interval == 'one_time':
+                    billing_interval = 'One Time'
+                else:
+                    billing_interval = subscription.price.interval.title()
             else:
                 billing_interval = ""
 
@@ -136,14 +140,19 @@ def get_members_detailed(request, title):
             edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
                                                                               'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
             reset_password_button = f"""<a href="javascript:resetMemberPwd('{subscription.member.user_account.email}');" value="{subscription.member.user_account.email}" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
-            payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                        'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
             
-            # if date of last reminder is less than 30 days ago, add tooltip and make italic
-            if subscription.last_reminder:
-                if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
-                    payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                        'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+            # only display payment reminder button if user has a next payment
+            if get_overdue_and_next(request, subscription)['next_payment_date']:
+                payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+                
+                # if date of last reminder is less than 30 days ago, add tooltip and make italic
+                if subscription.last_reminder:
+                    if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
+                        payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                            'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+            else:
+                payment_reminder_button = ''
 
             remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id}, 'show_hide_col');" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
@@ -343,13 +352,18 @@ def get_members(request, title):
             edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
                                                                             'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
             reset_password_button = f"""<a href="javascript:resetMemberPwd('{ subscription.member.user_account.email }');" value="{ subscription.member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
-            payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                        'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
-            # if date of last reminder is less than 30 days ago, add tooltip and make italic
-            if subscription.last_reminder:
-                if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
-                    payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                        'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+            
+            # only display payment reminder button if user has a next payment
+            if get_overdue_and_next(request, subscription)['next_payment_date']:
+                payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+                # if date of last reminder is less than 30 days ago, add tooltip and make italic
+                if subscription.last_reminder:
+                    if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
+                        payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
+                                                                                            'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+            else:
+                payment_reminder_button = ''
 
             remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id }, 'show_hide_col');" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
@@ -367,14 +381,14 @@ def get_members(request, title):
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
                                                 </button>
-                                                <ul class="dropdown-menu" role="menu">
-                                                    <li>{card_button}</li>
-                                                    <li>{member_payments_button}</li>
-                                                    <li>{edit_member_button}</li>
-                                                    <li>{reset_password_button}</li>
-                                                    <li>{payment_reminder_button}</li>
-                                                    <li>{remove_member_button}</li>
-                                                </ul>
+                                                <div class="dropdown-menu">
+                                                    {card_button}
+                                                    {member_payments_button}
+                                                    {edit_member_button}
+                                                    {reset_password_button}
+                                                    {payment_reminder_button}
+                                                    {remove_member_button}
+                                                </div>
                                             </div>"""})
 
         complete_data = {

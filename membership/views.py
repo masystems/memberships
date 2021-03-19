@@ -175,29 +175,53 @@ def manage_membership_types(request, title):
                                            'message': "Price successfully updated"}), content_type='application/json')
 
         else:
-            # new price object
-            try:
-                price = stripe.Price.create(
-                    request.POST.get('type_id'),
-                    product=membership_package.stripe_product_id,
-                    currency="gbp",
-                    recurring={"interval": request.POST.get('interval')},
-                    nickname=request.POST.get('nickname'),
-                    unit_amount=int(float(request.POST.get('amount')) * 100),
-                    stripe_account=membership_package.stripe_acct_id
-                )
-                Price.objects.create(membership_package=membership_package,
-                                     stripe_price_id=price.id,
-                                     nickname=price.nickname,
-                                     interval=price.recurring.interval,
-                                     visible=visible_value,
-                                     amount=price.unit_amount,
-                                     active=True)
-                return HttpResponse(dumps({'status': "success",
-                                           'message': "Price successfully added"}), content_type='application/json')
-            except ValueError:
-                return HttpResponse(dumps({'status': "fail",
-                                           'message': "You must enter a valid amount"}), content_type='application/json')
+            # new price object - one time
+            if request.POST.get('interval') == 'one time':
+                try:
+                    price = stripe.Price.create(
+                        request.POST.get('type_id'),
+                        product=membership_package.stripe_product_id,
+                        currency="gbp",
+                        nickname=request.POST.get('nickname'),
+                        unit_amount=int(float(request.POST.get('amount')) * 100),
+                        stripe_account=membership_package.stripe_acct_id
+                    )
+                    Price.objects.create(membership_package=membership_package,
+                                        stripe_price_id=price.id,
+                                        nickname=price.nickname,
+                                        interval=price.type,
+                                        visible=visible_value,
+                                        amount=price.unit_amount,
+                                        active=True)
+                    return HttpResponse(dumps({'status': "success",
+                                            'message': "Price successfully added"}), content_type='application/json')
+                except ValueError:
+                    return HttpResponse(dumps({'status': "fail",
+                                            'message': "You must enter a valid amount"}), content_type='application/json')
+            # new price object - recurring
+            else:
+                try:
+                    price = stripe.Price.create(
+                        request.POST.get('type_id'),
+                        product=membership_package.stripe_product_id,
+                        currency="gbp",
+                        recurring={"interval": request.POST.get('interval')},
+                        nickname=request.POST.get('nickname'),
+                        unit_amount=int(float(request.POST.get('amount')) * 100),
+                        stripe_account=membership_package.stripe_acct_id
+                    )
+                    Price.objects.create(membership_package=membership_package,
+                                        stripe_price_id=price.id,
+                                        nickname=price.nickname,
+                                        interval=price.recurring.interval,
+                                        visible=visible_value,
+                                        amount=price.unit_amount,
+                                        active=True)
+                    return HttpResponse(dumps({'status': "success",
+                                            'message': "Price successfully added"}), content_type='application/json')
+                except ValueError:
+                    return HttpResponse(dumps({'status': "fail",
+                                            'message': "You must enter a valid amount"}), content_type='application/json')
 
     else:
         membership_types_list = []
@@ -1293,29 +1317,51 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             return HttpResponse(dumps(result))
 
         # new subscription
-        subscription_details = stripe.Subscription.create(
-            customer=subscription.stripe_id,
-            items=[
-                {
-                    "plan": subscription.price.stripe_price_id,
-                },
-            ],
-            stripe_account=package.stripe_acct_id,
-        )
-        subscription.stripe_subscription_id = subscription_details.id
-        subscription.active = True
-        subscription.save()
-        if subscription_details['status'] != 'active':
-            result = {'result': 'fail',
-                      'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
-            return HttpResponse(dumps(result))
+        # create stripe subscription if price is recurring
+        if subscription.price.interval != 'one_time':
+            subscription_details = stripe.Subscription.create(
+                customer=subscription.stripe_id,
+                items=[
+                    {
+                        "plan": subscription.price.stripe_price_id,
+                    },
+                ],
+                stripe_account=package.stripe_acct_id,
+            )
+            subscription.stripe_subscription_id = subscription_details.id
 
-        invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription_details.id,
-                                      limit=1, stripe_account=package.stripe_acct_id,)
-        receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+            subscription.active = True
+            subscription.save()
+            if subscription_details['status'] != 'active':
+                result = {'result': 'fail',
+                        'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
+                return HttpResponse(dumps(result))
+
+            invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription_details.id,
+                                        limit=1, stripe_account=package.stripe_acct_id,)
+            receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+        else:
+            payment_intent = stripe.PaymentIntent.create(
+                customer=subscription.stripe_id,
+                amount=subscription.price.amount,
+                currency="gbp",
+                payment_method_types=["card"],
+                receipt_email=request.user.email,
+                stripe_account=package.stripe_acct_id
+            )
+            # take payment
+            payment_confirm = stripe.PaymentIntent.confirm(
+                payment_intent['id'],
+                payment_method=result['feedback']['default_source'],
+                stripe_account=package.stripe_acct_id
+            )
+            receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id,)
+
+            subscription.active = True
+            subscription.save()
 
         result = {'result': 'success',
-                  'invoice': invoice.data[0].invoice_pdf,
+                  #'invoice': invoice.data[0].invoice_pdf,
                   'receipt': receipt.data[0].receipt_url
                   }
         return HttpResponse(dumps(result))
@@ -1509,10 +1555,10 @@ def get_overdue_and_next(request, subscription):
     if float(subscription.price.amount) == 0:
         pass
     elif last_payment_date:
-        if subscription.price.interval == 'monthly':
+        if subscription.price.interval in ('monthly', 'month'):
             next_payment_date = last_payment_date + relativedelta(months=1)
         # must be yearly
-        else:
+        elif subscription.price.interval in ('yearly', 'year'):
             next_payment_date = last_payment_date + relativedelta(years=1)
     # set next payment to sub start date
     else:
@@ -1527,8 +1573,9 @@ def get_overdue_and_next(request, subscription):
     elif not last_payment_date:
         overdue = True
     # if next payment due is in the past
-    elif next_payment_date < datetime.now().date():
-        overdue = True
+    elif next_payment_date:
+        if next_payment_date < datetime.now().date():
+            overdue = True
 
     return {
         'next_payment_date': next_payment_date,
@@ -1763,7 +1810,7 @@ def validate_card(request, type, subscription=None):
         )
         return {'result': 'success',
               'feedback': payment_method}
-
+        
     except stripe.error.CardError as e:
         # Since it's a decline, stripe.error.CardError will be caught
         feedback = send_payment_error(e)

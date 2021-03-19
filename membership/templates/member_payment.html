@@ -57,7 +57,12 @@
                                             {% for type in membership_types_list %}
                                                 <div class="custom-control custom-radio">
                                                     <input type="radio" id="{{ type.id }}" name="membership_type" class="custom-control-input" value="{{ type.id }}"{% if subscription.price.stripe_price_id == type.id %}checked{% endif %}>
-                                                    <label class="custom-control-label" for="{{ type.id }}">{{ type.nickname }} - {{ type.recurring.interval|title }}ly - <span class="text-info">£{{ type.unit_amount|price }}</span></label>
+                                                    <!-- interval or one time -->
+                                                    {% if type.type == 'recurring' %}
+                                                        <label class="custom-control-label" for="{{ type.id }}">{{ type.nickname }} - {{ type.recurring.interval|title }}ly - <span class="text-info">£{{ type.unit_amount|price }}</span></label>
+                                                    {% else %}
+                                                        <label class="custom-control-label" for="{{ type.id }}">{{ type.nickname }} - One Time - <span class="text-info">£{{ type.unit_amount|price }}</span></label>
+                                                    {% endif %}
                                                 </div>
                                             {% endfor %}
                                         </div>

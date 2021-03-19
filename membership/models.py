@@ -46,6 +46,7 @@ class Price(models.Model):
     INTERVAL = (
         ('month', 'Monthly'),
         ('year', 'Yearly '),
+        ('one_time', 'One Time'),
     )
     interval = models.CharField(max_length=19, choices=INTERVAL, null=True, default='monthly',
                                       help_text="Payment frequency")
