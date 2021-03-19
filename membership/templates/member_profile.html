@@ -247,26 +247,23 @@
                                     <tbody>
                                         <!-- Iterate over all subscriptions attached to the member -->
                                         {% for subscription in member.subscription.all %}
-                                            <!-- Iterate over all subscriptions -->
-                                            {% for id, details in subscriptions.items %}
-                                                <!-- Validate request.user is owner/admin/ of subscription package
-                                                 or is a superuser
-                                                 or user and member are the same -->
-                                                {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member.user_account %}
-                                                    <!-- Loop over all payments made -->
-                                                    {% for payment in details.payments %}
-                                                        <!-- Check to see if the ID matches the top level loop -->
-                                                        {% if payment.customer == subscription.stripe_id %}
-                                                            <tr>
-                                                                <td scope="row">{{ subscription }}</td>
-                                                                <td>{{ payment.id|slice:"-6:" }}</td>
-                                                                <td>{{ payment.amount|price }} {{ payment.currency|upper}}</td>
-                                                                <td>{{ payment.created|parsetimestamp }}</td>
-                                                            </tr>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                {% endif %}
-                                            {% endfor %}
+                                            <!-- Validate request.user is owner/admin/ of subscription package
+                                                or is a superuser
+                                                or user and member are the same -->
+                                            {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member.user_account %}
+                                                <!-- Loop over all payments made -->
+                                                {% for payment in payments %}
+                                                    <!-- Check to see if the ID matches the top level loop -->
+                                                    {% if payment.subscription == subscription %}
+                                                        <tr>
+                                                            <td scope="row">{{ subscription }}</td>
+                                                            <td>{{ payment.id|slice:"-6:" }}</td>
+                                                            <td>{{ payment.amount|price }} {{ payment.currency|upper}}</td>
+                                                            <td>{{ payment.created }}</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            {% endif %}
                                         {% endfor %}
                                     </tbody>
                                 </table>

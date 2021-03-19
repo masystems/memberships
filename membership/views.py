@@ -1479,6 +1479,7 @@ class MemberProfileView(MembershipBase):
         context['member'] = Member.objects.get(id=self.kwargs['pk'])
         context['public_api_key'] = get_stripe_public_key(self.request)
 
+        context['payments'] = []
         context['subscriptions'] = {}
         stripe.api_key = get_stripe_secret_key(self.request)
         for subscription in context['member'].subscription.all():
@@ -1493,6 +1494,9 @@ class MemberProfileView(MembershipBase):
                 if subscription.stripe_subscription_id:
                     context['subscriptions'][subscription.id]['subscription'] = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
                                                                         stripe_account=subscription.membership_package.stripe_acct_id)
+
+            for payment in Payment.objects.filter(subscription=subscription):
+                context['payments'].append(payment)
 
         return context
 
