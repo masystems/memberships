@@ -543,26 +543,11 @@ def get_member_payments(request, title, pk=None):
                                               Q(amount__icontains=search),
                                               subscription=subscription).distinct().order_by('-created')[
                       start:start + end]
-    # get stripe payments
-    total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
-    if subscription.stripe_id:
-        stripe.api_key = get_stripe_secret_key(request)
-        stripe_payments = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
-        for payment in stripe_payments:
-            # get the amount as a variable so it can be converted to the correct format to be displayed
-            temp_amount = int(payment['amount'])/100
-            payments.append({'action': f"""<a href="{payment['receipt_url']}"><button class="btn btn-sm btn-rounded btn-light" data-toggle="tooltip" title="View Receipt"><i class="fad fa-file-invoice text-info"></i></button></a>""",
-                            'id': payment['id'],
-                            'method': 'Card Payment',
-                            'type': 'Card Payment',
-                            'amount': "£%.2f" % temp_amount,
-                            'comments': f"<small>Managed by Stripe</small><br>{payment['description']}",
-                            'created': datetime.fromtimestamp(payment['created']).strftime('%c'),
-                            'gift_aid': 'n/a',
-                            'gift_aid_percentage': 'n/a'})
 
-    # if there are payments in our database, or if it is a stripe subscription
-    if all_payments.count() > 0 or subscription.stripe_id:
+    total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
+
+    # if there are payments in our database
+    if all_payments.count() > 0:
         for payment in all_payments:
             # get the amount as a variable so it can be converted to the correct format to be displayed
             temp_amount = float(payment.amount)/100
