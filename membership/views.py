@@ -13,10 +13,6 @@ import stripe
 from re import match
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-import logging
-
-# Get an instance of a logger
-logger = logging.getLogger(__name__)
 
 
 def generate_site_vars(request):
@@ -902,7 +898,6 @@ def member_reg_form(request, title, pk):
     user_form_fields = None
     try:
         member = Member.objects.get(id=pk)
-        logger.debug(f'{member.id} - existing member')
         new_membership = False
     except Member.DoesNotExist:
         # must be a new membership
@@ -983,13 +978,13 @@ def member_reg_form(request, title, pk):
         # user can edit only themselves
         form = MemberForm(request.POST)
         if form.is_valid():
-            if pk == 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
+            if (pk == 0 and request.user == membership_package.owner) or (pk == 0 and request.user in membership_package.admins.all()):
                 # new member
                 # validate user not already a member of package
                 try:
                     member = Member.objects.get(user_account=User.objects.get(email=form.cleaned_data['email']))
                     if MembershipSubscription.objects.filter(member=member).exists():
-                        form.add_error('email', f"This email address is already in use.")
+                        form.add_error('email', f"Error: This email address is already in use.")
                 except Member.DoesNotExist:
                     member = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
                                           title=form.cleaned_data['title'],
@@ -1020,7 +1015,7 @@ def member_reg_form(request, title, pk):
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
 
-            elif pk != 0 and request.user == membership_package.owner or request.user in membership_package.admins.all():
+            elif (pk != 0 and request.user == membership_package.owner) or (pk == 0 and request.user in membership_package.admins.all()):
                 # edit member
                 # validate email not already in use
                 try:
