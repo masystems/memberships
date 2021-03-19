@@ -13,10 +13,6 @@ import stripe
 from re import match
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-import logging
-
-# Get an instance of a logger
-logger = logging.getLogger("watchtower")
 
 
 def generate_site_vars(request):
@@ -902,7 +898,6 @@ def member_reg_form(request, title, pk):
     user_form_fields = None
     try:
         member = Member.objects.get(id=pk)
-        logger.info(f'{member.id} - existing member')
         new_membership = False
     except Member.DoesNotExist:
         # must be a new membership
