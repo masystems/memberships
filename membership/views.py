@@ -902,7 +902,7 @@ def member_reg_form(request, title, pk):
     user_form_fields = None
     try:
         member = Member.objects.get(id=pk)
-        logger.debug(f'{member.id} - existing member')
+        logger.info(f'{member.id} - existing member')
         new_membership = False
     except Member.DoesNotExist:
         # must be a new membership
