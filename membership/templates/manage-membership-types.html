@@ -76,6 +76,7 @@
                                             <select class="custom-select" id="interval{{ forloop.counter }}" name="interval" disabled>
                                                 <option {% if type.recurring.interval == 'month' %}selected{% endif %}>month</option>
                                                 <option {% if type.recurring.interval == 'year' %}selected{% endif %}>year</option>
+                                                <option {% if type.type == 'one_time' %}selected{% endif %}>one time</option>
                                             </select>
                                         </div>
                                     </div>
@@ -199,6 +200,7 @@
                                 <select class="custom-select" id="interval" name="interval">
                                     <option selected>month</option>
                                     <option>year</option>
+                                    <option>one time</option>
                                 </select>
                             </div>
                         </div>
@@ -208,7 +210,7 @@
                                     <div class="input-group-prepend">
                                         <span class="input-group-text bg-success text-white" id="basic-addon1">£</span>
                                     </div>
-                                    <input type="text" class="form-control" id="amount" name="amount" placeholder="Price per year/month">
+                                    <input type="text" class="form-control" id="amount" name="amount" placeholder="Price per interval">
                                 </div>
                             </div>
                         </div>
