@@ -1361,7 +1361,13 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             subscription.save()
 
         # store payment as a Payment object in the database
-        # payment.stripe_id = receipt.id
+        payment = Payment.objects.create(
+            subscription=subscription,
+            payment_number=get_next_payment_number(),
+            amount=subscription.price.amount,
+            stripe_id=receipt.data[0].id,
+        )
+        payment.save()
 
         result = {'result': 'success',
                   #'invoice': invoice.data[0].invoice_pdf,
