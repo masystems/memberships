@@ -370,14 +370,7 @@ def get_members(request, title):
             # make the new lines in the comments show in the table
             comments = subscription.comments.replace('\n', '<br/>')
 
-            # # set member id, name, email, mambership_type and buttons
-            members.append({'id': subscription.membership_number,
-                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
-                            'email': f"{subscription.member.user_account.email}",
-                            'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
-                            'membership_type': membership_type,
-                            'membership_status': membership_status,
-                            'action': f"""<div class="btn-group dropleft">
+            action = f"""<div class="btn-group dropleft">
                                                 <button type="button" class="btn btn-success dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                                     Administer
                                                 </button>
@@ -389,7 +382,16 @@ def get_members(request, title):
                                                     {payment_reminder_button}
                                                     {remove_member_button}
                                                 </div>
-                                            </div>"""})
+                                            </div>"""
+
+            # # set member id, name, email, mambership_type and buttons
+            members.append({'action': action,
+                            'id': subscription.membership_number,
+                            'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
+                            'email': f"{subscription.member.user_account.email}",
+                            'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+                            'membership_type': membership_type,
+                            'membership_status': membership_status})
 
         complete_data = {
           "draw": 0,
