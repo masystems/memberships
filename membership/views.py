@@ -1523,40 +1523,10 @@ def edit_sub_comment(request, id):
 
 def get_overdue_and_next(request, subscription):
     # get date of last payment in our DB, if it exists
-    last_db_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
-    last_db_payment_date = None
-    if last_db_payment:
-        last_db_payment_date = last_db_payment.created
-
-    # if it's a stripe subscription, get date of last stripe payment
-    last_stripe_payment_date = None
-    if subscription.stripe_id:
-        stripe.api_key = get_stripe_secret_key(request)
-        # get the last stripe payment
-        last_stripe_payment = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id, limit=1)['data']
-        # if any stripe payments exist, get the date of the last one
-        if len(last_stripe_payment) > 0:
-            last_stripe_payment_date = datetime.fromtimestamp(last_stripe_payment[0]['created']).date()
-
-    # get last payment date from stripe payments and db payments
+    last_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
     last_payment_date = None
-    if last_db_payment_date and not last_stripe_payment_date:
-        last_payment_date = last_db_payment_date
-    elif not last_db_payment_date and last_stripe_payment_date:
-        last_payment_date = last_stripe_payment_date
-    # neither exist, so last payment remins None
-    elif not last_db_payment_date and not last_stripe_payment_date:
-        pass
-    elif last_db_payment_date and last_stripe_payment_date:
-        # last db payment is after last stripe payment
-        if last_db_payment_date > last_stripe_payment_date:
-            last_payment_date = last_db_payment_date
-        # last db payment is before last stripe payment
-        elif last_db_payment_date < last_stripe_payment_date:
-            last_payment_date = last_stripe_payment_date
-        # they must be equal, so it doesn't matter which is used
-        else:
-            last_payment_date = last_db_payment_date
+    if last_payment:
+        last_payment_date = last_payment.created
         
     # get date of next payment due, if last date exists
     next_payment_date = None
