@@ -1183,6 +1183,11 @@ def member_reg_form(request, title, pk):
             # stripe account created but not setup
             pass
 
+    try:
+        membership_number = membership_number
+    except UnboundLocalError:
+        membership_number = None
+
     return render(request, 'member_form.html', {'user_form_fields': user_form_fields,
                                                 'form': form,
                                                 'membership_package': membership_package,
@@ -1191,7 +1196,7 @@ def member_reg_form(request, title, pk):
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
                                                 'custom_fields': custom_fields_displayed,
-                                                'membership_number': f'{membership_number} or {None}'})
+                                                'membership_number': membership_number})
 
 
 @login_required(login_url='/accounts/login/')
