@@ -1008,6 +1008,7 @@ def member_reg_form(request, title, pk):
             # user is admin/owner create a new member
             member_id = pk
             form = MemberForm()
+            membership_number = get_next_membership_number()
         else:
             # user is not allowed to edit this member
             return redirect('dashboard')
@@ -1189,7 +1190,8 @@ def member_reg_form(request, title, pk):
                                                 'is_price_active_visible': is_price_active_visible,
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
-                                                'custom_fields': custom_fields_displayed})
+                                                'custom_fields': custom_fields_displayed,
+                                                'membership_number': f'{membership_number} or {None}'})
 
 
 @login_required(login_url='/accounts/login/')
