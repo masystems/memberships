@@ -1523,7 +1523,7 @@ def edit_sub_comment(request, id):
 
 def get_overdue_and_next(request, subscription):
     # get date of last payment in our DB, if it exists
-    last_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
+    last_payment = Payment.objects.filter(subscription=subscription, type='subscription').order_by('-created').first()
     last_payment_date = None
     if last_payment:
         last_payment_date = last_payment.created
