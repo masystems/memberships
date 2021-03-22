@@ -53,6 +53,7 @@
                          {% csrf_token %}
                         <div class="card-body">
                             <h4 class="card-title">Details</h4>
+                            {% if membership_number %}<p>Expected membership number: <b>{{ membership_number }}</b></p>{% endif %}
                             <div class="row">
                                 <!-- first name field -->
                                 <div class="col-sm-12 col-lg-6">

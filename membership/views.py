@@ -879,6 +879,46 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         return self.context
 
 
+def get_next_membership_number():
+    # check there are existing subscriptions
+    if MembershipSubscription.objects.exists():
+        # get latest membership number
+        latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
+        # check latest membership number is valid
+        if latest_valid_mem_num == None or latest_valid_mem_num == '':
+            i = 1
+            # check we haven't gone past the end of the subscriptions
+            if i < MembershipSubscription.objects.all().count():
+                # get membership number before last before last sub
+                latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
+                # go through subscription's membership numbers in reverse until we find a valid one
+                while latest_valid_mem_num == None or latest_valid_mem_num == '':
+                    i += 1
+                    # check we haven't gone past the end of the subscriptions
+                    if i < MembershipSubscription.objects.all().count():
+                        latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[
+                            i].membership_number
+                    # no valid membership numbers, so set variable to zero
+                    else:
+                        latest_valid_mem_num = 0
+            # no valid membership numbers, so set variable to zero
+            else:
+                latest_valid_mem_num = 0
+        membership_number = int(latest_valid_mem_num) + 1
+        # check this membership number isn't taken
+        # if it is taken, increment by 1 then check that one
+        while True:
+            if MembershipSubscription.objects.filter(membership_number=str(membership_number)).exists():
+                membership_number += 1
+            else:
+                break
+    # there are no existing subscriptions, so this is the first
+    else:
+        membership_number = 1
+
+    return membership_number
+
+
 @login_required(login_url='/accounts/login/')
 def member_reg_form(request, title, pk):
     """
@@ -968,6 +1008,7 @@ def member_reg_form(request, title, pk):
             # user is admin/owner create a new member
             member_id = pk
             form = MemberForm()
+            membership_number = get_next_membership_number()
         else:
             # user is not allowed to edit this member
             return redirect('dashboard')
@@ -1052,41 +1093,8 @@ def member_reg_form(request, title, pk):
             try:
                 subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
             except MembershipSubscription.DoesNotExist:
-                # check there are existing subscriptions
-                if MembershipSubscription.objects.exists():
-                    # get latest membership number
-                    latest_valid_mem_num = MembershipSubscription.objects.last().membership_number
-                    # check latest membership number is valid
-                    if latest_valid_mem_num == None or latest_valid_mem_num == '':
-                        i = 1
-                        # check we haven't gone past the end of the subscriptions
-                        if i < MembershipSubscription.objects.all().count():
-                            # get membership number before last before last sub
-                            latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[i].membership_number
-                            # go through subscription's membership numbers in reverse until we find a valid one
-                            while latest_valid_mem_num == None or latest_valid_mem_num == '':
-                                i += 1
-                                # check we haven't gone past the end of the subscriptions
-                                if i < MembershipSubscription.objects.all().count():
-                                    latest_valid_mem_num = MembershipSubscription.objects.all().reverse()[
-                                        i].membership_number
-                                # no valid membership numbers, so set variable to zero
-                                else:
-                                    latest_valid_mem_num = 0
-                        # no valid membership numbers, so set variable to zero
-                        else:
-                            latest_valid_mem_num = 0
-                    membership_number = int(latest_valid_mem_num) + 1
-                    # check this membership number isn't taken
-                    # if it is taken, increment by 1 then check that one
-                    while True:
-                        if MembershipSubscription.objects.filter(membership_number=str(membership_number)).exists():
-                            membership_number += 1
-                        else:
-                            break
-                # there are no existing subscriptions, so this is the first
-                else:
-                    membership_number = 1
+                membership_number = get_next_membership_number()
+
                 # use the membership number to make a new subscription
                 subscription = MembershipSubscription.objects.create(member=member,
                                                                      membership_package=membership_package,
@@ -1175,6 +1183,11 @@ def member_reg_form(request, title, pk):
             # stripe account created but not setup
             pass
 
+    try:
+        membership_number = membership_number
+    except UnboundLocalError:
+        membership_number = None
+
     return render(request, 'member_form.html', {'user_form_fields': user_form_fields,
                                                 'form': form,
                                                 'membership_package': membership_package,
@@ -1182,7 +1195,8 @@ def member_reg_form(request, title, pk):
                                                 'is_price_active_visible': is_price_active_visible,
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
-                                                'custom_fields': custom_fields_displayed})
+                                                'custom_fields': custom_fields_displayed,
+                                                'membership_number': membership_number})
 
 
 @login_required(login_url='/accounts/login/')
