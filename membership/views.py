@@ -1408,6 +1408,26 @@ def update_membership_type(request, title, pk):
                                         """
             send_email(f"Organisation Confirmation: {package.organisation_name}",
                     member.user_account.get_full_name(), body, send_to=member.user_account.email)
+
+            # send email to owner
+            if price.interval == 'one_time':
+                price_string = 'One Time Price: £'
+            elif price.interval == 'year':
+                price_string = 'Price Per Year: £'
+            else:
+                price_string = 'Price Per Month: £'
+            body = f"""<p>Congratulations, a new member has subscribed to your Cloud-Lines Memberships package - {package.organisation_name}.
+                                        <p>New member details:</p>
+                                        <ul>
+                                            <li>Name: {member.user_account.get_full_name()}</li>
+                                            <li>ID: {subscription.membership_number}</li>
+                                            <li>Email: {member.user_account.email}</li>
+                                            <li>Membership Type: {price.nickname}</li>
+                                            <li>{price_string}{'{:.2f}'.format(int(price.amount) / 100)}</li>
+                                        </ul>
+                                    """
+            send_email(f"New Member: {package.organisation_name}",
+                    package.owner.get_full_name(), body, send_to=package.owner.email)
             
             return HttpResponse(dumps({'status': "success",
                                        'redirect': True}), content_type='application/json')
