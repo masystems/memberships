@@ -74,7 +74,7 @@
                                 <div class="form-group row">
                                     <label for="{{ form.type.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.type.label }}{% if form.type.field.required %}*{% endif %}</label>
                                     <div class="col-sm-9">
-                                        {% render_field form.type class+="form-control" %}
+                                        {% render_field form.type class+="form-control" id="type" %}
                                         <small>{{ form.type.help_text }}</small>
                                         {% if form.type.errors %}
                                             <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
@@ -92,7 +92,7 @@
                                 <div class="form-group row">
                                     <label for="{{ form.amount.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.amount.label }}{% if form.amount.field.required %}*{% endif %}</label>
                                     <div class="col-sm-9">
-                                        {% render_field form.amount class+="form-control" %}
+                                        {% render_field form.amount class+="form-control" id="amount" value=sub_amount readonly="" %}
                                         <small>{{ form.amount.help_text }}</small>
                                         {% if form.amount.errors %}
                                             <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
@@ -202,6 +202,18 @@
         jQuery('.datepicker').datepicker({
             autoclose: true,
             todayHighlight: true
+        });
+    </script>
+
+    <!-- set amount to subscription amount if type set to subscription -->
+    <script>
+        $('#type').change(function(e){
+            if ($(this).val() == 'subscription') {
+                $('#amount').val('{{ sub_amount }}');
+                $('#amount').attr('readonly', '');
+            } else{
+                $('#amount').removeAttr('readonly');
+            }
         });
     </script>
 {% endblock %}

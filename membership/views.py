@@ -1674,7 +1674,8 @@ def member_payment_form(request, title, pk):
                     form.add_error('amount', f"Please enter a valid amount.")
                     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
-                                                 'member': member})
+                                                 'member': member,
+                                                 'sub_amount': f'{"{:.2f}".format(int(subscription.price.amount) / 100)}'})
 
             payment.save()
 
@@ -1684,7 +1685,8 @@ def member_payment_form(request, title, pk):
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
-                                                 'member': member})
+                                                 'member': member,
+                                                 'sub_amount': f'{"{:.2f}".format(int(subscription.price.amount) / 100)}'})
 
 
 def member_payment_form_edit(request, title, pk, payment_id):
