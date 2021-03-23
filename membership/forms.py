@@ -67,7 +67,8 @@ class MemberSubscriptionForm(forms.ModelForm):
                    'stripe_id',
                    'stripe_subscription_id',
                    'validated',
-                   'last_reminder')
+                   'last_reminder',
+                   'remaining_amount')
         help_texts = {
             # 'service': _('If your query is not regarding a service, leave this blank.'),
         }
