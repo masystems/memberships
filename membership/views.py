@@ -1398,9 +1398,33 @@ def update_membership_type(request, title, pk):
         subscription = member.subscription.get(member=member, membership_package=package)
         price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
         if request.POST.get('payment_method') != 'Card Payment':
-            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price, active=True,
-                                                                                                    payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
-                                                                                                                                             membership_package=package))
+            # check if membership type has changed
+            remaining_amount = subscription.remaining_amount
+            if subscription.price:
+                if price != subscription.price:
+                    # set expiry and remaining
+                    paid_amount = subscription.price.amount - subscription.remaining_amount
+                    remaining_amount = price.amount - paid_amount
+            
+            # default remaining_amount to new price amount
+            if not remaining_amount:
+                remaining_amount = price.amount
+
+            # default membership expiry
+            if not subscription.membership_expiry:
+                # INCOMPLETE #####################################################################################################################
+                # membership_expiry = what would have been the next renewal date, maybe including today?
+                # take into account whether things are one time
+            else:
+                membership_expiry = subscription.membership_expiry
+
+            MembershipSubscription.objects.filter(member=member,
+                                                  membership_package=package).update(price=price,
+                                                                                     active=True,
+                                                                                     payment_method=PaymentMethod.objects.get(
+                                                                                         payment_name=requestPOST.get('payment_method'),
+                                                                                         membership_package=package),
+                                                                                     remaining_amount=remaining_amount)
 
             stripe.api_key = get_stripe_secret_key(request)
 
