@@ -1710,7 +1710,7 @@ def member_payment_form(request, title, pk):
     if subscription.remaining_amount:
         remaining_amount = f'{"{:.2f}".format(int(subscription.remaining_amount) / 100)}'
     else:
-        remaining_amount = subscription.price.amount
+        remaining_amount = f'{"{:.2f}".format(int(subscription.price.amount) / 100)}'
 
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
