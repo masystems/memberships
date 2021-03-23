@@ -1725,8 +1725,12 @@ def member_payment_form(request, title, pk):
 
             # if payment.amount not set, set it to subscription amount
             if payment.amount == '':
-                payment.amount = subscription.price.amount
-            # if it has been set, convert it to pennies
+                # try to use remaining amount, if it has been set
+                if subscription.remaining_amount:
+                    payment.amount = subscription.remaining_amount
+                else:
+                    payment.amount = subscription.price.amount
+            # if amount has been given, convert it to pennies
             else:
                 try:
                     payment.amount = int(float(payment.amount) * 100)
