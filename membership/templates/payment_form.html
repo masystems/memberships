@@ -206,8 +206,8 @@
         });
     </script>
 
-    <!-- Set amount to subscription amount if type set to subscription -->
     <script>
+        // Set amount to subscription amount if type set to subscription
         $('#type').change(function(e){
             if ($(this).val() == 'subscription') {
                 // Set and lock amount
@@ -223,6 +223,19 @@
                 // Remove partial payment tickbox
                 $('#partial_section').addClass('d-none');
                 $('#partial_checkbox').prop("checked", false);
+            }
+        });
+
+        // Make checking/unchecking the checkbox result in the amount being readonly or not
+        $('#partial_checkbox').change(function(e){
+            // Enable partial amount
+            if($(this).prop("checked") == true){
+                $('#amount').removeAttr('readonly');
+            } 
+            // Force amount to be whole
+            else {
+                $('#amount').val('{{ sub_amount }}');
+                $('#amount').attr('readonly', '');
             }
         });
     </script>
