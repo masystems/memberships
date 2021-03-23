@@ -1774,6 +1774,12 @@ def member_payment_form(request, title, pk):
                 if int(subscription.remaining_amount) == 0:
                     subscription.remaining_amount = subscription.price.amount
                     subscription.membership_expiry = subscription.membership_expiry + interval
+            # one time subscription
+            else:
+                # set remaining amount
+                subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
+
+            subscription.save()
 
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
