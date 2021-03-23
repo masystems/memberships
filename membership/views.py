@@ -1761,9 +1761,9 @@ def member_payment_form(request, title, pk):
 
                 # default membership_expiry if not set, and subscription is recurring
                 if not subscription.membership_expiry:
-                    next_renewal_date = subscription.membership_expiry
+                    next_renewal_date = subscription.membership_start
                     # while next_renewal_date is in the past, increment
-                    while next_renewal_date < datetime.now():
+                    while next_renewal_date < datetime.now().date():
                         next_renewal_date = next_renewal_date + interval
                     
                     subscription.membership_expiry = next_renewal_date
