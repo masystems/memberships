@@ -1741,6 +1741,13 @@ def member_payment_form(request, title, pk):
                                                  'membership_package': membership_package,
                                                  'member': member,
                                                  'remaining_amount': remaining_amount})
+                # return an error if amount given is more than remaining amount
+                if payment.amount > subscription.remaining_amount and payment.type == 'subscription':
+                    form.add_error('amount', f"Please do not enter an amount more than the remaining amount.")
+                    return render(request, 'payment_form.html', {'form': form,
+                                                 'membership_package': membership_package,
+                                                 'member': member,
+                                                 'remaining_amount': remaining_amount})
 
             payment.save()
 
