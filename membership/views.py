@@ -1711,6 +1711,10 @@ def member_payment_form(request, title, pk):
         remaining_amount = f'{"{:.2f}".format(int(subscription.remaining_amount) / 100)}'
     else:
         remaining_amount = f'{"{:.2f}".format(int(subscription.price.amount) / 100)}'
+        
+        # default remaining amount to price amount
+        subscription.remaining_amount = subscription.price.amount
+        subscription.save()
 
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
@@ -1723,14 +1727,10 @@ def member_payment_form(request, title, pk):
             # get next payment number
             payment.payment_number = get_next_payment_number()
 
-            # if payment.amount not set, set it to subscription amount
+            # if payment.amount not set, default it to remaining amount
             if payment.amount == '':
-                # try to use remaining amount, if it has been set
-                if subscription.remaining_amount:
-                    payment.amount = subscription.remaining_amount
-                else:
-                    payment.amount = subscription.price.amount
-                    subscription.remaining_amount = subscription.price.amount
+                payment.amount = subscription.remaining_amount
+            
             # if amount has been given, convert it to pennies
             else:
                 try:
@@ -1742,8 +1742,8 @@ def member_payment_form(request, title, pk):
                                                  'member': member,
                                                  'remaining_amount': remaining_amount})
                 # return an error if amount given is more than remaining amount
-                if payment.amount > subscription.remaining_amount and payment.type == 'subscription':
-                    form.add_error('amount', f"Please do not enter an amount more than the remaining amount.")
+                if payment.amount > int(subscription.remaining_amount) and payment.type == 'subscription':
+                    form.add_error('amount', f"Please do not enter an amount more than the remaining amount ({'{:.2f}'.format(int(subscription.remaining_amount) / 100)}).")
                     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
                                                  'member': member,
