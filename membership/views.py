@@ -1751,6 +1751,30 @@ def member_payment_form(request, title, pk):
 
             payment.save()
 
+            # if subscription is recurring
+            if subscription.price.interval != 'one_time':
+                # set amount of time to increment
+                if subscription.price.interval == 'year':
+                    interval = relativedelta(years=1)
+                elif subscription.price.interval == 'month':
+                    interval = relativedelta(months=1)
+
+                # default membership_expiry if not set, and subscription is recurring
+                if not subscription.membership_expiry:
+                    next_renewal_date = subscription.membership_expiry
+                    # while next_renewal_date is in the past, increment
+                    while next_renewal_date < datetime.now():
+                        next_renewal_date = next_renewal_date + interval
+                    
+                    subscription.membership_expiry = next_renewal_date
+
+                # set remaining amount
+                subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
+                # if fully paid, reset remaining amount and increment membership_expiry
+                if int(subscription.remaining_amount) == 0:
+                    subscription.remaining_amount = subscription.price.amount
+                    subscription.membership_expiry = subscription.membership_expiry + interval
+
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
         form = PaymentForm(initial={'gift_aid': subscription.gift_aid})
