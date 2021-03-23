@@ -1730,6 +1730,7 @@ def member_payment_form(request, title, pk):
                     payment.amount = subscription.remaining_amount
                 else:
                     payment.amount = subscription.price.amount
+                    subscription.remaining_amount = subscription.price.amount
             # if amount has been given, convert it to pennies
             else:
                 try:
