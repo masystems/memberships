@@ -1706,6 +1706,12 @@ def member_payment_form(request, title, pk):
     member = Member.objects.get(id=pk)
     subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
 
+    # set remaining amount to be passed into the template
+    if subscription.remaining_amount:
+        remaining_amount = f'{"{:.2f}".format(int(subscription.remaining_amount) / 100)}'
+    else:
+        remaining_amount = ''
+
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -1729,7 +1735,7 @@ def member_payment_form(request, title, pk):
                     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
                                                  'member': member,
-                                                 'remaining_amount': f'{"{:.2f}".format(int(subscription.remaining_amount) / 100)}'})
+                                                 'remaining_amount': remaining_amount})
 
             payment.save()
 
