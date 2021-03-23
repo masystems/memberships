@@ -92,7 +92,7 @@
                                 <div class="form-group row">
                                     <label for="{{ form.amount.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.amount.label }}{% if form.amount.field.required %}*{% endif %}</label>
                                     <div class="col-sm-9">
-                                        {% render_field form.amount class+="form-control" id="amount" value=sub_amount readonly="" %}
+                                        {% render_field form.amount class+="form-control" id="amount" value=remaining_amount readonly="" %}
                                         <div id="partial_section"><small>Is this a partial payment?</small><input id="partial_checkbox" type="checkbox" class="mt-1 ml-1"></div>
                                         <small>{{ form.amount.help_text }}</small>
                                         {% if form.amount.errors %}
@@ -211,7 +211,7 @@
         $('#type').change(function(e){
             if ($(this).val() == 'subscription') {
                 // Set and lock amount
-                $('#amount').val('{{ sub_amount }}');
+                $('#amount').val('{{ remaining_amount }}');
                 $('#amount').attr('readonly', '');
 
                 // Display partial payment ticbox
@@ -234,7 +234,7 @@
             } 
             // Force amount to be whole
             else {
-                $('#amount').val('{{ sub_amount }}');
+                $('#amount').val('{{ remaining_amount }}');
                 $('#amount').attr('readonly', '');
             }
         });
