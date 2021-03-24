@@ -1450,7 +1450,7 @@ def update_membership_type(request, title, pk):
 
                     # increment expiry
                     membership_expiry = membership_expiry + interval
-                    # remaining_amount = 
+                    # add new price to remaining amount
                     remaining_amount = int(remaining_amount) + int(price.amount)
 
             MembershipSubscription.objects.filter(member=member,
@@ -1510,6 +1510,13 @@ def update_membership_type(request, title, pk):
             if price.amount == "0":
                 return HttpResponse(dumps({'status': "fail",
                                            'message': f'You cannot select Card Payment with {price.nickname}'}), content_type='application/json')
+            
+            # if membership type has changed, save the old one
+            old_price = ''
+            if subscription.price:
+                if price != subscription.price:
+                    old_price = subscription.price.id
+            
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
                 price=price, payment_method=None)
 
@@ -1546,7 +1553,7 @@ def update_membership_type(request, title, pk):
             send_email(f"New Member: {package.organisation_name}",
                     package.owner.get_full_name(), body, send_to=package.owner.email)
 
-            return HttpResponse(dumps({'status': "success"}), content_type='application/json')
+            return HttpResponse(dumps({'status': "success", 'old_price': old_price}), content_type='application/json')
 
 
 class MemberProfileView(MembershipBase):
