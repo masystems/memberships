@@ -192,7 +192,7 @@
                                 window.location.replace("{% url 'membership_package' package.organisation_name %}");
                             });
                         } else {
-                            generateCardToken();
+                            generateCardToken(result['old_price']);
                         }
                     }
                  },
@@ -240,7 +240,7 @@
         });
 
         // Create a token or display an error when the form is submitted.
-        function generateCardToken() {
+        function generateCardToken(old_price) {
             stripe.createToken(card).then(function(result) {
                 if (result.error) {
                     // Inform the customer that there was an error.
@@ -249,12 +249,12 @@
                     errorElement.textContent = result.error.message;
                 } else {
                     // Send the token to your server.
-                    stripeTokenHandler(result.token);
+                    stripeTokenHandler(result.token, old_price);
                 }
             });
         }
 
-        function stripeTokenHandler(token) {
+        function stripeTokenHandler(token, old_price) {
 
             // Submit the token
             $.ajax({
@@ -264,6 +264,7 @@
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
                 data: {
                     'token': token,
+                    'old_price': old_price,
                     },
                 beforeSend: function() {
                     $('#paymentSuccess').addClass('d-none');
