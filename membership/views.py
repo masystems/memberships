@@ -1499,9 +1499,14 @@ def update_membership_type(request, title, pk):
             # check if membership type has changed
             if subscription.price:
                 if price != subscription.price:
-                    # set new remaining amount to new price amount minus paid amount
-                    paid_amount = int(subscription.price.amount) - int(subscription.remaining_amount)
-                    remaining_amount = int(price.amount) - int(paid_amount)
+                    # if old price interval is not one_time
+                    if subscription.price.interval != 'one_time':
+                        # set new remaining amount to new price amount minus paid amount
+                        paid_amount = int(subscription.price.amount) - int(subscription.remaining_amount)
+                        remaining_amount = int(price.amount) - int(paid_amount)
+                    # set to new price amount if previous membership type was one time
+                    else:
+                        remaining_amount = price.amount
             
             # default remaining_amount to new price amount
             if not remaining_amount:
