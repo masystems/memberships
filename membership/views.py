@@ -1414,10 +1414,13 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                             while next_renewal_date < datetime.now().date():
                                 next_renewal_date = next_renewal_date + old_interval
                             
-                            subscription.membership_expiry = next_renewal_date
-                        # if previous membership type was one time
-                        elif old_price.interval == 'one_time':
+                            subscription.membership_expiry = next_renewal_date + new_interval
+                        # if previous membership type was one_time
+                        else:
                             subscription.membership_expiry = datetime.now().date() + new_interval
+                    # increment expiry
+                    else:
+                        subscription.membership_expiry = subscription.membership_expiry + new_interval
                     print(f'1421 - {subscription.membership_expiry}')
                     # if previous membership type was not one_time
                     if int(subscription.remaining_amount) != 0:
@@ -1428,12 +1431,6 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                     else:
                         subscription.remaining_amount = subscription.price.amount
                     print(f'rem amount 1430 - {subscription.remaining_amount}')
-                    # set new expiry, resetting to the beginning of the current interval first (or today if old interval not exist), as that hasn't been paid for
-                    if old_interval:
-                        subscription.membership_expiry = subscription.membership_expiry - old_interval
-                    else:
-                        subscription.membership_expiry = datetime.now().date()
-                    subscription.membership_expiry = subscription.membership_expiry + new_interval
                     print(f'1431 - {subscription.membership_expiry}')
                     # if fully paid, reset remaining amount and increment membership_expiry
                     # or if amount paid is more than new price amount, keep incrementing expiry until user isn't owed anything
