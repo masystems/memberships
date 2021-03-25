@@ -1924,67 +1924,64 @@ def member_payment_form(request, title, pk):
             payment.subscription = subscription
             # get next payment number
             payment.payment_number = get_next_payment_number()
-
-            # if payment.amount not set, default it to remaining amount
-            if payment.amount == '':
-                payment.amount = subscription.remaining_amount
             
-            # if amount has been given, convert it to pennies
-            else:
-                try:
-                    payment.amount = int(float(payment.amount) * 100)
-                except ValueError:
-                    form.add_error('amount', f"Please enter a valid amount.")
-                    return render(request, 'payment_form.html', {'form': form,
-                                                 'membership_package': membership_package,
-                                                 'member': member,
-                                                 'remaining_amount': remaining_amount})
-                # return an error if amount given is more than remaining amount
-                if payment.amount > int(subscription.remaining_amount) and payment.type == 'subscription':
-                    form.add_error('amount', f"Please do not enter an amount more than the remaining amount ({'{:.2f}'.format(int(subscription.remaining_amount) / 100)}).")
-                    return render(request, 'payment_form.html', {'form': form,
-                                                 'membership_package': membership_package,
-                                                 'member': member,
-                                                 'remaining_amount': remaining_amount})
+            try:
+                payment.amount = int(float(payment.amount) * 100)
+            except ValueError:
+                form.add_error('amount', f"Please enter a valid amount.")
+                return render(request, 'payment_form.html', {'form': form,
+                                                'membership_package': membership_package,
+                                                'member': member,
+                                                'remaining_amount': remaining_amount})
+
+            # for subscription payments, return an error if amount given is more than remaining amount
+            if payment.amount > int(subscription.remaining_amount) and payment.type == 'subscription':
+                form.add_error('amount', f"Please do not enter an amount more than the remaining amount ({'{:.2f}'.format(int(subscription.remaining_amount) / 100)}).")
+                return render(request, 'payment_form.html', {'form': form,
+                                                'membership_package': membership_package,
+                                                'member': member,
+                                                'remaining_amount': remaining_amount})
 
             payment.save()
 
-            # if subscription is recurring
-            if subscription.price.interval != 'one_time':
-                # set amount of time to increment
-                if subscription.price.interval == 'year':
-                    interval = relativedelta(years=1)
-                elif subscription.price.interval == 'month':
-                    interval = relativedelta(months=1)
+            # if payment is a subscription payment
+            if payment.type == 'subscription':
+                # if subscription is recurring
+                if subscription.price.interval != 'one_time':
+                    # set amount of time to increment
+                    if subscription.price.interval == 'year':
+                        interval = relativedelta(years=1)
+                    elif subscription.price.interval == 'month':
+                        interval = relativedelta(months=1)
 
-                # default membership_expiry, if not set, to next renewal date in the future/present
-                if not subscription.membership_expiry:
-                    next_renewal_date = subscription.membership_start
-                    # while next_renewal_date is in the past, increment
-                    while next_renewal_date < datetime.now().date():
-                        next_renewal_date = next_renewal_date + interval
-                    
-                    subscription.membership_expiry = next_renewal_date
+                    # default membership_expiry, if not set, to next renewal date in the future/present
+                    if not subscription.membership_expiry:
+                        next_renewal_date = subscription.membership_start
+                        # while next_renewal_date is in the past, increment
+                        while next_renewal_date < datetime.now().date():
+                            next_renewal_date = next_renewal_date + interval
+                        
+                        subscription.membership_expiry = next_renewal_date
 
-                # set remaining amount
-                subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
-                # if fully paid, reset remaining amount and increment membership_expiry
-                if int(subscription.remaining_amount) == 0:
-                    subscription.remaining_amount = subscription.price.amount
-                    subscription.membership_expiry = subscription.membership_expiry + interval
-            # one time subscription
-            else:
-                # set remaining amount
-                subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
+                    # set remaining amount
+                    subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
+                    # if fully paid, reset remaining amount and increment membership_expiry
+                    if int(subscription.remaining_amount) == 0:
+                        subscription.remaining_amount = subscription.price.amount
+                        subscription.membership_expiry = subscription.membership_expiry + interval
+                # one time subscription
+                else:
+                    # set remaining amount
+                    subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
 
-                # set expiry to None if fully paid
-                if subscription.remaining_amount == 0:
-                    subscription.membership_expiry = None
-                # default membership_expiry, if not set, to today
-                elif not subscription.membership_expiry:
-                    subscription.membership_expiry = datetime.now().date()
+                    # set expiry to None if fully paid
+                    if subscription.remaining_amount == 0:
+                        subscription.membership_expiry = None
+                    # default membership_expiry, if not set, to today
+                    elif not subscription.membership_expiry:
+                        subscription.membership_expiry = datetime.now().date()
 
-            subscription.save()
+                subscription.save()
 
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
