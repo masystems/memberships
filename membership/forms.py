@@ -38,6 +38,9 @@ class MemberForm(forms.ModelForm):
     # subscription field
     gift_aid = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': ''}))
 
+    # subscription comment field
+    comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}))
+
     class Meta:
         model = Member
         fields = '__all__'

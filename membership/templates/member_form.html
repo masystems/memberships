@@ -293,6 +293,25 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- comments field -->
+                                <div class="col-sm-12 col-lg-6">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 text-right control-label col-form-label">{{ form.comments.label }}{% if form.comments.field.required %}*{% endif %}</label>
+                                        <div class="col-sm-9">
+                                            <textarea name="comments" cols="40" rows="4" class="form-control" id="id_comments">{{ comments }}</textarea>
+                                            <small>{{ form.comments.help_text }}</small>
+                                            {% if form.comments.errors %}
+                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                    <ul class="list-style-none">
+                                                        {% for error in form.comments.errors %}
+                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                                 {% if custom_fields %}
                                     {% for field_key, field_vals in custom_fields.items %}
                                         {% if field_vals.field_type == 'text_field' %}

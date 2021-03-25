@@ -941,6 +941,7 @@ def member_reg_form(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     # setting user_form_fields to none in cases where it's not set
     user_form_fields = None
+    comments = ""
     try:
         member = Member.objects.get(id=pk)
         new_membership = False
@@ -953,6 +954,7 @@ def member_reg_form(request, title, pk):
         # there is an existing membership
         try:
             subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+            comments = subscription.comments
             try:
                 # get custom fields
                 custom_fields = loads(subscription.custom_fields)
@@ -1111,6 +1113,8 @@ def member_reg_form(request, title, pk):
             # set gift aid field
             subscription.gift_aid = form.cleaned_data['gift_aid']
 
+            subscription.comments = form.cleaned_data['comments']
+
             # create/ update stripe customer
             stripe.api_key = get_stripe_secret_key(request)
             if subscription.stripe_id:
@@ -1201,7 +1205,8 @@ def member_reg_form(request, title, pk):
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
                                                 'custom_fields': custom_fields_displayed,
-                                                'membership_number': membership_number})
+                                                'membership_number': membership_number,
+                                                'comments': comments})
 
 
 @login_required(login_url='/accounts/login/')
