@@ -1935,7 +1935,7 @@ def member_payment_form(request, title, pk):
                 elif subscription.price.interval == 'month':
                     interval = relativedelta(months=1)
 
-                # default membership_expiry if not set to next renewal date in the future/present
+                # default membership_expiry, if not set, to next renewal date in the future/present
                 if not subscription.membership_expiry:
                     next_renewal_date = subscription.membership_start
                     # while next_renewal_date is in the past, increment
@@ -1954,6 +1954,10 @@ def member_payment_form(request, title, pk):
             else:
                 # set remaining amount
                 subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
+
+                # default membership_expiry, if not set, to today
+                if not subscription.membership_expiry:
+                    subscription.membership_expiry = datetime.now().date()
 
             subscription.save()
 
