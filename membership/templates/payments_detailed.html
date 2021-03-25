@@ -126,6 +126,8 @@
             "processing": true,
             "serverSide": true,
             "responsive": true,
+            "scrollX": true,
+            stateSave: true,
             "ajax": {
                 url: "{% url 'get_all_member_payments' membership_package.organisation_name %}",
                 type: "POST",

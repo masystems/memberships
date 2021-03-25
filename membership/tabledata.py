@@ -448,7 +448,7 @@ def get_all_member_payments(request, title):
     elif sort_by == "gift_aid_percentage":
         sort_by_col = f"{direction}gift_aid_percentage"
     else:
-        sort_by_col = f"{direction}created"
+        sort_by_col = f"-created"
 
     payments = []
     if search == "":
