@@ -1792,6 +1792,23 @@ def get_overdue_and_next(request, subscription):
     }
 
 
+def get_overdue(request, subscription):
+    payment_number = Payment.objects.filter(subscription=subscription, type='subscription').count()
+    overdue = False
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    # if they have never paid, they are overdue
+    elif payment_number == 0:
+        overdue = True
+    # if expiry is in the past or now
+    elif subscription.membership_expiry:
+        if subscription.membership_expiry <= datetime.now().date():
+            overdue = True
+
+    return overdue
+
+
 @login_required(login_url='/accounts/login/')
 def delete_payment(request, title, pk, payment_id):
     # validate request user is owner or admin of org
@@ -1828,8 +1845,13 @@ def member_payments(request, title, pk):
 
     # find out whether the member is overdue, and date of next payment
     overdue_and_next = get_overdue_and_next(request, subscription)
-    next_payment_date = overdue_and_next['next_payment_date']
-    overdue = overdue_and_next['overdue']
+    # use expiry if possible
+    if subscription.membership_expiry:
+        next_payment_date = subscription.membership_expiry
+        overdue = get_overdue(request, subscription)
+    else:
+        next_payment_date = overdue_and_next['next_payment_date']
+        overdue = overdue_and_next['overdue']
     
     return render(request, 'member_payments.html', {'membership_package': membership_package,
                                                     'member': member,
