@@ -66,6 +66,7 @@ def get_members_detailed(request, title):
             Q(member__contact_number__icontains=search) |
             Q(membership_number__icontains=search) |
             Q(comments__icontains=search) |
+            Q(price__nickname__icontains=search) |
             Q(custom_fields__icontains=search),
             membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
@@ -295,6 +296,7 @@ def get_members(request, title):
                                             Q(member__user_account__last_name__icontains=search) |
                                             Q(member__user_account__email__icontains=search) |
                                             Q(membership_number__icontains=search) |
+                                            Q(price__nickname__icontains=search) |
                                             Q(comments__icontains=search),
                                             membership_package=membership_package).order_by(sort_by_col)[start:start + end]
     if search == "":
