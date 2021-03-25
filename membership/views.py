@@ -1503,7 +1503,7 @@ def update_membership_type(request, title, pk):
                     int(remaining_amount) != 0
                 except ValueError:
                     remaining_amount = subscription.price.amount
-            print(f'rem - 1506 - {remaining_amount}')
+            
             # check if membership type has changed
             if subscription.price:
                 if price != subscription.price:
@@ -1513,11 +1513,15 @@ def update_membership_type(request, title, pk):
                         paid_amount = int(subscription.price.amount) - int(remaining_amount)
                         remaining_amount = int(price.amount) - int(paid_amount)
                     # set to new price amount if previous membership type was one time
+                    # and set expiry to today
                     else:
                         remaining_amount = price.amount
-            print(f'rem - 1518 - {remaining_amount}')
+            
+            # if new or old type was one_time, set expiry to today
+            if subscription.price.interval == 'one_time' or price.interval == 'one_time':
+                membership_expiry = datetime.now().date()
             # don't change membership expiry if already set because they haven't paid for anything
-            if subscription.membership_expiry:
+            elif subscription.membership_expiry:
                 membership_expiry = subscription.membership_expiry
             else:
                 # if they have never paid, expiry date is start date
@@ -1551,13 +1555,13 @@ def update_membership_type(request, title, pk):
                     interval = relativedelta(years=1)
                 elif price.interval == 'month':
                     interval = relativedelta(months=1)
-                print(f'rem - 1554 - {remaining_amount}')
+                
                 while int(remaining_amount) <= 0:
                     # increment expiry
                     membership_expiry = membership_expiry + interval
                     # add new price to remaining amount
                     remaining_amount = int(remaining_amount) + int(price.amount)
-                print(f'rem - 1560 - {remaining_amount}')
+                
             MembershipSubscription.objects.filter(member=member,
                                                   membership_package=package).update(price=price,
                                                                                      active=True,
