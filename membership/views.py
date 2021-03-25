@@ -1830,6 +1830,28 @@ def delete_payment(request, title, pk, payment_id):
     
     try:
         payment = Payment.objects.get(id=payment_id)
+
+        # before deleting payment, update expiry and remaining if payment deleted was subscription payment
+        if payment.type == 'subscription':
+            subscription = payment.subscription
+
+            if subscription.price.interval != 'one_time':
+                pass
+            else:
+                # default remaining amount, if not set, to 0
+                if not subscription.remaining_amount:
+                    subscription.remaining_amount = 0
+
+                # if they had fully paid and the amount of the deleted payment is more than 0
+                if int(subscription.remaining_amount) == 0 and int(payment.amount) > 0:
+                    # set expiry to today
+                    subscription.membership_expiry = datetime.now().date()
+
+                # add amount of deleted payment onto remaining amount
+                subscription.remaining_amount = int(subscription.remaining_amount) + int(payment.amount)
+
+            subscription.save()
+
         payment.delete()
     except Payment.DoesNotExist:
         pass
