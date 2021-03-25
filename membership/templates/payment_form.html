@@ -52,26 +52,133 @@
                     <div class="card-body">
                         <h4 class="card-title">Details</h4>
                         <div class="row">
-                            {% for field in form %}
-                                <div class="col-sm-12 col-lg-6">
-                                    <div class="form-group row">
-                                        <label for="{{ field.id }}" class="col-sm-3 text-right control-label col-form-label">{{ field.label }}{% if field.field.required %}*{% endif %}</label>
-                                        <div class="col-sm-9">
-                                            {% render_field field class+="form-control" %}
-                                            <small>{{ field.help_text }}</small>
-                                            {% if field.errors %}
-                                                <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
-                                                    <ul class="list-style-none">
-                                                        {% for error in field.errors %}
-                                                            <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
-                                                        {% endfor %}
-                                                    </ul>
-                                                </div>
-                                            {% endif %}
-                                        </div>
+                            <div class="col-sm-12 col-lg-6">
+                                <div class="form-group row">
+                                    <label for="{{ form.payment_method.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.payment_method.label }}{% if form.payment_method.field.required %}*{% endif %}</label>
+                                    <div class="col-sm-9">
+                                        {% render_field form.payment_method class+="form-control" %}
+                                        <small>{{ form.payment_method.help_text }}</small>
+                                        {% if form.payment_method.errors %}
+                                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                <ul class="list-style-none">
+                                                    {% for error in form.payment_method.errors %}
+                                                        <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
                                     </div>
                                 </div>
-                            {% endfor %}
+                            </div>
+                            <div class="col-sm-12 col-lg-6">
+                                <div class="form-group row">
+                                    <label for="{{ form.type.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.type.label }}{% if form.type.field.required %}*{% endif %}</label>
+                                    <div class="col-sm-9">
+                                        {% render_field form.type class+="form-control" id="type" %}
+                                        <small>{{ form.type.help_text }}</small>
+                                        {% if form.type.errors %}
+                                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                <ul class="list-style-none">
+                                                    {% for error in form.type.errors %}
+                                                        <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-lg-6">
+                                <div class="form-group row">
+                                    <label for="{{ form.amount.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.amount.label }}{% if form.amount.field.required %}*{% endif %}</label>
+                                    <div class="col-sm-9">
+                                        {% render_field form.amount class+="form-control" id="amount" value=remaining_amount readonly="" %}
+                                        <div id="partial_section"><small>Is this a partial payment?</small><input id="partial_checkbox" type="checkbox" class="mt-1 ml-1"></div>
+                                        <small>{{ form.amount.help_text }}</small>
+                                        {% if form.amount.errors %}
+                                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                <ul class="list-style-none">
+                                                    {% for error in form.amount.errors %}
+                                                        <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-lg-6">
+                                <div class="form-group row">
+                                    <label for="{{ form.comments.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.comments.label }}{% if form.comments.field.required %}*{% endif %}</label>
+                                    <div class="col-sm-9">
+                                        {% render_field form.comments class+="form-control" %}
+                                        <small>{{ form.comments.help_text }}</small>
+                                        {% if form.comments.errors %}
+                                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                <ul class="list-style-none">
+                                                    {% for error in form.comments.errors %}
+                                                        <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-lg-6">
+                                <div class="form-group row">
+                                    <label for="{{ form.created.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.created.label }}{% if form.created.field.required %}*{% endif %}</label>
+                                    <div class="col-sm-9">
+                                        {% render_field form.created class+="form-control" %}
+                                        <small>{{ form.created.help_text }}</small>
+                                        {% if form.created.errors %}
+                                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                <ul class="list-style-none">
+                                                    {% for error in form.created.errors %}
+                                                        <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-lg-6">
+                                <div class="form-group row">
+                                    <label for="{{ form.gift_aid.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.gift_aid.label }}{% if form.gift_aid.field.required %}*{% endif %}</label>
+                                    <div class="col-sm-9">
+                                        {% render_field form.gift_aid class+="form-control" %}
+                                        <small>{{ form.gift_aid.help_text }}</small>
+                                        {% if form.gift_aid.errors %}
+                                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                <ul class="list-style-none">
+                                                    {% for error in form.gift_aid.errors %}
+                                                        <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 col-lg-6">
+                                <div class="form-group row">
+                                    <label for="{{ form.gift_aid_percentage.id }}" class="col-sm-3 text-right control-label col-form-label">{{ form.gift_aid_percentage.label }}{% if form.gift_aid_percentage.field.required %}*{% endif %}</label>
+                                    <div class="col-sm-9">
+                                        {% render_field form.gift_aid_percentage class+="form-control" %}
+                                        <small>{{ form.gift_aid_percentage.help_text }}</small>
+                                        {% if form.gift_aid_percentage.errors %}
+                                            <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+                                                <ul class="list-style-none">
+                                                    {% for error in form.gift_aid_percentage.errors %}
+                                                        <li><i class="fad fa-times-circle text-danger"></i> {{ error }}</li>
+                                                    {% endfor %}
+                                                </ul>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <hr>
                         <div class="card-body">
@@ -96,6 +203,40 @@
         jQuery('.datepicker').datepicker({
             autoclose: true,
             todayHighlight: true
+        });
+    </script>
+
+    <script>
+        // Set amount to subscription amount if type set to subscription
+        $('#type').change(function(e){
+            if ($(this).val() == 'subscription') {
+                // Set and lock amount
+                $('#amount').val('{{ remaining_amount }}');
+                $('#amount').attr('readonly', '');
+
+                // Display partial payment ticbox
+                $('#partial_section').removeClass('d-none');
+            } else {
+                // Unlock amount
+                $('#amount').removeAttr('readonly');
+
+                // Remove partial payment tickbox
+                $('#partial_section').addClass('d-none');
+                $('#partial_checkbox').prop("checked", false);
+            }
+        });
+
+        // Make checking/unchecking the checkbox result in the amount being readonly or not
+        $('#partial_checkbox').change(function(e){
+            // Enable partial amount
+            if($(this).prop("checked") == true){
+                $('#amount').removeAttr('readonly');
+            } 
+            // Force amount to be whole
+            else {
+                $('#amount').val('{{ remaining_amount }}');
+                $('#amount').attr('readonly', '');
+            }
         });
     </script>
 {% endblock %}
