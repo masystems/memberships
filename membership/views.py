@@ -442,16 +442,21 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
         return super().get(*args, **kwargs)
 
 
-def update_membership_status(request, pk, status, title, page):
+def update_membership_status(request, pk, status, title):
     member = Member.objects.get(id=pk)
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     subscription = member.subscription.get(member=member, membership_package=membership_package)
 
     subscription.active = status
     subscription.save()
+    if status == "True":
+        stat = "enabled"
+    else:
+        stat = "Inactive"
 
-    # redirect user depending on where they have come from
-    return HttpResponseRedirect('/membership/' + page + '/' + membership_package.organisation_name)
+    # return json
+    return HttpResponse(dumps({'status': "success",
+                               'message': f"Membership status {stat}"}), content_type='application/json')
 
 
 class MembershipPackageView(LoginRequiredMixin, MembershipBase):
