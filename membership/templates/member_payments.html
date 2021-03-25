@@ -150,6 +150,8 @@
             "processing": true,
             "serverSide": true,
             "bSort": false,
+            "scrollX": true,
+            stateSave: true,
             "ajax": "{% url 'get_member_payments' membership_package.organisation_name member.id %}",
             "columns": [
                 { data: "action" },

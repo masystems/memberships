@@ -66,6 +66,7 @@ def get_members_detailed(request, title):
             Q(member__contact_number__icontains=search) |
             Q(membership_number__icontains=search) |
             Q(comments__icontains=search) |
+            Q(price__nickname__icontains=search) |
             Q(custom_fields__icontains=search),
             membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
@@ -295,6 +296,7 @@ def get_members(request, title):
                                             Q(member__user_account__last_name__icontains=search) |
                                             Q(member__user_account__email__icontains=search) |
                                             Q(membership_number__icontains=search) |
+                                            Q(price__nickname__icontains=search) |
                                             Q(comments__icontains=search),
                                             membership_package=membership_package).order_by(sort_by_col)[start:start + end]
     if search == "":
@@ -326,7 +328,7 @@ def get_members(request, title):
                     membership_status = f"""<div class="mb-4">
                                                 <input type="checkbox" value="{ subscription.member.id }" 
                                                 class="membership-status" data-on-color="success" 
-                                                data-off-color="none" data-on-text="Active" 
+                                                data-off-color="danger" data-on-text="Active" 
                                                 data-off-text="Inactive"
                                                 data-size="mini" checked>
                                             </div>
@@ -446,7 +448,7 @@ def get_all_member_payments(request, title):
     elif sort_by == "gift_aid_percentage":
         sort_by_col = f"{direction}gift_aid_percentage"
     else:
-        sort_by_col = f"{direction}created"
+        sort_by_col = f"-created"
 
     payments = []
     if search == "":

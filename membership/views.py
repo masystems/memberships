@@ -442,16 +442,21 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
         return super().get(*args, **kwargs)
 
 
-def update_membership_status(request, pk, status, title, page):
+def update_membership_status(request, pk, status, title):
     member = Member.objects.get(id=pk)
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     subscription = member.subscription.get(member=member, membership_package=membership_package)
 
     subscription.active = status
     subscription.save()
+    if status == "True":
+        stat = "enabled"
+    else:
+        stat = "Inactive"
 
-    # redirect user depending on where they have come from
-    return HttpResponseRedirect('/membership/' + page + '/' + membership_package.organisation_name)
+    # return json
+    return HttpResponse(dumps({'status': "success",
+                               'message': f"Membership status {stat}"}), content_type='application/json')
 
 
 class MembershipPackageView(LoginRequiredMixin, MembershipBase):
@@ -936,6 +941,7 @@ def member_reg_form(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     # setting user_form_fields to none in cases where it's not set
     user_form_fields = None
+    comments = ""
     try:
         member = Member.objects.get(id=pk)
         new_membership = False
@@ -948,6 +954,7 @@ def member_reg_form(request, title, pk):
         # there is an existing membership
         try:
             subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+            comments = subscription.comments
             try:
                 # get custom fields
                 custom_fields = loads(subscription.custom_fields)
@@ -1106,6 +1113,8 @@ def member_reg_form(request, title, pk):
             # set gift aid field
             subscription.gift_aid = form.cleaned_data['gift_aid']
 
+            subscription.comments = form.cleaned_data['comments']
+
             # create/ update stripe customer
             stripe.api_key = get_stripe_secret_key(request)
             if subscription.stripe_id:
@@ -1196,7 +1205,8 @@ def member_reg_form(request, title, pk):
                                                 'is_stripe': is_stripe,
                                                 'member_id': member_id,
                                                 'custom_fields': custom_fields_displayed,
-                                                'membership_number': membership_number})
+                                                'membership_number': membership_number,
+                                                'comments': comments})
 
 
 @login_required(login_url='/accounts/login/')
@@ -1379,6 +1389,102 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
             )
             payment.save()
 
+        # if subscription is recurring
+        if subscription.price.interval != 'one_time':
+            
+            # if membership type has changed
+            if request.POST['old_price'] != '':
+                try:
+                    old_price = Price.objects.get(id=request.POST['old_price'])
+
+                    # get the old interval
+                    if old_price.interval == 'one_time':
+                        old_interval = None
+                    else:
+                        if old_price.interval == 'year':
+                            old_interval = relativedelta(years=1)
+                        elif old_price.interval == 'month':
+                            old_interval = relativedelta(months=1)
+
+                    # get the new interval
+                    if subscription.price.interval == 'year':
+                        new_interval = relativedelta(years=1)
+                    elif subscription.price.interval == 'month':
+                        new_interval = relativedelta(months=1)
+                    
+                    # default remaining amount to old price amount if not set
+                    if not subscription.remaining_amount:
+                        subscription.remaining_amount = old_price.amount
+                    print(f'1408 - {subscription.membership_expiry}')
+                    # default membership_expiry, if not set, to next renewal date in the future/present
+                    if not subscription.membership_expiry:
+                        if old_interval:
+                            next_renewal_date = subscription.membership_start
+                            # while next_renewal_date is in the past, increment
+                            while next_renewal_date < datetime.now().date():
+                                next_renewal_date = next_renewal_date + old_interval
+                            
+                            subscription.membership_expiry = next_renewal_date + new_interval
+                        # if previous membership type was one_time
+                        else:
+                            subscription.membership_expiry = datetime.now().date() + new_interval
+                    # increment expiry
+                    else:
+                        subscription.membership_expiry = subscription.membership_expiry + new_interval
+                    print(f'1421 - {subscription.membership_expiry}')
+                    # if previous membership type was not one_time
+                    if int(subscription.remaining_amount) != 0:
+                        # set new remaining amount, taking off the amount paid from new amount
+                        amount_paid = int(old_price.amount) - int(subscription.remaining_amount)
+                        subscription.remaining_amount = int(subscription.price.amount) - amount_paid
+                    # previous membership type was one_time, so default to new price amount
+                    else:
+                        subscription.remaining_amount = subscription.price.amount
+                    print(f'rem amount 1430 - {subscription.remaining_amount}')
+                    print(f'1431 - {subscription.membership_expiry}')
+                    # if fully paid, reset remaining amount and increment membership_expiry
+                    # or if amount paid is more than new price amount, keep incrementing expiry until user isn't owed anything
+                    while int(subscription.remaining_amount) <= 0:
+                        # increment expiry
+                        subscription.membership_expiry = subscription.membership_expiry + new_interval
+                        # add new price to remaining amount
+                        subscription.remaining_amount = int(subscription.remaining_amount) + int(subscription.price.amount)
+                    print(f'1438 - {subscription.membership_expiry}')
+                except Price.DoesNotExist:
+                    pass
+
+            # membership type has not changed
+            else:
+                # get the new interval
+                if subscription.price.interval == 'year':
+                    interval = relativedelta(years=1)
+                elif subscription.price.interval == 'month':
+                    interval = relativedelta(months=1)
+                
+                # default remaining amount to price amount if not set
+                if not subscription.remaining_amount:
+                    subscription.remaining_amount = subscription.price.amount
+
+                # default membership_expiry, if not set, to next renewal date in the future/present
+                if not subscription.membership_expiry:
+                    next_renewal_date = subscription.membership_start
+                    # while next_renewal_date is in the past, increment
+                    while next_renewal_date < datetime.now().date():
+                        next_renewal_date = next_renewal_date + interval
+                    
+                    subscription.membership_expiry = next_renewal_date
+
+                # increment expiry
+                subscription.membership_expiry = subscription.membership_expiry + interval
+            
+        # one time subscription
+        else:
+            # set remaining amount
+            subscription.remaining_amount = 0
+            subscription.membership_expiry = None
+
+        subscription.save()
+
         result = {'result': 'success',
                   #'invoice': invoice.data[0].invoice_pdf,
                   'receipt': receipt.data[0].receipt_url
@@ -1398,9 +1504,82 @@ def update_membership_type(request, title, pk):
         subscription = member.subscription.get(member=member, membership_package=package)
         price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
         if request.POST.get('payment_method') != 'Card Payment':
-            MembershipSubscription.objects.filter(member=member, membership_package=package).update(price=price, active=True,
-                                                                                                    payment_method=PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'),
-                                                                                                                                             membership_package=package))
+            remaining_amount = subscription.remaining_amount
+
+            # default remaining_amount to old price amount
+            if not remaining_amount:
+                try:
+                    # check it's not 0
+                    int(remaining_amount) != 0
+                except ValueError:
+                    remaining_amount = subscription.price.amount
+            
+            # check if membership type has changed
+            if subscription.price:
+                if price != subscription.price:
+                    # if old price interval is not one_time
+                    if subscription.price.interval != 'one_time':
+                        # set new remaining amount to new price amount minus paid amount
+                        paid_amount = int(subscription.price.amount) - int(remaining_amount)
+                        remaining_amount = int(price.amount) - int(paid_amount)
+                    # set to new price amount if previous membership type was one time
+                    # and set expiry to today
+                    else:
+                        remaining_amount = price.amount
+            
+            # if new or old type was one_time, set expiry to today
+            if subscription.price.interval == 'one_time' or price.interval == 'one_time':
+                membership_expiry = datetime.now().date()
+            # don't change membership expiry if already set because they haven't paid for anything
+            elif subscription.membership_expiry:
+                membership_expiry = subscription.membership_expiry
+            else:
+                # if they have never paid, expiry date is start date
+                if Payment.objects.filter(subscription=subscription).count() == 0:
+                    membership_expiry = subscription.membership_start
+                else:
+                    # if new membership they have to pay for it now
+                    if subscription.membership_start == datetime.now().date():
+                        membership_expiry = subscription.membership_start
+                    else:
+                        # set new expiry to today if previous membership type was one_time
+                        if subscription.price.interval == 'one_time':
+                            membership_expiry = datetime.now().date()
+                        else:
+                            # get the old interval
+                            if subscription.price.interval == 'year':
+                                interval = relativedelta(years=1)
+                            elif subscription.price.interval == 'month':
+                                interval = relativedelta(months=1)
+
+                            membership_expiry = subscription.membership_start
+                            # while next_renewal_date is in the past, increment
+                            while membership_expiry < datetime.now().date():
+                                membership_expiry = membership_expiry + interval
+
+            # handle member had paid more for the current interval than is the new price amount
+            # unless new price is one time
+            if price.interval != 'one_time':
+                # get the new interval
+                if price.interval == 'year':
+                    interval = relativedelta(years=1)
+                elif price.interval == 'month':
+                    interval = relativedelta(months=1)
+                
+                while int(remaining_amount) <= 0:
+                    # increment expiry
+                    membership_expiry = membership_expiry + interval
+                    # add new price to remaining amount
+                    remaining_amount = int(remaining_amount) + int(price.amount)
+                
+            MembershipSubscription.objects.filter(member=member,
+                                                  membership_package=package).update(price=price,
+                                                                                     active=True,
+                                                                                     payment_method=PaymentMethod.objects.get(
+                                                                                         payment_name=request.POST.get('payment_method'),
+                                                                                         membership_package=package),
+                                                                                     remaining_amount=remaining_amount,
+                                                                                     membership_expiry=membership_expiry)
 
             stripe.api_key = get_stripe_secret_key(request)
 
@@ -1450,6 +1629,13 @@ def update_membership_type(request, title, pk):
             if price.amount == "0":
                 return HttpResponse(dumps({'status': "fail",
                                            'message': f'You cannot select Card Payment with {price.nickname}'}), content_type='application/json')
+            
+            # if membership type has changed, save the old one
+            old_price = ''
+            if subscription.price:
+                if price != subscription.price:
+                    old_price = subscription.price.id
+            
             MembershipSubscription.objects.filter(member=member, membership_package=package).update(
                 price=price, payment_method=None)
 
@@ -1486,7 +1672,7 @@ def update_membership_type(request, title, pk):
             send_email(f"New Member: {package.organisation_name}",
                     package.owner.get_full_name(), body, send_to=package.owner.email)
 
-            return HttpResponse(dumps({'status': "success"}), content_type='application/json')
+            return HttpResponse(dumps({'status': "success", 'old_price': old_price}), content_type='application/json')
 
 
 class MemberProfileView(MembershipBase):
@@ -1577,40 +1763,10 @@ def edit_sub_comment(request, id):
 
 def get_overdue_and_next(request, subscription):
     # get date of last payment in our DB, if it exists
-    last_db_payment = Payment.objects.filter(subscription=subscription).order_by('-created').first()
-    last_db_payment_date = None
-    if last_db_payment:
-        last_db_payment_date = last_db_payment.created
-
-    # if it's a stripe subscription, get date of last stripe payment
-    last_stripe_payment_date = None
-    if subscription.stripe_id:
-        stripe.api_key = get_stripe_secret_key(request)
-        # get the last stripe payment
-        last_stripe_payment = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id, limit=1)['data']
-        # if any stripe payments exist, get the date of the last one
-        if len(last_stripe_payment) > 0:
-            last_stripe_payment_date = datetime.fromtimestamp(last_stripe_payment[0]['created']).date()
-
-    # get last payment date from stripe payments and db payments
+    last_payment = Payment.objects.filter(subscription=subscription, type='subscription').order_by('-created').first()
     last_payment_date = None
-    if last_db_payment_date and not last_stripe_payment_date:
-        last_payment_date = last_db_payment_date
-    elif not last_db_payment_date and last_stripe_payment_date:
-        last_payment_date = last_stripe_payment_date
-    # neither exist, so last payment remins None
-    elif not last_db_payment_date and not last_stripe_payment_date:
-        pass
-    elif last_db_payment_date and last_stripe_payment_date:
-        # last db payment is after last stripe payment
-        if last_db_payment_date > last_stripe_payment_date:
-            last_payment_date = last_db_payment_date
-        # last db payment is before last stripe payment
-        elif last_db_payment_date < last_stripe_payment_date:
-            last_payment_date = last_stripe_payment_date
-        # they must be equal, so it doesn't matter which is used
-        else:
-            last_payment_date = last_db_payment_date
+    if last_payment:
+        last_payment_date = last_payment.created
         
     # get date of next payment due, if last date exists
     next_payment_date = None
@@ -1644,6 +1800,23 @@ def get_overdue_and_next(request, subscription):
         'next_payment_date': next_payment_date,
         'overdue': overdue
     }
+
+
+def get_overdue(request, subscription):
+    payment_number = Payment.objects.filter(subscription=subscription, type='subscription').count()
+    overdue = False
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    # if they have never paid, they are overdue
+    elif payment_number == 0:
+        overdue = True
+    # if expiry is in the past or now
+    elif subscription.membership_expiry:
+        if subscription.membership_expiry <= datetime.now().date():
+            overdue = True
+
+    return overdue
 
 
 @login_required(login_url='/accounts/login/')
@@ -1682,8 +1855,13 @@ def member_payments(request, title, pk):
 
     # find out whether the member is overdue, and date of next payment
     overdue_and_next = get_overdue_and_next(request, subscription)
-    next_payment_date = overdue_and_next['next_payment_date']
-    overdue = overdue_and_next['overdue']
+    # use expiry if possible
+    if subscription.membership_expiry:
+        next_payment_date = subscription.membership_expiry
+        overdue = get_overdue(request, subscription)
+    else:
+        next_payment_date = overdue_and_next['next_payment_date']
+        overdue = overdue_and_next['overdue']
     
     return render(request, 'member_payments.html', {'membership_package': membership_package,
                                                     'member': member,
@@ -1736,6 +1914,16 @@ def member_payment_form(request, title, pk):
     member = Member.objects.get(id=pk)
     subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
 
+    # set remaining amount to be passed into the template
+    if subscription.remaining_amount:
+        remaining_amount = f'{"{:.2f}".format(int(subscription.remaining_amount) / 100)}'
+    else:
+        remaining_amount = f'{"{:.2f}".format(int(subscription.price.amount) / 100)}'
+        
+        # default remaining amount to price amount
+        subscription.remaining_amount = subscription.price.amount
+        subscription.save()
+
     # if this is a POST request we need to process the form data
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -1746,21 +1934,64 @@ def member_payment_form(request, title, pk):
             payment.subscription = subscription
             # get next payment number
             payment.payment_number = get_next_payment_number()
+            
+            try:
+                payment.amount = int(float(payment.amount) * 100)
+            except ValueError:
+                form.add_error('amount', f"Please enter a valid amount.")
+                return render(request, 'payment_form.html', {'form': form,
+                                                'membership_package': membership_package,
+                                                'member': member,
+                                                'remaining_amount': remaining_amount})
 
-            # if payment.amount not set, set it to subscription amount
-            if payment.amount == '':
-                payment.amount = subscription.price.amount
-            # if it has been set, convert it to pennies
-            else:
-                try:
-                    payment.amount = int(float(payment.amount) * 100)
-                except ValueError:
-                    form.add_error('amount', f"Please enter a valid amount.")
-                    return render(request, 'payment_form.html', {'form': form,
-                                                 'membership_package': membership_package,
-                                                 'member': member})
+            # for subscription payments, return an error if amount given is more than remaining amount
+            if payment.amount > int(subscription.remaining_amount) and payment.type == 'subscription':
+                form.add_error('amount', f"Please do not enter an amount more than the remaining amount ({'{:.2f}'.format(int(subscription.remaining_amount) / 100)}).")
+                return render(request, 'payment_form.html', {'form': form,
+                                                'membership_package': membership_package,
+                                                'member': member,
+                                                'remaining_amount': remaining_amount})
 
             payment.save()
+
+            # if payment is a subscription payment
+            if payment.type == 'subscription':
+                # if subscription is recurring
+                if subscription.price.interval != 'one_time':
+                    # set amount of time to increment
+                    if subscription.price.interval == 'year':
+                        interval = relativedelta(years=1)
+                    elif subscription.price.interval == 'month':
+                        interval = relativedelta(months=1)
+
+                    # default membership_expiry, if not set, to next renewal date in the future/present
+                    if not subscription.membership_expiry:
+                        next_renewal_date = subscription.membership_start
+                        # while next_renewal_date is in the past, increment
+                        while next_renewal_date < datetime.now().date():
+                            next_renewal_date = next_renewal_date + interval
+                        
+                        subscription.membership_expiry = next_renewal_date
+
+                    # set remaining amount
+                    subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
+                    # if fully paid, reset remaining amount and increment membership_expiry
+                    if int(subscription.remaining_amount) == 0:
+                        subscription.remaining_amount = subscription.price.amount
+                        subscription.membership_expiry = subscription.membership_expiry + interval
+                # one time subscription
+                else:
+                    # set remaining amount
+                    subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
+
+                    # set expiry to None if fully paid
+                    if subscription.remaining_amount == 0:
+                        subscription.membership_expiry = None
+                    # default membership_expiry, if not set, to today
+                    elif not subscription.membership_expiry:
+                        subscription.membership_expiry = datetime.now().date()
+
+                subscription.save()
 
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
@@ -1768,7 +1999,8 @@ def member_payment_form(request, title, pk):
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
-                                                 'member': member})
+                                                 'member': member,
+                                                 'remaining_amount': remaining_amount})
 
 
 def member_payment_form_edit(request, title, pk, payment_id):

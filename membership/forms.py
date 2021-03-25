@@ -38,6 +38,9 @@ class MemberForm(forms.ModelForm):
     # subscription field
     gift_aid = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': ''}))
 
+    # subscription comment field
+    comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}))
+
     class Meta:
         model = Member
         fields = '__all__'
@@ -67,7 +70,8 @@ class MemberSubscriptionForm(forms.ModelForm):
                    'stripe_id',
                    'stripe_subscription_id',
                    'validated',
-                   'last_reminder')
+                   'last_reminder',
+                   'remaining_amount')
         help_texts = {
             # 'service': _('If your query is not regarding a service, leave this blank.'),
         }
