@@ -1955,8 +1955,11 @@ def member_payment_form(request, title, pk):
                 # set remaining amount
                 subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
 
+                # set expiry to None if fully paid
+                if subscription.remaining_amount == 0:
+                    subscription.membership_expiry = None
                 # default membership_expiry, if not set, to today
-                if not subscription.membership_expiry:
+                elif not subscription.membership_expiry:
                     subscription.membership_expiry = datetime.now().date()
 
             subscription.save()
