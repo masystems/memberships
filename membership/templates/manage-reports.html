@@ -28,19 +28,6 @@
                 </nav>
             </div>
         </div>
-        <div class="col-md-5 align-self-center d-none d-md-block">
-            {% if stripe_package_setup %}
-                <div class="alert alert-warning float-right" role="alert">
-                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe to set up your membership details.
-                </div>
-
-            {% endif %}
-            {% if account_link %}
-                <div class="alert alert-warning float-right" role="alert">
-                    <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe for more information.
-                </div>
-            {% endif %}
-        </div>
     </div>
 </div>
 <!-- ============================================================== -->
@@ -60,7 +47,7 @@
                     <!-- Tabs -->
                     <div class="tab-content" id="pills-tabContent">
                         <!-- Tabs -->
-                        <div class="tab-pane" id="reports" role="tabpanel">
+                        <div id="reports">
                             <div class="card-body">
                                 <div class="row">
                                     <!-- Column -->
