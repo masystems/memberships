@@ -184,7 +184,7 @@
                         <div class="card-body">
                             <div class="form-group mb-0 text-right">
                                 <button id="save-member" class="btn btn-info waves-effect waves-light">Save</button>
-                                <a href="{% url 'membership' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+                                <a href="{% url 'member_payments' membership_package.organisation_name member.id %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
                             </div>
                         </div>
                     </div>
