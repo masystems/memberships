@@ -15,7 +15,7 @@
 <!-- ============================================================== -->
 <div class="page-breadcrumb">
     <div class="row">
-        <div class="col-md-4 align-self-center">
+        <div class="col-md-3 align-self-center">
             <h4 class="page-title">
                 {{ membership_package }} Member Payments: 
                 <a href="{% url 'member_profile' member.id %}" data-toggle="tooltip" title="View Profile"><span class="text-success">{{ member.user_account.get_full_name }}</span></a>
@@ -32,41 +32,53 @@
                 </nav>
             </div>
         </div>
-        <div class="col-md-6 align-self-center d-none d-md-block mt-3">
-            <div class="col-md-3 col-xs-3 b-r float-right"> <strong>Membership Type</strong>
-                <br>
-                <p class="text-muted">
-                    {{ subscription.price.nickname }}
-                </p>
-            </div>
-            <div class="col-md-3 col-xs-3 b-r float-right"> <strong>Next Payment Due</strong>
-                <br>
-                <p class="text-muted">
-                    {{ next_payment_date }}
-                </p>
-            </div>
-            {% if subscription.active %}
-                {% if overdue %}
-                    <div class="col-md-3 col-xs-3 b-r float-right text-danger"> <strong>Overdue</strong>
-                        <br>
-                        <p>
-                            Payment is overdue
-                        </p>
-                    </div>
-                {% else %}
-                    <div class="col-md-3 col-xs-3 b-r float-right"> <strong>Not Overdue</strong>
-                        <br>
-                        <p class="text-muted">
-                            No payments overdue
-                        </p>
-                    </div>
+        <div class="col-md-7 align-self-center d-none d-md-block mt-3">
+            <div class="row">
+                <div class="col b-r float-right"> <strong>Membership Type</strong>
+                    <br>
+                    <p class="text-muted">
+                        {{ subscription.price.nickname }}
+                    </p>
+                </div>
+                <div class="col b-r float-right"> <strong>Next Payment Due</strong>
+                    <br>
+                    <p class="text-muted">
+                        {{ next_payment_date }}
+                    </p>
+                </div>
+                {% if subscription.active %}
+                    {% if overdue %}
+                        <div class="col b-r float-right text-danger"> <strong>Overdue</strong>
+                            <br>
+                            <p>
+                                Payment is overdue
+                            </p>
+                        </div>
+                    {% else %}
+                        <div class="col b-r float-right"> <strong>Not Overdue</strong>
+                            <br>
+                            <p class="text-muted">
+                                No payments overdue
+                            </p>
+                        </div>
+                    {% endif %}
                 {% endif %}
-            {% endif %}
-            <div class="col-md-3 col-xs-3 b-r float-right"> <strong>Membership Number</strong>
-                <br>
-                <p class="text-muted">
-                    {{ subscription.membership_number }}
-                </p>
+                <div class="col b-r float-right"> <strong>Membership No.</strong>
+                    <br>
+                    <p class="text-muted">
+                        {{ subscription.membership_number }}
+                    </p>
+                </div>
+                <div class="col b-r float-right"> <strong>Remaining Amount</strong>
+                    <br>
+                    <p class="text-muted">
+                        {% if subscription.remaining_amount %}
+                            £{{ subscription.remaining_amount|price }}
+                        {% else %}
+                            £{{ subscription.price.amount }}
+                        {% endif %}
+                    </p>
+                </div>
             </div>
         </div>
         <div class="col-md-2 align-self-center d-none d-md-block">
