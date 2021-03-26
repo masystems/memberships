@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load custom_tags %}
+
+{% block header %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-7 align-self-center">
+            <h4 class="page-title">Membership Package</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active" aria-current="page">Reports</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="clearfix">
+                        <h4 class="card-title float-left">{{ membership_package.organisation_name }}</h4>
+                        <div class="btn-list float-right">
+                            {% include 'org_menu.html' %}
+                        </div>
+                    </div>
+                    <hr>
+                    <!-- Tabs -->
+                    <div>
+                        <!-- Tabs -->
+                        <div id="reports">
+                            <div class="card-body">
+                                <div class="row">
+                                    <!-- Column -->
+                                    <div class="col-md-6 col-lg-3 col-xlg-3">
+                                        <div class="card">
+                                            <div class="box p-2 rounded bg-info text-center">
+                                                <h1 class="font-weight-light text-white">{{ members.count }}</h1>
+                                                <h6 class="text-white">Total Members</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Column -->
+                                    <div class="col-md-6 col-lg-3 col-xlg-3">
+                                        <div class="card">
+                                            <div class="box p-2 rounded bg-danger text-center">
+                                                <h1 class="font-weight-light text-white">{{ incomplete_members.count }}</h1>
+                                                <h6 class="text-white">Incomplete Members</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Column -->
+                                    <div class="col-md-6 col-lg-3 col-xlg-3">
+                                        <div class="card">
+                                            <div class="box p-2 rounded bg-success text-center">
+                                                <h1 class="font-weight-light text-white">{{ stripe_members }}</h1>
+                                                <h6 class="text-white">Stripe Subscriptions</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Column -->
+                                    <div class="col-md-6 col-lg-3 col-xlg-3">
+                                        <div class="card">
+                                            <div class="box p-2 rounded bg-warning text-center">
+                                                <h1 class="font-weight-light text-white"></h1>
+                                                <h6 class="text-white">More Coming Soon!</h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- generate report -->
+                                {% if membership_package.organisation_name == 'Suffolk Horse Society' or request.user.is_superuser %}
+                                    {% if request.user == membership_package.owner or request.user in membership_package.admins.all %}
+                                        <!-- raffle report -->
+                                        <div>
+                                            <hr>
+                                            <a class="float-right" href="{% url 'reports' membership_package.organisation_name 'raffle' 'xlsx' %}"><button class="btn btn-success">Generate Raffle Tickets Report</button></a>
+                                            <h4 class="card-title">Generate Raffle Tickets Report</h4>
+                                            <p>
+                                                Click the button to the right to generate a report of the members of Suffolk Horse Society.
+                                            </p>
+                                            <p>
+                                                A spreadsheet will be created which contains the following details for members that have active subscriptions and have not ticked the "Do not mail" tickbox:
+                                                <ul>
+                                                    <li>Title</li>
+                                                    <li>First Name</li>
+                                                    <li>Surname</li>
+                                                    <li>Second Name <i>(for joint accounts)</i></li>
+                                                    <li>Membership Type</li>
+                                                    <li>Company Name</li>
+                                                    <li>Address 1</li>
+                                                    <li>Address 2</li>
+                                                    <li>Address 3</li>
+                                                    <li>Address 4</li>
+                                                    <li>Postcode</li>
+                                                    <li>Country</li>
+                                                    <li>Raffle Tickets <i>(Yes or No)</i></li>
+                                                </ul>
+                                            </p>
+                                        </div>
+                                        <!-- gift aid report -->
+                                        <div>
+                                            <hr>
+                                            <a class="float-right" href="{% url 'reports' membership_package.organisation_name 'gift_aid' 'xlsx' %}"><button class="btn btn-success">Generate Gift Aid Report</button></a>
+                                            <h4 class="card-title">Generate Gift Aid Report</h4>
+                                            <p>
+                                                Click the button to the right to generate a different report of the members of Suffolk Horse Society.
+                                            </p>
+                                            <p>
+                                                The generated spreadsheet will produce a similar report to the raffle tickets report, detailed above, but containing details for active members who have ticked the "Gift aid decision" tickbox, instead of those who have not ticked the "Do not mail" tickbox. Also, "Raffle Tickets" information will not be included.
+                                            </p>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- Tabs -->
+</div>
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}

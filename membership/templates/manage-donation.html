@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load custom_tags %}
+
+{% block header %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-7 align-self-center">
+            <h4 class="page-title">Membership Package</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active" aria-current="page">Donation</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="clearfix">
+                        <h4 class="card-title float-left">{{ membership_package.organisation_name }}</h4>
+                        <div class="btn-list float-right">
+                            {% include 'org_menu.html' %}
+                        </div>
+                    </div>
+                    <hr>
+                    <!-- Tabs -->
+                    <div>
+                        <!-- Tabs -->
+                        <div id="donation">
+                            <div class="card-body">
+                                <!-- table to show donations made to this organisation -->
+                                <h3 class="card-title">Donations</h4>
+                                <div class="table-responsive">
+                                    <table id="donations_table" class="table table-striped table-bordered display no-wrap"
+                                        style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Amount</th>
+                                                <th>Gift Aid</th>
+                                                <th>Message</th>
+                                                <th>Date and Time</th>
+                                                <th>Address</th>
+                                            </tr>
+                                        </thead>
+            
+                                        <tfoot>
+                                            <tr>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Amount</th>
+                                                <th>Gift Aid</th>
+                                                <th>Message</th>
+                                                <th>Date and Time</th>
+                                                <th>Address</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+
+                                <hr>
+                                <!-- button to copy donation link button to clipboard -->
+                                <h3 class="card-title">Donation Button</h4>
+                                <p>
+                                    To insert a button in your website that allows your viewers to easily make a donation to {{ membership_package.organisation_name }}, choose which of the buttons below would fit well into your website. Then, click that button to copy a code snippet to clipboard so it can be pasted into your website HTML.
+                                </p>
+                                <!-- pink -->
+                                <div class="mb-3">
+                                    <button bgColour="#AD4675" colour="#FFFFFF" fontSize="25px" class="copy-btn" style="border:none; background-color:#AD4675; color:#FFFFFF; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#AD4675" colour="#FFFFFF" fontSize="21px" class="copy-btn" style="border:none; background-color:#AD4675; color:#FFFFFF; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#AD4675" colour="#FFFFFF" fontSize="18px" class="copy-btn" style="border:none; background-color:#AD4675; color:#FFFFFF; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#AD4675" colour="#FFFFFF" fontSize="15px" class="copy-btn" style="border:none; background-color:#AD4675; color:#FFFFFF; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
+                                <!-- teal -->
+                                <div class="mb-3">
+                                    <button bgColour="#44AAAC" colour="#FFFFFF" fontSize="25px" class="copy-btn" style="border:none; background-color:#44AAAC; color:#FFFFFF; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#44AAAC" colour="#FFFFFF" fontSize="21px" class="copy-btn" style="border:none; background-color:#44AAAC; color:#FFFFFF; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#44AAAC" colour="#FFFFFF" fontSize="18px" class="copy-btn" style="border:none; background-color:#44AAAC; color:#FFFFFF; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#44AAAC" colour="#FFFFFF" fontSize="15px" class="copy-btn" style="border:none; background-color:#44AAAC; color:#FFFFFF; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
+                                <!-- light grey -->
+                                <div class="mb-3">
+                                    <button bgColour="#E8F3F5" colour="#000000" fontSize="25px" class="copy-btn" style="border:none; background-color:#E8F3F5; color:#000000; font-size: 25px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#E8F3F5" colour="#000000" fontSize="21px" class="copy-btn" style="border:none; background-color:#E8F3F5; color:#000000; font-size: 21px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#E8F3F5" colour="#000000" fontSize="18px" class="copy-btn" style="border:none; background-color:#E8F3F5; color:#000000; font-size: 18px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                    <button bgColour="#E8F3F5" colour="#000000" fontSize="15px" class="copy-btn" style="border:none; background-color:#E8F3F5; color:#000000; font-size: 15px; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button>
+                                </div>
+                                <p>
+                                    Alternatively, if you would like to share your donation link in another way, here it is:<br/>
+                                    <a id="donation-url" href="{{ donation_url }}" target="_blank">{{ donation_url }}</a>
+                                    <span id="copy-link" class="ml-2" data-toggle="tooltip" title="Copy link to clipboard" style="cursor:pointer"><i class="fad fa-copy"></i></span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- Tabs -->
+</div>
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}
+
+{% block footer %}
+
+<script src="{% static 'assets/libs/datatables/media/js/jquery.dataTables.min.js' %}"></script>
+<script src="{% static 'dist/js/pages/datatable/custom-datatable.js' %}"></script>
+
+<!-- donations table -->
+<script>
+    var donations_table = $('#donations_table').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "responsive": true,
+        "ajax": {
+            url: "{% url 'get_donations' membership_package.organisation_name %}",
+            type: "POST",
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+        },
+        "columns": [
+            { data: "name" },
+            { data: "email" },
+            { data: "amount" },
+            { data: "gift_aid" },
+            { data: "message" },
+            { data: "date_time" },
+            { data: "address" },
+        ],
+        columnDefs: [
+            { targets: 'no-sort', orderable: false },
+            {
+                render: function (data, type, full, meta) {
+                    return "<div class='text-wrap width-200'>" + data + "</div>";
+                },
+                targets: '_all'
+            }
+        ],
+        action: function ( e, dt, button, conf ) {
+           var col = dt.columns( conf.columns );
+           var curr = col.visible();
+
+           col.visible( conf.visibility !== undefined ?
+                           conf.visibility :
+                           ! (curr.length ? curr[0] : false )
+           );
+           this.active( col.visible() );   // added this line
+        }
+    });
+</script>
+
+<script>
+    // call copyToCB function based on which button the user as clicked
+    $('.copy-btn').on('click',function(e){
+        var snippet = '<a href="{{ donation_url }}"><button style="border: none; background-color: ' + $(this).attr('bgColour') + '; color: ' + $(this).attr('colour') + '; font-size: ' + $(this).attr('fontSize') + '; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button></a>';
+        
+        copyToCB(snippet);
+    });
+
+    // call copyToCB using donation url
+    $('#copy-link').on('click',function(e){
+        copyToCB('{{ donation_url }}');
+    });
+
+    // copy text to user's clipboard
+    function copyToCB(text){
+        var textArea = document.createElement("textarea");
+        textArea.display = 'none';
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("Copy");
+        textArea.remove();
+    }
+</script>
+
+{% endblock %}

@@ -419,6 +419,66 @@ def manage_custom_fields(request, title):
                                                              'custom_fields': custom_fields})
 
 
+@login_required(login_url='/accounts/login/')
+def manage_reports(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()
+    incomplete_members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=True)
+    
+    # get stripe secret key
+    stripe.api_key = get_stripe_secret_key(request)
+    # stripe members
+    total_stripe_subscriptions = stripe.Subscription.list(stripe_account=membership_package.stripe_acct_id)
+    stripe_members = 0
+    for sub in total_stripe_subscriptions:
+        if sub.plan.active:
+            stripe_members += 1
+
+    return render(request, 'manage-reports.html', {
+                                                    'membership_package': membership_package,
+                                                    'members': members,
+                                                    'incomplete_members': incomplete_members,
+                                                    'stripe_members': stripe_members,
+                                                  })
+
+
+@login_required(login_url='/accounts/login/')
+def manage_donation(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+
+    # url for donation page
+    donation_url = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={membership_package.organisation_name}"
+
+    return render(request, 'manage-donation.html', {
+                                                    'membership_package': membership_package,
+                                                    'donation_url': donation_url,
+                                                  })
+
+
+@login_required(login_url='/accounts/login/')
+def manage_account(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()
+
+    # get stripe secret key
+    stripe.api_key = get_stripe_secret_key(request)
+
+    stripe_package = stripe.Account.retrieve(membership_package.stripe_acct_id)
+
+    if membership_package.stripe_acct_id:
+        try:
+            edit_account = stripe.Account.create_login_link(membership_package.stripe_acct_id)
+        except stripe.error.InvalidRequestError:
+            pass
+
+    return render(request, 'manage-account.html', {
+                                                    'membership_package': membership_package,
+                                                    'edit_account': edit_account,
+                                                    'stripe_package': stripe_package,
+                                                    'members': members,
+                                                  })
+
+
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'select-membership-package.html'
     login_url = '/accounts/login/'
@@ -499,7 +559,7 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         context['incomplete_members'] = Member.objects.filter(subscription__membership_package=context['membership_package'], subscription__price__isnull=True)
 
-        # get strip secret key
+        # get stripe secret key
         stripe.api_key = get_stripe_secret_key(self.request)
         context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
 
@@ -514,16 +574,6 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         else:
             # stripe account not setup
             context['stripe_package_setup'] = create_package_on_stripe(self.request)
-
-        # generate report data
-        total_stripe_subscriptions = stripe.Subscription.list(stripe_account=context['membership_package'].stripe_acct_id)
-        context['stripe_members'] = 0
-        for sub in total_stripe_subscriptions:
-            if sub.plan.active:
-                context['stripe_members'] += 1
-        
-        # url for donation page
-        context['donation_url'] = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={context['membership_package'].organisation_name}"
 
         # get active members with overdue subscriptions
         context['overdue_members'] = {}
@@ -1063,7 +1113,7 @@ def member_reg_form(request, title, pk):
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
 
-            elif (pk != 0 and request.user == membership_package.owner) or (pk == 0 and request.user in membership_package.admins.all()):
+            elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all()):
                 # edit member
                 # validate email not already in use
                 try:
