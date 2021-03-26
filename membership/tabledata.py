@@ -63,6 +63,11 @@ def get_members_detailed(request, title):
             Q(member__user_account__last_name__icontains=search) |
             Q(member__user_account__email__icontains=search) |
             Q(member__address_line_1__icontains=search) |
+            Q(member__address_line_2__icontains=search) |
+            Q(member__town__icontains=search) |
+            Q(member__county__icontains=search) |
+            Q(member__country__icontains=search) |
+            Q(member__postcode__icontains=search) |
             Q(member__contact_number__icontains=search) |
             Q(membership_number__icontains=search) |
             Q(price__nickname__icontains=search) |
@@ -75,6 +80,11 @@ def get_members_detailed(request, title):
                                                               Q(member__user_account__last_name__icontains=search) |
                                                               Q(member__user_account__email__icontains=search) |
                                                               Q(member__address_line_1__icontains=search) |
+                                                              Q(member__address_line_2__icontains=search) |
+                                                              Q(member__town__icontains=search) |
+                                                              Q(member__county__icontains=search) |
+                                                              Q(member__country__icontains=search) |
+                                                              Q(member__postcode__icontains=search) |
                                                               Q(member__contact_number__icontains=search) |
                                                               Q(membership_number__icontains=search) |
                                                               Q(custom_fields__icontains=search),
