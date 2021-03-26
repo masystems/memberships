@@ -376,7 +376,7 @@ def get_inbuilt_items(subscription, membership_package):
     inbuilt_items = [subscription.membership_number,
                      subscription.member.user_account.get_full_name(),
                      subscription.member.user_account.email,
-                     f"""{subscription.member.company}\n{subscription.member.address_line_1}\n{subscription.member.address_line_2}\n{subscription.member.company}\n{subscription.member.county}\n{subscription.member.postcode}""",
+                     f"""{subscription.member.company}, \n{subscription.member.address_line_1}, \n{subscription.member.address_line_2}, \n{subscription.member.company}, \n{subscription.member.county}, \n{subscription.member.postcode}""",
                      subscription.member.contact_number,
                      membership_type,
                      payment_type,
