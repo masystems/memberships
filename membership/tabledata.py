@@ -65,7 +65,6 @@ def get_members_detailed(request, title):
             Q(member__address_line_1__icontains=search) |
             Q(member__contact_number__icontains=search) |
             Q(membership_number__icontains=search) |
-            Q(comments__icontains=search) |
             Q(price__nickname__icontains=search) |
             Q(custom_fields__icontains=search),
             membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
@@ -78,7 +77,6 @@ def get_members_detailed(request, title):
                                                               Q(member__address_line_1__icontains=search) |
                                                               Q(member__contact_number__icontains=search) |
                                                               Q(membership_number__icontains=search) |
-                                                              Q(comments__icontains=search) |
                                                               Q(custom_fields__icontains=search),
                                                               membership_package=membership_package).order_by(
             sort_by_col).count()
@@ -296,8 +294,7 @@ def get_members(request, title):
                                             Q(member__user_account__last_name__icontains=search) |
                                             Q(member__user_account__email__icontains=search) |
                                             Q(membership_number__icontains=search) |
-                                            Q(price__nickname__icontains=search) |
-                                            Q(comments__icontains=search),
+                                            Q(price__nickname__icontains=search),
                                             membership_package=membership_package).order_by(sort_by_col)[start:start + end]
     if search == "":
         total_members = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
@@ -305,8 +302,7 @@ def get_members(request, title):
         total_members = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
                                             Q(member__user_account__last_name__icontains=search) |
                                             Q(member__user_account__email__icontains=search) |
-                                            Q(membership_number__icontains=search) |
-                                            Q(comments__icontains=search),
+                                            Q(membership_number__icontains=search),
                                             membership_package=membership_package).order_by(sort_by_col).count()
 
     if all_subscriptions.count() > 0:
@@ -457,7 +453,6 @@ def get_all_member_payments(request, title):
         all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
                                               Q(type__icontains=search) |
-                                              Q(comments__icontains=search) |
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
@@ -470,7 +465,6 @@ def get_all_member_payments(request, title):
         total_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
                                               Q(type__icontains=search) |
-                                              Q(comments__icontains=search) |
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
@@ -541,7 +535,6 @@ def get_member_payments(request, title, pk=None):
         all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
                                               Q(type__icontains=search) |
-                                              Q(comments__icontains=search) |
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
