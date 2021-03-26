@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load custom_tags %}
+
+{% block header %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-switch/dist/css/bootstrap3/bootstrap-switch.min.css' %}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-7 align-self-center">
+            <h4 class="page-title">Membership Package</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        {% if membership_packages %}
+                            <li class="breadcrumb-item"><a href="{% url 'membership' %}">Membership</a></li>
+                        {% endif %}
+                        <li class="breadcrumb-item active" aria-current="page">Package</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="clearfix">
+                        <h4 class="card-title float-left">{{ membership_package.organisation_name }}</h4>
+                        <div class="btn-list float-right">
+                            {% include 'org_menu.html' %}
+                        </div>
+                    </div>
+                    <hr>
+                    <div>
+                        <!-- Tabs -->
+                        <div class="tab-pane" id="account-overview" role="tabpanel">
+                            <div class="card-body">
+                                <div class="d-flex no-block align-items-center mb-4">
+                                    <div class="ml-auto">
+                                        <a href="{{ edit_account.url }}">
+                                            <button type="button" class="btn btn-info" style="width: 100%">
+                                                <i class="fad fa-pencil-alt mr-2"></i> Edit Package
+                                            </button>
+                                        </a>
+                                    </div>
+                                </div>
+                                <h3 class="text-dark">Account Overview</h3>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered nowrap display" id="accountOverviewTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Package Title</th>
+                                                <th>Country</th>
+                                                <th>Default Currency</th>
+                                                <th>Email</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>{{ stripe_package.business_profile.name|title }}</td>
+                                                <td>{{ stripe_package.country }}</td>
+                                                <td>{{ stripe_package.default_currency }}</td>
+                                                <td>{{ stripe_package.email }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <hr>
+                                <h3 class="text-dark">Account Overview</h3>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered nowrap display" id="accountDetailsTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Status</th>
+                                                <th>Bank Name</th>
+                                                <th>Country</th>
+                                                <th>Currency</th>
+                                                <th>Last 4</th>
+                                                <th>Sort Code</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                {% if stripe_package.external_accounts.data %}
+                                                <td>{{ stripe_package.external_accounts.data.0.status }}</td>
+                                                <td>{{ stripe_package.external_accounts.data.0.bank_name }}</td>
+                                                <td>{{ stripe_package.external_accounts.data.0.country }}</td>
+                                                <td>{{ stripe_package.external_accounts.data.0.currency }}</td>
+                                                <td>{{ stripe_package.external_accounts.data.0.last4 }}</td>
+                                                <td>{{ stripe_package.external_accounts.data.0.routing_number }}</td>
+                                                {% else %}
+                                                    <td align="left" colspan="6">Please continue setup on stripe.</td>
+                                                {% endif %}
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Button to delete organisation -->
+                                {% if request.user == membership_package.owner and members == 0  %}
+                                    <div class="boarder-bottom p-3">
+                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delete-org-modal" style="width: 100%">Delete Organisation</button>
+                                    </div>
+                                    <!-- Modal to delete organisation -->
+                                    <div id="delete-org-modal" class="modal fade" tabindex="-1" role="dialog"
+                                         aria-labelledby="delete-org-modalLabel" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header modal-colored-header bg-danger">
+                                                    <h4 class="modal-title text-white" id="delete-org-modalLabel">
+                                                        Delete Organisation</h4>
+                                                    <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip"
+                                                            title="Exit Window" aria-hidden="true">×</button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to delete
+                                                        {{ membership_package.organisation_name }}?</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                                                    <a href="{% url 'delete_membership_package'
+                                                     membership_package.organisation_name %}">
+                                                        <button type="button" class="btn btn-danger">Continue</button>
+                                                    </a>
+                                                </div>
+                                            </div><!-- /.modal-content -->
+                                        </div><!-- /.modal-dialog -->
+                                    </div><!-- /.modal -->
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        <!-- Tabs -->
+</div>
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+{% endblock %}

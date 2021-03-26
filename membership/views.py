@@ -451,6 +451,30 @@ def manage_donation(request, title):
                                                   })
 
 
+@login_required(login_url='/accounts/login/')
+def manage_account(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    members = Member.objects.filter(subscription__membership_package=membership_package, subscription__price__isnull=False).distinct()
+
+    # get stripe secret key
+    stripe.api_key = get_stripe_secret_key(request)
+
+    stripe_package = stripe.Account.retrieve(membership_package.stripe_acct_id)
+
+    if membership_package.stripe_acct_id:
+        try:
+            edit_account = stripe.Account.create_login_link(membership_package.stripe_acct_id)
+        except stripe.error.InvalidRequestError:
+            pass
+
+    return render(request, 'manage-account.html', {
+                                                    'membership_package': membership_package,
+                                                    'edit_account': edit_account,
+                                                    'stripe_package': stripe_package,
+                                                    'members': members,
+                                                  })
+
+
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'select-membership-package.html'
     login_url = '/accounts/login/'
