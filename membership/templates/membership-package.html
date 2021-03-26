@@ -371,28 +371,4 @@
             });
         });
     </script>
-    <script>
-        // call copyToCB function based on which button the user as clicked
-        $('.copy-btn').on('click',function(e){
-            var snippet = '<a href="{{ donation_url }}"><button style="border: none; background-color: ' + $(this).attr('bgColour') + '; color: ' + $(this).attr('colour') + '; font-size: ' + $(this).attr('fontSize') + '; font-family: Arial, Helvetica, Verdana;border-radius: 4px">Donate</button></a>';
-            
-            copyToCB(snippet);
-        });
-
-        // call copyToCB using donation url
-        $('#copy-link').on('click',function(e){
-            copyToCB('{{ donation_url }}');
-        });
-
-        // copy text to user's clipboard
-        function copyToCB(text){
-            var textArea = document.createElement("textarea");
-            textArea.display = 'none';
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand("Copy");
-            textArea.remove();
-        }
-    </script>
 {% endblock %}

@@ -446,8 +446,12 @@ def manage_reports(request, title):
 def manage_donation(request, title):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
 
+    # url for donation page
+    donation_url = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={membership_package.organisation_name}"
+
     return render(request, 'manage-donation.html', {
                                                     'membership_package': membership_package,
+                                                    'donation_url': donation_url,
                                                   })
 
 
@@ -570,9 +574,6 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         else:
             # stripe account not setup
             context['stripe_package_setup'] = create_package_on_stripe(self.request)
-        
-        # url for donation page
-        context['donation_url'] = f"{settings.HTTP_PROTOCOL}://{settings.SITE_NAME}/donation/?org-name={context['membership_package'].organisation_name}"
 
         # get active members with overdue subscriptions
         context['overdue_members'] = {}
