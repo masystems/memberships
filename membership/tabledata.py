@@ -37,6 +37,8 @@ def get_members_detailed(request, title):
         sort_by_col = f"{direction}member__contact_number"
     elif sort_by == "membership_type":
         sort_by_col = f"{direction}price"
+    elif sort_by == "membership_status":
+        sort_by_col = f"{direction}active"
     elif sort_by == "payment_method":
         sort_by_col = f"{direction}payment_method__payment_name"
     elif sort_by == "billing_interval":
@@ -292,6 +294,8 @@ def get_members(request, title):
         sort_by_col = f"{direction}comments"
     elif sort_by == "membership_type":
         sort_by_col = f"{direction}price"
+    elif sort_by == "membership_status":
+        sort_by_col = f"{direction}active"
     else:
         # this will result in the a page error...
         sort_by_col = f"{direction}membership_number"
