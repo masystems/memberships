@@ -61,11 +61,14 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <div class="btn-list float-right">
-                        {% include 'org_menu.html' %}
+                    <div class="clearfix">
+                        <h4 class="card-title float-left">{{ membership_package.organisation_name }}</h4>
+                        <div class="btn-list float-right">
+                            {% include 'org_menu.html' %}
+                        </div>
                     </div>
+                    <hr>
                     <div class="d-md-flex no-block">
-                        <h4 class="card-title">{{ membership_package.organisation_name }}</h4>
                         <div class="ml-auto">
                             {% if stripe_package_setup %}
                             <a href="{{ stripe_package_setup.url }}">
@@ -82,18 +85,9 @@
                             {% endif %}
                         </div>
                     </div>
-                    <ul class="nav nav-tabs nav-bordered mb-3 customtab" id="pills-tab" role="tablist">
-                        <li class="nav-item">
-                            <a class="nav-link active" id="pills-membership-tab" data-toggle="pill"
-                               href="#members-overview" role="tab" aria-controls="pills-members-tab" aria-selected="true">
-                                <i class="fad fa-users d-lg-none d-block mr-1"></i>
-                                <span class="d-none d-lg-block"><i class="fad fa-users mr-2"></i>Members</span>
-                            </a>
-                        </li>
-                    </ul>
                     <!-- Tabs -->
                     <div class="tab-content" id="pills-tabContent">
-                        <div class="tab-pane fade show active" id="members-overview" role="tabpanel" aria-labelledby="pills-members-tab">
+                        <div class="fade show active" id="members-overview" aria-labelledby="pills-members-tab">
                             <div class="card-body">
                                 <h3 class="text-success">Complete Membership Applications</h3>
                                 <div class="table-responsive" style="overflow: visible;">
