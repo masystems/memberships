@@ -21,7 +21,8 @@
             <a class="dropdown-item" href="{% url 'manage_membership_types' membership_package.organisation_name %}">Membership Types</a>
             <a class="dropdown-item" href="{% url 'manage_payment_methods' membership_package.organisation_name %}">Payment Methods</a>
             <a class="dropdown-item" href="{% url 'manage_custom_fields' membership_package.organisation_name %}">Custom Fields</a>
-
+            <a class="dropdown-item" href="{% url 'manage_reports' membership_package.organisation_name %}">Reports</a>
+            <a class="dropdown-item" href="{% url 'manage_account' membership_package.organisation_name %}">Account</a>
         </div>
     </div>
 
@@ -32,6 +33,7 @@
         <div class="dropdown-menu" style="">
             <a class="dropdown-item" href="{% url 'payments_detailed' membership_package.organisation_name %}">Payments Detailed</a>
             <a class="dropdown-item" href="{% url 'manage_payment_reminder' membership_package.organisation_name %}">Payment Reminder</a>
+            <a class="dropdown-item" href="{% url 'manage_donation' membership_package.organisation_name %}">Donation</a>
         </div>
     </div>
 
