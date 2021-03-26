@@ -453,7 +453,6 @@ def get_all_member_payments(request, title):
         all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
                                               Q(type__icontains=search) |
-                                              Q(comments__icontains=search) |
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
@@ -466,7 +465,6 @@ def get_all_member_payments(request, title):
         total_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
                                               Q(type__icontains=search) |
-                                              Q(comments__icontains=search) |
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
@@ -537,7 +535,6 @@ def get_member_payments(request, title, pk=None):
         all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                               Q(payment_number__icontains=search) |
                                               Q(type__icontains=search) |
-                                              Q(comments__icontains=search) |
                                               Q(created__icontains=search) |
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
