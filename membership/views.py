@@ -442,6 +442,15 @@ def manage_reports(request, title):
                                                   })
 
 
+@login_required(login_url='/accounts/login/')
+def manage_donation(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+
+    return render(request, 'manage-donation.html', {
+                                                    'membership_package': membership_package,
+                                                  })
+
+
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'select-membership-package.html'
     login_url = '/accounts/login/'
