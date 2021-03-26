@@ -65,7 +65,6 @@ def get_members_detailed(request, title):
             Q(member__address_line_1__icontains=search) |
             Q(member__contact_number__icontains=search) |
             Q(membership_number__icontains=search) |
-            Q(comments__icontains=search) |
             Q(price__nickname__icontains=search) |
             Q(custom_fields__icontains=search),
             membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
@@ -78,7 +77,6 @@ def get_members_detailed(request, title):
                                                               Q(member__address_line_1__icontains=search) |
                                                               Q(member__contact_number__icontains=search) |
                                                               Q(membership_number__icontains=search) |
-                                                              Q(comments__icontains=search) |
                                                               Q(custom_fields__icontains=search),
                                                               membership_package=membership_package).order_by(
             sort_by_col).count()
