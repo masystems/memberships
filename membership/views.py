@@ -1063,7 +1063,7 @@ def member_reg_form(request, title, pk):
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
 
-            elif (pk != 0 and request.user == membership_package.owner) or (pk == 0 and request.user in membership_package.admins.all()):
+            elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all()):
                 # edit member
                 # validate email not already in use
                 try:
