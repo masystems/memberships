@@ -419,6 +419,12 @@ def manage_custom_fields(request, title):
                                                              'custom_fields': custom_fields})
 
 
+@login_required(login_url='/accounts/login/')
+def manage_reports(request, title):
+    membership_package = MembershipPackage.objects.get(organisation_name=title)
+    return render(request, 'manage-reports.html', {'membership_package': membership_package})
+
+
 class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
     template_name = 'select-membership-package.html'
     login_url = '/accounts/login/'
