@@ -304,8 +304,10 @@ def export_members_detailed(request, title):
             # Sheet body, remaining rows
             font_style = xlwt.XFStyle()
 
+            # Sheet first row
+            row_num = 1
+
             for subscription in all_subscriptions.all():
-                row_num = row_num + 1
                 col = 0
                 inbuilt_items = get_inbuilt_items(subscription, membership_package)
                 for item in inbuilt_items:
@@ -372,11 +374,11 @@ def get_inbuilt_items(subscription, membership_package):
             custom_fields.append(field['field_value'])
         except KeyError:
             custom_fields.append("")
-
+    n1 = "\n"
     inbuilt_items = [subscription.membership_number,
                      subscription.member.user_account.get_full_name(),
                      subscription.member.user_account.email,
-                     f"""{subscription.member.company}, \n{subscription.member.address_line_1}, \n{subscription.member.address_line_2}, \n{subscription.member.company}, \n{subscription.member.county}, \n{subscription.member.postcode}""",
+                     f'{f"{subscription.member.company},{n1}" if subscription.member.company else ""}{f"{subscription.member.address_line_1},{n1}" if subscription.member.address_line_1 else ""}{f"{subscription.member.address_line_2},{n1}" if subscription.member.address_line_2 else ""}{f"{subscription.member.county},{n1}" if subscription.member.county else ""}{f"{subscription.member.country},{n1}" if subscription.member.country else ""}{f"{subscription.member.postcode},{n1}" if subscription.member.postcode else ""}',
                      subscription.member.contact_number,
                      membership_type,
                      payment_type,
