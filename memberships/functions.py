@@ -3,6 +3,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.conf import settings
 from random import randint
+from membership.models import Payment
 import re
 
 
@@ -56,3 +57,42 @@ def send_email(subject, name, body,
     #             Membership Organisation: {membership_package.organisation_name}
     #             """
     # send_email("Membership Started!", request.user.get_full_name, body, reply_to=request.user.email)
+
+
+def get_next_payment_number():
+    # check there are existing Payment objects
+    if Payment.objects.exists():
+        # get latest payment number
+        latest_valid_pay_num = Payment.objects.last().payment_number
+        # check whether latest payment number is valid
+        if latest_valid_pay_num == None or latest_valid_pay_num == '':
+            i = 1
+            # check we haven't gone past the end of the payments
+            if i < Payment.objects.all().count():
+                # get payment number before last
+                latest_valid_pay_num = Payment.objects.all().reverse()[i].payment_number
+                # go through Payment's payment numbers in reverse until we find a valid one
+                while latest_valid_pay_num == None or latest_valid_pay_num == '':
+                    i += 1
+                    # check we haven't gone past the end of the payments
+                    if i < Payment.objects.all().count():
+                        latest_valid_pay_num = Payment.objects.all().reverse()[i].payment_number
+                    # no valid payment numbers, so set variable to zero
+                    else:
+                        latest_valid_pay_num = 0
+            # no valid payment numbers, so set variable to zero
+            else:
+                latest_valid_pay_num = 0
+        payment_number = int(latest_valid_pay_num) + 1
+        # check this payment number isn't taken
+        # if it is taken, increment by 1 then check that one
+        while True:
+            if Payment.objects.filter(payment_number=str(payment_number)).exists():
+                payment_number += 1
+            else:
+                break
+    # there are no existing Payment objects, so set payment_number to 1
+    else:
+        payment_number = 1
+
+    return payment_number
