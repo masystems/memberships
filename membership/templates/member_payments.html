@@ -75,7 +75,7 @@
                         {% if subscription.remaining_amount %}
                             £{{ subscription.remaining_amount|price }}
                         {% else %}
-                            £{{ subscription.price.amount }}
+                            £{{ subscription.price.amount|price }}
                         {% endif %}
                     </p>
                 </div>
