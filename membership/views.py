@@ -992,6 +992,7 @@ def member_reg_form(request, title, pk):
     # setting user_form_fields to none in cases where it's not set
     user_form_fields = None
     comments = ""
+    membership_expiry = ""
     try:
         member = Member.objects.get(id=pk)
         new_membership = False
@@ -1005,6 +1006,7 @@ def member_reg_form(request, title, pk):
         try:
             subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
             comments = subscription.comments
+            membership_expiry = subscription.membership_expiry
             try:
                 # get custom fields
                 custom_fields = loads(subscription.custom_fields)
@@ -1160,10 +1162,12 @@ def member_reg_form(request, title, pk):
             subscription.membership_package = membership_package
             subscription.member = member
 
-            # set gift aid field
+            # additional fields
             subscription.gift_aid = form.cleaned_data['gift_aid']
-
             subscription.comments = form.cleaned_data['comments']
+            print(form.cleaned_data['membership_expiry'])
+            membership_expiry = datetime.strptime(form.cleaned_data['membership_expiry'], '%d/%m/%Y')
+            subscription.membership_expiry = membership_expiry.strftime('%Y-%m-%d')
 
             # create/ update stripe customer
             stripe.api_key = get_stripe_secret_key(request)
@@ -1256,7 +1260,8 @@ def member_reg_form(request, title, pk):
                                                 'member_id': member_id,
                                                 'custom_fields': custom_fields_displayed,
                                                 'membership_number': membership_number,
-                                                'comments': comments})
+                                                'comments': comments,
+                                                'membership_expiry': membership_expiry})
 
 
 @login_required(login_url='/accounts/login/')

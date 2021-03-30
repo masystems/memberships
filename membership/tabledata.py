@@ -52,7 +52,7 @@ def get_members_detailed(request, title):
     elif sort_by == "membership_expiry":
         sort_by_col = f"{direction}membership_expiry"
     else:
-        sort_by_col = f"{direction}membership_number"
+        sort_by_col = f"-membership_number"
 
     members = []
     if search == "":
@@ -297,8 +297,7 @@ def get_members(request, title):
     elif sort_by == "membership_status":
         sort_by_col = f"{direction}active"
     else:
-        # this will result in the a page error...
-        sort_by_col = f"{direction}membership_number"
+        sort_by_col = f"-membership_number"
 
     members = []
     if search == "":
