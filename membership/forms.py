@@ -35,18 +35,19 @@ class MemberForm(forms.ModelForm):
     first_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control'}))
 
-    # subscription field
+    # subscription fields
     gift_aid = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': ''}))
-
-    # subscription comment field
     comments = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 4}))
+    membership_expiry = forms.CharField(required=False,
+                                        help_text='Only visible to superusers',
+                                        widget=forms.DateInput(attrs={'class': 'form-control datepicker'}))
 
     class Meta:
         model = Member
         fields = '__all__'
         exclude = ('user_account', 'custom_fields')
         help_texts = {
-            # 'title': _('If your query is not regarding a service, leave this blank.'),
+            #'membership_expiry': _('Only visible to superusers'),
         }
         widgets = {
             'title': forms.TextInput(attrs={'class': 'form-control'}),
