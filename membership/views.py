@@ -1864,7 +1864,7 @@ def get_overdue_and_next(request, subscription):
 
 
 def get_overdue(request, subscription):
-    payment_number = Payment.objects.filter(subscription=subscription, type='subscription').count()
+    payment_number = Payment.objects.filter(subscription=subscription, type__icontains='subscription').count()
     overdue = False
     # their subscription is free
     if float(subscription.price.amount) == 0:
@@ -1872,6 +1872,9 @@ def get_overdue(request, subscription):
     # if they have never paid, they are overdue
     elif payment_number == 0:
         overdue = True
+    # onetime membership type
+    elif not subscription.membership_expiry:
+        pass
     # if expiry is in the past or now
     elif subscription.membership_expiry:
         if subscription.membership_expiry <= datetime.now().date():
