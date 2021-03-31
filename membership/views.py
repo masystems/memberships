@@ -1872,6 +1872,9 @@ def get_overdue(request, subscription):
     # if they have never paid, they are overdue
     elif payment_number == 0:
         overdue = True
+    # onetime membership type
+    elif not subscription.membership_expiry:
+        pass
     # if expiry is in the past or now
     elif subscription.membership_expiry:
         if subscription.membership_expiry <= datetime.now().date():
