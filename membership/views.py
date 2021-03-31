@@ -579,8 +579,8 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         context['overdue_members'] = {}
         for member in context['members'].all()[:500]:
             sub = member.subscription.get(member=member, membership_package=context['membership_package'])
-            if get_overdue_and_next(self.request, sub)['overdue'] and sub.active:
-                context['overdue_members'][member] = get_overdue_and_next(self.request, sub)['next_payment_date']
+            if get_overdue(self.request, sub) and sub.active:
+                context['overdue_members'][member] = sub.membership_expiry
         return context
 
 
