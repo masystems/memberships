@@ -114,42 +114,39 @@
                                                 <th>Action</th>
                                                 <th>Name</th>
                                                 <th>Email</th>
+                                                <th>Comments</th>
                                                 <th>Membership Type</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for member in incomplete_members.all %}
+                                            {% for subscription in incomplete_members.all %}
                                                 <tr>
                                                     <td>
-                                                        <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
+                                                        <a href="{% url 'member_payment' subscription.membership_package.organisation_name subscription.member.id %}">
+                                                            <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
+                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                            </button>
+                                                        </a>
+                                                        <a href="{% url 'member_form' subscription.membership_package.organisation_name subscription.member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
+                                                        <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ subscription.member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>
+                                                        <a href="javascript:removeMember({{ subscription.member.id }}, 'incompleteMembersTable');"><button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ subscription.member.id }}"><i class="fad fa-user-slash text-danger"></i></button></a>
                                                     </td>
-                                                    <td>{{ member.user_account.email }}</td>
                                                     <td>
-                                                        <span class="badge py-1 badge-danger">
+                                                        <a href="{% url 'member_profile' subscription.member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ subscription.member.user_account.get_full_name }}</button></a>
+                                                    </td>
+                                                    <td>{{ subscription.member.user_account.email }}</td>
+                                                    <td>
+                                                        {{ subscription.comments }}
+                                                        <a href="javascript:editComment('{{ subscription.id }}');"><i class="fad fa-edit text-success ml-2"></i></a>
+                                                    </td>
+                                                    <td>
+                                                        {% if subscription.price.nickname %}
+                                                            <span class="badge py-1 badge-info">{{ subscription.price.nickname }}</span>
+                                                        {% else %}
+                                                            <span class="badge py-1 badge-danger">
                                                             No membership selected
                                                         </span>
-                                                    </td>
-                                                    <td>
-                                                        {% for subscription in member.subscription.all %}
-                                                            {% if subscription.membership_package == membership_package %}
-                                                                <!--{% if subscription.payment_method or subscription.stripe_subscription_id %}
-                                                                    <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                                        <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1">
-                                                                            <i class="fad fa-credit-card-front text-success"></i>
-                                                                        </button>
-                                                                    </a>
-                                                                {% else %}-->
-                                                                <a href="{% url 'member_payment' membership_package.organisation_name member.id %}">
-                                                                    <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                                        <i class="fad fa-credit-card-front text-danger"></i>
-                                                                    </button>
-                                                                </a>
-                                                                <!--{% endif %}-->
-                                                            {% endif %}
-                                                        {% endfor %}
-                                                        <a href="{% url 'member_form' membership_package.organisation_name member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
-                                                        <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>
-                                                        <a href="javascript:removeMember({{ member.id }}, 'incompleteMembersTable');"><button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ member.id }}"><i class="fad fa-user-slash text-danger"></i></button></a>
+                                                        {% endif %}
                                                     </td>
                                                 </tr>
                                             {% empty %}
