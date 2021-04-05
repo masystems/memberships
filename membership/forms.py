@@ -19,7 +19,8 @@ class MembershipPackageForm(forms.ModelForm):
                    'bolton',
                    'custom_fields',
                    'cloud_lines_account',
-                   'enabled')
+                   'enabled',
+                   'payment_reminder_email')
         help_texts = {
             # 'service': _('If your query is not regarding a service, leave this blank.'),
         }
