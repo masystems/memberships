@@ -1115,7 +1115,8 @@ def member_reg_form(request, title, pk):
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
 
-            elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all()):
+            # if member is owner, admin, or user is member
+            elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all())  or (pk != 0 and request.user == member.user_account):
                 # edit member
                 # validate email not already in use
                 try:
@@ -1146,8 +1147,8 @@ def member_reg_form(request, title, pk):
                     member.user_account.save()
                     
             else:
-                # new membership request but user is not admin/owner tut tut
-                redirect('dashboard')
+                # new membership request but user is not admin/owner/member being editted tut tut
+                return redirect('dashboard')
 
             try:
                 subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
@@ -1165,9 +1166,14 @@ def member_reg_form(request, title, pk):
             # additional fields
             subscription.gift_aid = form.cleaned_data['gift_aid']
             subscription.comments = form.cleaned_data['comments']
-            print(form.cleaned_data['membership_expiry'])
-            membership_expiry = datetime.strptime(form.cleaned_data['membership_expiry'], '%d/%m/%Y')
-            subscription.membership_expiry = membership_expiry.strftime('%Y-%m-%d')
+
+            # default expiry to None if not set, as it will be set in the handling of the payment page
+            if form.cleaned_data['membership_expiry']:
+                membership_expiry = datetime.strptime(form.cleaned_data['membership_expiry'], '%d/%m/%Y')
+                subscription.membership_expiry = membership_expiry.strftime('%Y-%m-%d')
+            else:
+                membership_expiry = None
+                subscription.membership_expiry = membership_expiry
 
             # create/ update stripe customer
             stripe.api_key = get_stripe_secret_key(request)
@@ -1470,7 +1476,6 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                     # default remaining amount to old price amount if not set
                     if not subscription.remaining_amount:
                         subscription.remaining_amount = old_price.amount
-                    print(f'1408 - {subscription.membership_expiry}')
                     # default membership_expiry, if not set, to next renewal date in the future/present
                     if not subscription.membership_expiry:
                         if old_interval:
@@ -1486,7 +1491,6 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                     # increment expiry
                     else:
                         subscription.membership_expiry = subscription.membership_expiry + new_interval
-                    print(f'1421 - {subscription.membership_expiry}')
                     # if previous membership type was not one_time
                     if int(subscription.remaining_amount) != 0:
                         # set new remaining amount, taking off the amount paid from new amount
@@ -1495,8 +1499,6 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                     # previous membership type was one_time, so default to new price amount
                     else:
                         subscription.remaining_amount = subscription.price.amount
-                    print(f'rem amount 1430 - {subscription.remaining_amount}')
-                    print(f'1431 - {subscription.membership_expiry}')
                     # if fully paid, reset remaining amount and increment membership_expiry
                     # or if amount paid is more than new price amount, keep incrementing expiry until user isn't owed anything
                     while int(subscription.remaining_amount) <= 0:
@@ -1504,7 +1506,6 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                         subscription.membership_expiry = subscription.membership_expiry + new_interval
                         # add new price to remaining amount
                         subscription.remaining_amount = int(subscription.remaining_amount) + int(subscription.price.amount)
-                    print(f'1438 - {subscription.membership_expiry}')
                 except Price.DoesNotExist:
                     pass
 
@@ -1632,15 +1633,12 @@ def update_membership_type(request, title, pk):
             else:
                 remaining_amount = price.amount
                 membership_expiry = datetime.now().date()
-                
-            MembershipSubscription.objects.filter(member=member,
-                                                  membership_package=package).update(price=price,
-                                                                                     active=True,
-                                                                                     payment_method=PaymentMethod.objects.get(
-                                                                                         payment_name=request.POST.get('payment_method'),
-                                                                                         membership_package=package),
-                                                                                     remaining_amount=remaining_amount,
-                                                                                     membership_expiry=membership_expiry)
+
+            subscription.price = price
+            subscription.active = True
+            subscription.payment_method = PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'), membership_package=package)
+            subscription.remaining_amount = remaining_amount
+            subscription.membership_expiry = membership_expiry
 
             stripe.api_key = get_stripe_secret_key(request)
 
@@ -1649,7 +1647,8 @@ def update_membership_type(request, title, pk):
                 stripe.Subscription.delete(subscription.stripe_subscription_id,
                                         stripe_account=package.stripe_acct_id)
                 subscription.stripe_subscription_id = ''
-                subscription.save()
+                
+            subscription.save()
                 
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 
@@ -1696,9 +1695,10 @@ def update_membership_type(request, title, pk):
             if subscription.price:
                 if price != subscription.price:
                     old_price = subscription.price.id
-            
-            MembershipSubscription.objects.filter(member=member, membership_package=package).update(
-                price=price, payment_method=None)
+
+            subscription.price = price
+            subscription.payment_method = None
+            subscription.save()
 
             # send confirmation email to new member
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
