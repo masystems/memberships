@@ -1115,7 +1115,8 @@ def member_reg_form(request, title, pk):
                                           postcode=form.cleaned_data['postcode'],
                                           contact_number=form.cleaned_data['contact_number'])
 
-            elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all()):
+            # if member is owner, admin, or user is member
+            elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all())  or (pk != 0 and request.user == member.user_account):
                 # edit member
                 # validate email not already in use
                 try:
@@ -1146,8 +1147,8 @@ def member_reg_form(request, title, pk):
                     member.user_account.save()
                     
             else:
-                # new membership request but user is not admin/owner tut tut
-                redirect('dashboard')
+                # new membership request but user is not admin/owner/member being editted tut tut
+                return redirect('dashboard')
 
             try:
                 subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
