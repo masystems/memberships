@@ -1633,15 +1633,12 @@ def update_membership_type(request, title, pk):
             else:
                 remaining_amount = price.amount
                 membership_expiry = datetime.now().date()
-                
-            MembershipSubscription.objects.filter(member=member,
-                                                  membership_package=package).update(price=price,
-                                                                                     active=True,
-                                                                                     payment_method=PaymentMethod.objects.get(
-                                                                                         payment_name=request.POST.get('payment_method'),
-                                                                                         membership_package=package),
-                                                                                     remaining_amount=remaining_amount,
-                                                                                     membership_expiry=membership_expiry)
+
+            subscription.price = price
+            subscription.active = True
+            subscription.payment_method = PaymentMethod.objects.get(payment_name=request.POST.get('payment_method'), membership_package=package)
+            subscription.remaining_amount = remaining_amount
+            subscription.membership_expiry = membership_expiry
 
             stripe.api_key = get_stripe_secret_key(request)
 
@@ -1650,7 +1647,8 @@ def update_membership_type(request, title, pk):
                 stripe.Subscription.delete(subscription.stripe_subscription_id,
                                         stripe_account=package.stripe_acct_id)
                 subscription.stripe_subscription_id = ''
-                subscription.save()
+                
+            subscription.save()
                 
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
 
@@ -1697,9 +1695,10 @@ def update_membership_type(request, title, pk):
             if subscription.price:
                 if price != subscription.price:
                     old_price = subscription.price.id
-            
-            MembershipSubscription.objects.filter(member=member, membership_package=package).update(
-                price=price, payment_method=None)
+
+            subscription.price = price
+            subscription.payment_method = None
+            subscription.save()
 
             # send confirmation email to new member
             body = f"""<p>This is a confirmation email for your new Organisation Subscription.
