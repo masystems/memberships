@@ -48,7 +48,22 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-                    <span class="float-right">{% include 'org_menu.html' %}</span>
+                    <div class="btn-list float-right">
+                        <div class="btn-group mr-2">
+                            <form action="{% url 'export_payments_detailed' membership_package.organisation_name %}" method="POST" class="form-horizontal">
+                                {% csrf_token %}
+                                <input id="search_param" name="search_param" type="hidden">
+                                    <button type="button" class="btn btn-success dropdown-toggle mr-1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Export
+                                    </button>
+                                    <div class="dropdown-menu" style="">
+                                        <button type="submit" class="btn btn-light dropdown-item" name="csv">CSV</button>
+<!--                                        <button type="submit" class="btn btn-light dropdown-item" name="xls">XLSX</button>-->
+                                    </div>
+                            </form>
+                        </div>
+                        {% include 'org_menu.html' %}
+                    </div>
                     <h4 class="card-title">{{ membership_package.organisation_name }} Payments</h4>
 
                     <div class="mb-2">
@@ -183,5 +198,11 @@
             $('#delete-payment-modal').modal('show');
             $('#deletePaymentUrl').attr("href", "/membership/delete-payment/{{ membership_package.organisation_name }}/" + member_id + '/' + payment_id + '/?next=payments_detailed');
         }
+    </script>
+    <!--export-->
+    <script>
+        $('input[type=search]').keyup(function() {
+            $('#search_param').val($('input[type=search]').val());
+        })
     </script>
 {% endblock %}

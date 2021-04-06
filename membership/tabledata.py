@@ -471,7 +471,7 @@ def get_all_member_payments(request, title):
                                               Q(amount__icontains=search),
                                               subscription__membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     # get stripe payments
-    total_payments = Payment.objects.filter(subscription__membership_package=membership_package).distinct().count()
+    #total_payments = Payment.objects.filter(subscription__membership_package=membership_package).distinct().count()
     if search == "":
         total_payments = Payment.objects.filter(subscription__membership_package=membership_package).distinct().count()
     else:
