@@ -415,83 +415,72 @@ def export_payments_detailed(request, title):
 
             writer = csv.writer(response, delimiter=",")
 
-            headers = get_members_detailed_headers(membership_package)
+            headers = get_payments_detailed_headers()
 
             writer.writerow(headers)
             for payment in all_payments.all():
-                inbuilt_items = get_inbuilt__payment_items(payment, membership_package)
+                inbuilt_items = get_inbuilt_payment_items(payment, membership_package)
                 writer.writerow(inbuilt_items)
             return response
 
-        # elif 'xls' in request.POST:
-        #     response = HttpResponse(content_type='application/ms-excel')
-        #     response[
-        #         'Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xls"'
-        #
-        #     # creating workbook
-        #     workbook = xlwt.Workbook(encoding='utf-8')
-        #
-        #     # adding sheet
-        #     worksheet = workbook.add_sheet("sheet1")
-        #
-        #     # Sheet header, first row
-        #     row_num = 0
-        #
-        #     font_style = xlwt.XFStyle()
-        #     # headers are bold
-        #     font_style.font.bold = True
-        #
-        #     headers = get_members_detailed_headers(membership_package)
-        #
-        #     # write column headers in sheet
-        #     for col_num in range(len(headers)):
-        #         worksheet.write(row_num, col_num, headers[col_num], font_style)
-        #
-        #     # Sheet body, remaining rows
-        #     font_style = xlwt.XFStyle()
-        #
-        #     # Sheet first row
-        #     row_num = 1
-        #
-        #     for subscription in all_subscriptions.all():
-        #         col = 0
-        #         inbuilt_items = get_inbuilt__payment_items(subscription, membership_package)
-        #         for item in inbuilt_items:
-        #             worksheet.write(row_num, col, item, font_style)
-        #             col += 1
-        #         row_num += 1
-        #     workbook.save(response)
-        #     return response
+        elif 'xls' in request.POST:
+            response = HttpResponse(content_type='application/ms-excel')
+            response[
+                'Content-Disposition'] = f'attachment; filename="{membership_package}-Export-{date.strftime("%Y-%m-%d")}.xls"'
+
+            # creating workbook
+            workbook = xlwt.Workbook(encoding='utf-8')
+
+            # adding sheet
+            worksheet = workbook.add_sheet("sheet1")
+
+            # Sheet header, first row
+            row_num = 0
+
+            font_style = xlwt.XFStyle()
+            # headers are bold
+            font_style.font.bold = True
+
+            headers = get_payments_detailed_headers()
+
+            # write column headers in sheet
+            for col_num in range(len(headers)):
+                worksheet.write(row_num, col_num, headers[col_num], font_style)
+
+            # Sheet body, remaining rows
+            font_style = xlwt.XFStyle()
+
+            # Sheet first row
+            row_num = 1
+
+            for payment in all_payments.all():
+                col = 0
+                inbuilt_items = get_inbuilt_payment_items(payment, membership_package)
+                for item in inbuilt_items:
+                    worksheet.write(row_num, col, item, font_style)
+                    col += 1
+                row_num += 1
+            workbook.save(response)
+            return response
 
 
-# def get_members_detailed_headers(membership_package):
-#     # column header names
-#     # member_number, name, email etc
-#     headers = ['Member ID',
-#                'Name',
-#                'Email',
-#                'Address',
-#                'Contact',
-#                'Membership Status',
-#                'Payment Method',
-#                'Billing Interval',
-#                'Comments',
-#                'Membership Start',
-#                'Membership Expiry']
-#
-#     # custom fields
-#     custom_fields = []
-#     custom_fields_raw = loads(membership_package.custom_fields)
-#     for key, field in custom_fields_raw.items():
-#         try:
-#             custom_fields.append(field['field_name'])
-#         except KeyError:
-#             custom_fields.append("")
-#     headers.extend(custom_fields)
-#     return headers
+def get_payments_detailed_headers():
+    # column header names
+    # member_number, name, email etc
+    headers = ['Payment ID',
+               'Name',
+               'Membership ID',
+               'Method',
+               'Type',
+               'Amount',
+               'Comments',
+               'Created',
+               'Gift Aid',
+               'Gift Aid Percentage']
+    return headers
 
 
-def get_inbuilt__payment_items(payment, membership_package):
+def get_inbuilt_payment_items(payment, membership_package):
     # set method to card if it doesn't exist
     if payment.payment_method:
         method = payment.payment_method.payment_name
@@ -501,9 +490,9 @@ def get_inbuilt__payment_items(payment, membership_package):
     # get the amount as a variable so it can be converted to the correct format to be displayed
     temp_amount = float(payment.amount) / 100
     if payment.gift_aid:
-        giftaid = '<i class="fad fa-check text-success"></i>'
+        giftaid = 'Yes'
     else:
-        giftaid = '<i class="fad fa-times text-danger"></i>'
+        giftaid = 'No'
 
     inbuilt_items = [payment.payment_number,
                      payment.subscription.member.user_account.get_full_name(),

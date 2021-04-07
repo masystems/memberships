@@ -1417,8 +1417,8 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                         'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"}
                 return HttpResponse(dumps(result))
 
-            invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription_details.id,
-                                        limit=1, stripe_account=package.stripe_acct_id,)
+            # invoice = stripe.Invoice.list(customer=subscription.stripe_id, subscription=subscription_details.id,
+            #                             limit=1, stripe_account=package.stripe_acct_id,)
             receipt = stripe.Charge.list(customer=subscription.stripe_id, stripe_account=package.stripe_acct_id, limit=1)
         else:
             payment_intent = stripe.PaymentIntent.create(
