@@ -1,8 +1,10 @@
 drawCallback: function () {
     var url = ""
+    var activeSwitch = ""
     $('.membership-status').bootstrapSwitch({
         onSwitchChange: function() {
             var memberId = parseInt($(this).attr('value'));
+            activeSwitch = $(this).attr('id');
             var status = 'False';
             if($(this).is(':checked')){
                 var status = 'True';
@@ -15,8 +17,16 @@ drawCallback: function () {
         }
     });
 
+    $('#cancelStatusModal').on('click', function () {
+        memberSwitch = $('#'+activeSwitch).bootstrapSwitch()
+        if(memberSwitch.is(':checked')){
+            memberSwitch.bootstrapSwitch('state', false);
+        } else {
+            memberSwitch.bootstrapSwitch('state', true);
+        }
+    });
+
     $('#updateStatusUrl').on('click', function () {
-        console.log(url)
         $.ajax({
             url: url,
             type: 'POST',

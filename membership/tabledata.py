@@ -100,7 +100,8 @@ def get_members_detailed(request, title):
                 membership_type = f"""<span class="badge py-1 badge-info">{subscription.price.nickname}</span>"""
 
                 membership_status = f"""<div class="mb-4">
-                                        <input type="checkbox" value="{subscription.member.id}" class="membership-status" 
+                                        <input type="checkbox" value="{subscription.member.id}" class="membership-status"
+                                        id="mem-status{subscription.member.id}" 
                                         data-on-color="success" 
                                         data-off-color="danger" data-on-text="Active"
                                         data-off-text="Inactive"
@@ -110,7 +111,8 @@ def get_members_detailed(request, title):
 
                 if subscription.active:
                     membership_status = f"""<div class="mb-4">
-                                                <input type="checkbox" value="{subscription.member.id}" 
+                                                <input type="checkbox" value="{subscription.member.id}"
+                                                id="mem-status{subscription.member.id}"  
                                                 class="membership-status" data-on-color="success" 
                                                 data-off-color="danger" data-on-text="Active" 
                                                 data-off-text="Inactive"
@@ -325,7 +327,8 @@ def get_members(request, title):
                 membership_type = f"""<span class="badge py-1 badge-info">{subscription.price.nickname}</span>"""
 
                 membership_status = f"""<div class="mb-4">
-                                        <input type="checkbox" value="{ subscription.member.id }" class="membership-status" 
+                                        <input type="checkbox" value="{ subscription.member.id }" class="membership-status"
+                                        id="mem-status{subscription.member.id}"  
                                         data-on-color="success" 
                                         data-off-color="danger" data-on-text="Active"
                                         data-off-text="Inactive"
@@ -335,7 +338,8 @@ def get_members(request, title):
 
                 if subscription.active:
                     membership_status = f"""<div class="mb-4">
-                                                <input type="checkbox" value="{ subscription.member.id }" 
+                                                <input type="checkbox" value="{ subscription.member.id }"
+                                                id="mem-status{subscription.member.id}" 
                                                 class="membership-status" data-on-color="success" 
                                                 data-off-color="danger" data-on-text="Active" 
                                                 data-off-text="Inactive"
