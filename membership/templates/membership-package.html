@@ -161,10 +161,10 @@
                                     <table class="table table-bordered nowrap display" id="overdueMembersTable">
                                         <thead>
                                             <tr>
+                                                <th>Action</th>
                                                 <th>ID</th>
                                                 <th>Name</th>
                                                 <th>Missed Payment</th>
-                                                <th>Action</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -172,16 +172,6 @@
                                                 {% for subscription in member.subscription.all %}
                                                     {% if subscription.membership_package == membership_package %}
                                                         <tr>
-                                                            <!-- id -->
-                                                            <td>{{ subscription.membership_number }}</td>
-                                                            <!-- name -->
-                                                            <td>
-                                                                <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
-                                                            </td>
-                                                            <!-- missed payment -->
-                                                            <td>
-                                                                £{{ subscription.price.amount|price }} due on {{ next_payment_date }}
-                                                            </td>
                                                             <!-- action -->
                                                             <td>
                                                                 <div class="btn-group dropleft">
@@ -219,6 +209,16 @@
                                                                         </li>
                                                                     </ul>
                                                                 </div>
+                                                            </td>
+                                                            <!-- id -->
+                                                            <td>{{ subscription.membership_number }}</td>
+                                                            <!-- name -->
+                                                            <td>
+                                                                <a href="{% url 'member_profile' member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ member.user_account.get_full_name }}</button></a>
+                                                            </td>
+                                                            <!-- missed payment -->
+                                                            <td>
+                                                                £{{ subscription.price.amount|price }} due on {{ next_payment_date }}
                                                             </td>
                                                         </tr>
                                                     {% endif %}
