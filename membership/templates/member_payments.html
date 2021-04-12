@@ -72,10 +72,15 @@
                 <div class="col b-r float-right"> <strong>Remaining Amount</strong>
                     <br>
                     <p class="text-muted">
-                        {% if subscription.remaining_amount %}
-                            £{{ subscription.remaining_amount|price }}
+                        {% if overdue %}
+                            {% if subscription.remaining_amount %}
+                                £{{ subscription.remaining_amount|price }}
+                            {% else %}
+                                £{{ subscription.price.amount|price }}
+                            {% endif %}
+                        <!-- display £0 remaining if not overdue -->
                         {% else %}
-                            £{{ subscription.price.amount|price }}
+                            £0
                         {% endif %}
                     </p>
                 </div>
