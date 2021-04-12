@@ -70,10 +70,7 @@ def get_members_detailed(request, title):
             Q(member__county__icontains=search) |
             Q(member__country__icontains=search) |
             Q(member__postcode__icontains=search) |
-            Q(member__contact_number__icontains=search) |
-            Q(membership_number__icontains=search) |
-            Q(price__nickname__icontains=search) |
-            Q(custom_fields__icontains=search),
+            Q(membership_number__icontains=search),
             membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
         total_members = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
