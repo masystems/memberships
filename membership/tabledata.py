@@ -303,8 +303,7 @@ def get_members(request, title):
         all_subscriptions = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
                                             Q(member__user_account__last_name__icontains=search) |
                                             Q(member__user_account__email__icontains=search) |
-                                            Q(membership_number__icontains=search) |
-                                            Q(price__nickname__icontains=search),
+                                            Q(membership_number__icontains=search),
                                             membership_package=membership_package).order_by(sort_by_col)[start:start + end]
     if search == "":
         total_members = MembershipSubscription.objects.filter(membership_package=membership_package).distinct().count()
