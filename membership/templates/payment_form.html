@@ -196,16 +196,6 @@
 </div>
 {% endblock %}
 {% block footer %}
-    <script src="{% static 'assets/libs/moment/moment.js' %}"></script>
-    <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
-    <script>
-        // Date Picker
-        jQuery('.datepicker').datepicker({
-            autoclose: true,
-            todayHighlight: true
-        });
-    </script>
-
     <script>
         // Set amount to subscription amount if type set to subscription
         $('#type').change(function(e){
@@ -239,6 +229,7 @@
             }
         });
     </script>
+    <script src="{% static 'assets/libs/moment/moment.js' %}"></script>
     <script src="{% static 'assets/libs/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js' %}"></script>
     <script>
         // Date Picker
