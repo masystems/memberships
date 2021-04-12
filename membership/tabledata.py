@@ -155,7 +155,7 @@ def get_members_detailed(request, title):
             reset_password_button = f"""<a href="javascript:resetMemberPwd('{subscription.member.user_account.email}');" value="{subscription.member.user_account.email}" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
             
             # only display payment reminder button if user has a next payment
-            if get_overdue_and_next(request, subscription)['next_payment_date']:
+            if subscription.remaining_amount != '0':
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                             'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
                 
@@ -369,7 +369,7 @@ def get_members(request, title):
             reset_password_button = f"""<a href="javascript:resetMemberPwd('{ subscription.member.user_account.email }');" value="{ subscription.member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
             
             # only display payment reminder button if user has a next payment
-            if get_overdue_and_next(request, subscription)['next_payment_date']:
+            if subscription.remaining_amount != '0':
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
                                                                                             'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
                 # if date of last reminder is less than 30 days ago, add tooltip and make italic
