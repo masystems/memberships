@@ -582,7 +582,7 @@ def get_member_payments(request, title, pk=None):
                                             <a href="javascript:deletePayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
                              'id': payment.payment_number,
                              'method': method,
-                             'type': payment.type,
+                             'type': str(payment.type).title(),
                              'amount': "£%.2f" % temp_amount,
                              'comments': payment.comments,
                              'created': str(payment.created),

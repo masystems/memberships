@@ -2030,13 +2030,13 @@ def member_payment_form(request, title, pk):
             payment.save()
 
             # if payment is a subscription payment
-            if payment.type == 'subscription':
+            if payment.type in ('subscription', 'Subscription'):
                 # if subscription is recurring
-                if subscription.price.interval != 'one_time':
+                if subscription.price.interval not in ('one_time', 'One Time'):
                     # set amount of time to increment
-                    if subscription.price.interval == 'year':
+                    if subscription.price.interval in ('year', 'Yearly'):
                         interval = relativedelta(years=1)
-                    elif subscription.price.interval == 'month':
+                    elif subscription.price.interval in ('month', 'Monthly'):
                         interval = relativedelta(months=1)
 
                     # default membership_expiry, if not set, to next renewal date in the future/present
