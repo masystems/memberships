@@ -2117,8 +2117,11 @@ def member_payment_form_edit(request, title, pk, payment_id):
     else:
         # create a variable to store amount in pounds
         payment_for_form = payment
-        payment_for_form.amount = float(int(payment.amount) / 100)
-        payment_for_form.amount = "%.2f" % payment_for_form.amount
+        # handle when payment amount empty
+        if payment_for_form.amount:
+            # handle when amount has decimals
+            payment_for_form.amount = float(int(float(payment.amount)) / 100)
+            payment_for_form.amount = "%.2f" % payment_for_form.amount
 
         form = PaymentForm(instance=payment_for_form)
         

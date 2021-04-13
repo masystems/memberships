@@ -485,7 +485,11 @@ def get_all_member_payments(request, title):
     if all_payments.count() > 0:
         for payment in all_payments:
             # get the amount as a variable so it can be converted to the correct format to be displayed
-            temp_amount = float(payment.amount) / 100
+            if payment.amount:
+                temp_amount = "£%.2f" % (float(payment.amount)/100)
+            # handle when payment amount is empty
+            else:
+                temp_amount = ''
             if payment.gift_aid:
                 giftaid = '<i class="fad fa-check text-success"></i>'
             else:
@@ -507,7 +511,7 @@ def get_all_member_payments(request, title):
                                 'membership_id': payment.subscription.membership_number,
                                 'method': method,
                                 'type': payment.type,
-                                'amount': "£%.2f" % temp_amount,
+                                'amount': temp_amount,
                                 'comments': payment.comments,
                                 'created': str(payment.created),
                                 'gift_aid': giftaid,
@@ -558,7 +562,11 @@ def get_member_payments(request, title, pk=None):
     if all_payments.count() > 0:
         for payment in all_payments:
             # get the amount as a variable so it can be converted to the correct format to be displayed
-            temp_amount = float(payment.amount)/100
+            if payment.amount:
+                temp_amount = "£%.2f" % (float(payment.amount)/100)
+            # handle when payment amount is empty
+            else:
+                temp_amount = ''
             if payment.gift_aid:
                 giftaid = '<i class="fad fa-check text-success"></i>'
             else:
@@ -577,7 +585,7 @@ def get_member_payments(request, title, pk=None):
                              'id': payment.payment_number,
                              'method': method,
                              'type': str(payment.type).title(),
-                             'amount': "£%.2f" % temp_amount,
+                             'amount': temp_amount,
                              'comments': payment.comments,
                              'created': str(payment.created),
                              'gift_aid': giftaid,
