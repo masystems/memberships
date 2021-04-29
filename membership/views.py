@@ -1028,7 +1028,8 @@ def member_reg_form(request, title, pk):
             custom_fields = None
 
     # if user is not owner/admin, remove invisible custom fields
-    custom_fields_displayed = custom_fields
+    custom_fields_displayed = dumps(custom_fields)
+    custom_fields_displayed = loads(custom_fields_displayed)
     if custom_fields:
         if request.user != membership_package.owner and request.user not in membership_package.admins.all():
             # iterate through each custom field dictionary
