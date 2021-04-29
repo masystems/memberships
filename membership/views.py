@@ -926,10 +926,11 @@ class MembersDetailed(LoginRequiredMixin, MembershipBase):
         self.context['membership_package'] = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
 
         # get and sort custom fields titles
-        custom_fields_raw = loads(self.context['membership_package'].custom_fields)
         self.context['custom_fields'] = []
-        for key, field in custom_fields_raw.items():
-            self.context['custom_fields'].append(field['field_name'])
+        if self.context['membership_package'].custom_fields:
+            custom_fields_raw = loads(self.context['membership_package'].custom_fields)
+            for key, field in custom_fields_raw.items():
+                self.context['custom_fields'].append(field['field_name'])
 
         return self.context
 
@@ -1028,7 +1029,8 @@ def member_reg_form(request, title, pk):
             custom_fields = None
 
     # if user is not owner/admin, remove invisible custom fields
-    custom_fields_displayed = custom_fields
+    custom_fields_displayed = dumps(custom_fields)
+    custom_fields_displayed = loads(custom_fields_displayed)
     if custom_fields:
         if request.user != membership_package.owner and request.user not in membership_package.admins.all():
             # iterate through each custom field dictionary
@@ -1168,7 +1170,7 @@ def member_reg_form(request, title, pk):
             subscription.comments = form.cleaned_data['comments']
 
             # default expiry to None if not set, as it will be set in the handling of the payment page
-            if form.cleaned_data['membership_expiry']:
+            if not form.cleaned_data['membership_expiry'] in (None, 'None', ''):
                 membership_expiry = datetime.strptime(form.cleaned_data['membership_expiry'], '%d/%m/%Y')
                 subscription.membership_expiry = membership_expiry.strftime('%Y-%m-%d')
             else:
