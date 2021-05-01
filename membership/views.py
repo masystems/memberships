@@ -2041,17 +2041,22 @@ def member_payment_form(request, title, pk):
                     elif subscription.price.interval in ('month', 'Monthly'):
                         interval = relativedelta(months=1)
 
-                    # default membership_expiry, if not set, to next renewal date in the future/present
-                    if not subscription.membership_expiry:
-                        next_renewal_date = subscription.membership_start
-                        # while next_renewal_date is in the past, increment
-                        while next_renewal_date < datetime.now().date():
-                            next_renewal_date = next_renewal_date + interval
-                        
+                    # expiry
+                    if not subscription.membership_expiry or Payment.objects.filter(subscription=subscription).count() == 1:
+                        # if this is the first payment, make this the start of the sub and the expiry
+                        if Payment.objects.filter(subscription=subscription).count() == 1:
+                            next_renewal_date = payment.created
+                        # default membership_expiry, if not set, to next renewal date in the future/present
+                        else:
+                            next_renewal_date = subscription.membership_start
+                            # while next_renewal_date is in the past, increment
+                            while next_renewal_date < datetime.now().date():
+                                next_renewal_date = next_renewal_date + interval
                         subscription.membership_expiry = next_renewal_date
 
-                    # set remaining amount
+                    # remaining amount
                     subscription.remaining_amount = int(subscription.remaining_amount) - int(payment.amount)
+
                     # if fully paid, reset remaining amount and increment membership_expiry
                     if int(subscription.remaining_amount) == 0:
                         subscription.remaining_amount = subscription.price.amount
