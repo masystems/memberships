@@ -295,6 +295,12 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
             context['membership_package'] = MembershipPackage.objects.get(owner=self.request.user)
             context['members'] = Member.objects.filter(subscription__membership_package=context['membership_package'],
                                                        subscription__price__isnull=False)
+            context['joined_packages'] = []
+            for package in MembershipPackage.objects.all():
+                for member in Member.objects.filter(user_account=self.request.user):
+                    if member.subscription.filter(membership_package=package).count() > 0:
+                        context['joined_packages'].append(package)
+                    
         except MembershipPackage.DoesNotExist:
             pass
 
