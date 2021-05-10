@@ -145,7 +145,7 @@
                         {% endfor %}
                     <p>Use the field below to find the organisation you'd like to join.</p>
                     <div class="input-group d-flex">
-                        <div id="orgs">
+                        <div id="orgs-join">
                             <input class="typeahead form-control" type="text" id="organisations" name="organisations" placeholder="Type organisation name">
                         </div>
                         <button class="btn btn-sm btn-info" id="joinOrg"><i class="fad fa-users mr-1"></i>Join</button>
@@ -171,4 +171,23 @@
             }
         });
     </script>
+
+    <!-- typeahead for the join field -->
+    <script>
+        var orgs = [{% for org in all_packages.all %}
+                        {% if not org in joined_packages %}
+                            '{{ org.organisation_name }}',
+                        {% endif %}
+                    {% endfor %}];
+        $('#orgs-join .typeahead').typeahead({
+            hint: true,
+            highlight: true,
+            minLength: 0
+        },
+        {
+            name: 'organisations',
+            source: substringMatcher(orgs)
+        });
+    </script>
+
 {% endblock %}
