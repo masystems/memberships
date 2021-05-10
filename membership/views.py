@@ -1048,9 +1048,14 @@ def member_reg_form(request, title, pk):
             # user is admin/owner editing their own membership details
             # user is creating a membership for themself
             # user is editing their own membership
-            member_id = member.id
-            form = MemberForm(instance=member)
-            user_form_fields = User.objects.get(id=member.user_account.id)
+            
+            # if not admin/owner, and already has a complete subscription, redirect to profile
+            if MembershipSubscription.objects.filter(member=member, membership_package=membership_package, price__isnull=False).exists() and (request.user != membership_package.owner and request.user not in membership_package.admins.all()):
+                return redirect('member_profile', member.id)
+            else:
+                member_id = member.id
+                form = MemberForm(instance=member)
+                user_form_fields = User.objects.get(id=member.user_account.id)
         else:
             # user is not member, validate user is admin/owner
             if request.user == membership_package.owner or request.user in membership_package.admins.all():
