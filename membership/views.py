@@ -155,9 +155,13 @@ def manage_membership_types(request, title):
             # edit
             if request.POST.get('type') == "delete":
                 # mark objects as active false
-                Price.objects.filter(stripe_price_id=request.POST.get('type_id')).update(active=False)
-                return HttpResponse(dumps({'status': "success",
-                                           'message': "Price Deleted"}), content_type='application/json')
+                if MembershipSubscription.objects.filter(price=Price.objects.get(stripe_price_id=request.POST.get('type_id'))).exists():
+                    return HttpResponse(dumps({'status': "fail",
+                                               'message': "There are subscriptions still using this membership type!"}), content_type='application/json')
+                else:
+                    Price.objects.filter(stripe_price_id=request.POST.get('type_id')).update(active=False)
+                    return HttpResponse(dumps({'status': "success",
+                                               'message': "Price Deleted"}), content_type='application/json')
             else:
                 price = stripe.Price.modify(
                     request.POST.get('type_id'),
