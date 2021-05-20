@@ -331,7 +331,8 @@ def get_members_detailed_headers(membership_package):
                'Billing Interval',
                'Comments',
                'Membership Start',
-               'Membership Expiry']
+               'Membership Expiry',
+               'Active']
 
     # custom fields
     custom_fields = []
@@ -385,7 +386,8 @@ def get_inbuilt_items(subscription, membership_package):
                      billing_interval,
                      subscription.comments,
                      f'{membership_start_date or ""}',
-                     f'{subscription.membership_expiry or ""}']
+                     f'{subscription.membership_expiry or ""}',
+                     f'{"Yes" if subscription.active else "No"}']
     # add custom fields to the mix
     inbuilt_items.extend(custom_fields)
     return inbuilt_items
