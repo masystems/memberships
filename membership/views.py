@@ -745,6 +745,12 @@ def create_stripe_subscription(request):
             'result': 'success'
         }
         return HttpResponse(dumps(result))
+    else:
+        result = {
+            'result': 'fail',
+            'feedback': "<strong>Failure message:</strong> <span class='text-danger'>Your subscription uses a one time payment, so no card details are required.</span>"
+        }
+        return HttpResponse(dumps(result))
 
 
 @login_required(login_url='/accounts/login/')
