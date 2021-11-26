@@ -725,6 +725,9 @@ def create_stripe_subscription(request):
         return HttpResponse(dumps(result))
 
     # set payment method
+    if subscription.payment_method:
+        subscription.payment_method = None
+        subscription.save()
     
     # create stripe subscription if price is recurring
     if subscription.price.interval != 'one_time':
