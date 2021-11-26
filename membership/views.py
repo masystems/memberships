@@ -718,6 +718,13 @@ def create_stripe_subscription(request):
     package = MembershipPackage.objects.get(organisation_name=request.POST.get('org_name'))
     member = Member.objects.get(id=request.POST.get('member_id'))
     subscription = MembershipSubscription.objects.get(member=member, membership_package=package)
+
+    # validate card
+    result = validate_card(request, 'member', subscription)
+    if result['result'] == 'fail':
+        return HttpResponse(dumps(result))
+
+    # set payment method
     
     # create stripe subscription if price is recurring
     if subscription.price.interval != 'one_time':
