@@ -279,7 +279,7 @@
                                         <!-- Validate request.user is owner/admin/ of subscription package
                                          or is a superuser
                                          or user and member are the same -->
-                                        {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member %}
+                                        {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member.user_account %}
                                             <h3>{{ subscription.membership_package.organisation_name }}</h3>
                                             <!-- Check if it is a strip subscription -->
                                             {% if subscription.stripe_subscription_id %}
