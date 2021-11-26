@@ -658,16 +658,16 @@
         }
 
         function stripeTokenHandler(token) {
-            // url 'member_payment' package.organisation_name member.id
-            memberPaymentUrl = '/membership/member-payment/' + $("#orgPaymentSelection option:selected" ).text() + '/' + '{{ member.id }}';
             // Submit the token
             $.ajax({
-                url: memberPaymentUrl,
+                url: "{% url 'create_stripe_subscription' %}",
                 type: 'post',
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
                 data: {
                     'token': token,
+                    'org_name': $("#orgPaymentSelection option:selected" ).text(),// package.organisation_name
+                    'member_id': '{{ member.id }}'// member.id
                     },
                 beforeSend: function() {
                     $('#paymentSuccess').addClass('d-none');

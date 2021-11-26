@@ -714,6 +714,40 @@ def create_package_on_stripe(request):
 
 
 @login_required(login_url='/accounts/login/')
+def create_stripe_subscription(request):
+    package = MembershipPackage.objects.get(organisation_name=request.POST.get('org_name'))
+    member = Member.objects.get(id=request.POST.get('member_id'))
+    subscription = MembershipSubscription.objects.get(member=member, membership_package=package)
+    
+    # create stripe subscription if price is recurring
+    if subscription.price.interval != 'one_time':
+        subscription_details = stripe.Subscription.create(
+            customer=subscription.stripe_id,
+            items=[
+                {
+                    "plan": subscription.price.stripe_price_id,
+                },
+            ],
+            stripe_account=package.stripe_acct_id,
+        )
+        subscription.stripe_subscription_id = subscription_details.id
+
+        subscription.active = True
+        subscription.save()
+        if subscription_details['status'] != 'active':
+            result = {
+                'result': 'fail',
+                'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"
+            }
+            return HttpResponse(dumps(result))
+
+        result = {
+            'result': 'success'
+        }
+        return HttpResponse(dumps(result))
+
+
+@login_required(login_url='/accounts/login/')
 def organisation_payment(request):
     if request.POST:
         membership_package = MembershipPackage.objects.get(owner=request.user)
