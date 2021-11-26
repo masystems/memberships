@@ -337,7 +337,7 @@
                                         </div>
                                         <select class="custom-select" name="org_payment_selection" id="orgPaymentSelection">
                                             {% for subscription in member.subscription.all %}
-                                                {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member %}
+                                                {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member.user_account %}
                                                     <option value="{{ subscription }}">{{subscription}}</option>
                                                 {% endif %}
                                             {% endfor %}
