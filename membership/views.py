@@ -719,33 +719,49 @@ def create_stripe_subscription(request):
     member = Member.objects.get(id=request.POST.get('member_id'))
     subscription = MembershipSubscription.objects.get(member=member, membership_package=package)
 
-    # validate card
+    # validate card to update card
     result = validate_card(request, 'member', subscription)
     if result['result'] == 'fail':
         return HttpResponse(dumps(result))
     
     # create stripe subscription if price is recurring
     if subscription.price.interval != 'one_time':
-        # if the subscription has a value for expiry date
-        if subscription.membership_expiry:
-            # if expiry date is in the past
-            if subscription.membership_expiry < datetime.now().date():
-                print('backdate')
-                # create subscription backdated to next payment due that is in the past
-                subscription_details = stripe.Subscription.create(
-                    customer=subscription.stripe_id,
-                    items=[
-                        {
-                            "plan": subscription.price.stripe_price_id,
-                        },
-                    ],
-                    stripe_account=package.stripe_acct_id,
-                    backdate_start_date=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
-                )
-            # if expiry is in the future
+        # if user doesn't have stripe subscription, make one
+        if not subscription.stripe_subscription_id:
+            # if the subscription has a value for expiry date
+            if subscription.membership_expiry:
+                # if expiry date is in the past
+                if subscription.membership_expiry < datetime.now().date():
+                    print('backdate')
+                    # create subscription backdated to next payment due that is in the past
+                    subscription_details = stripe.Subscription.create(
+                        customer=subscription.stripe_id,
+                        items=[
+                            {
+                                "plan": subscription.price.stripe_price_id,
+                            },
+                        ],
+                        stripe_account=package.stripe_acct_id,
+                        backdate_start_date=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
+                    )
+                # if expiry is in the future
+                else:
+                    print('forward-date')
+                    # create subscription forward-dated to next payment due that is in the future
+                    subscription_details = stripe.Subscription.create(
+                        customer=subscription.stripe_id,
+                        items=[
+                            {
+                                "plan": subscription.price.stripe_price_id,
+                            },
+                        ],
+                        stripe_account=package.stripe_acct_id,
+                        billing_cycle_anchor=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
+                    )
+            # there is no value for expiry date so start the subscription from today
             else:
-                print('forward-date')
-                # create subscription forward-dated to next payment due that is in the future
+                print('no expiry')
+                # create subscription starting from now
                 subscription_details = stripe.Subscription.create(
                     customer=subscription.stripe_id,
                     items=[
@@ -754,51 +770,27 @@ def create_stripe_subscription(request):
                         },
                     ],
                     stripe_account=package.stripe_acct_id,
-                    billing_cycle_anchor=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
                 )
-        # there is no value for expiry date so start the subscription from today
-        else:
-            print('no expiry')
-            # create subscription starting from now
-            subscription_details = stripe.Subscription.create(
-                customer=subscription.stripe_id,
-                items=[
-                    {
-                        "plan": subscription.price.stripe_price_id,
-                    },
-                ],
-                stripe_account=package.stripe_acct_id,
-            )
-        
-        # if there was already is a stripe subscription, delete it
-        if subscription.stripe_subscription_id:
-            try:
-                stripe.api_key = get_stripe_secret_key(request)
-                stripe.Subscription.delete(subscription.stripe_subscription_id, stripe_account=package.stripe_acct_id)
-                print('delete')
-            except stripe.error.InvalidRequestError:
-                print('no delete')
-                pass
-        
-        # set subscription ID to match new subscription
-        subscription.stripe_subscription_id = subscription_details.id
+            
+            # set subscription ID to match new subscription
+            subscription.stripe_subscription_id = subscription_details.id
+            
+            # fail if didn't work
+            if subscription_details['status'] != 'active':
+                result = {
+                    'result': 'fail',
+                    'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"
+                }
+                return HttpResponse(dumps(result))
+            print(subscription_details)
 
         subscription.active = True
-        subscription.save()
-        
-        # fail if didn't work
-        if subscription_details['status'] != 'active':
-            result = {
-                'result': 'fail',
-                'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"
-            }
-            return HttpResponse(dumps(result))
-        print(subscription_details)
 
         # set payment method
         if subscription.payment_method:
             subscription.payment_method = None
-            subscription.save()
+            
+        subscription.save()
     else:
         # fail if subscription is one time
         result = {
