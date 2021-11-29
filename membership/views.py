@@ -723,32 +723,43 @@ def create_stripe_subscription(request):
     result = validate_card(request, 'member', subscription)
     if result['result'] == 'fail':
         return HttpResponse(dumps(result))
-
-    # set payment method
-    if subscription.payment_method:
-        subscription.payment_method = None
-        subscription.save()
     
     # create stripe subscription if price is recurring
     if subscription.price.interval != 'one_time':
-        # if expiry date is in the past
-        if subscription.membership_expiry < datetime.now().date():
-            print('backdate')
-            # create subscription backdated to next payment due that is in the past
-            subscription_details = stripe.Subscription.create(
-                customer=subscription.stripe_id,
-                items=[
-                    {
-                        "plan": subscription.price.stripe_price_id,
-                    },
-                ],
-                stripe_account=package.stripe_acct_id,
-                backdate_start_date=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
-            )
-        # if expiry is in the future
+        # if the subscription has a value for expiry date
+        if subscription.membership_expiry:
+            # if expiry date is in the past
+            if subscription.membership_expiry < datetime.now().date():
+                print('backdate')
+                # create subscription backdated to next payment due that is in the past
+                subscription_details = stripe.Subscription.create(
+                    customer=subscription.stripe_id,
+                    items=[
+                        {
+                            "plan": subscription.price.stripe_price_id,
+                        },
+                    ],
+                    stripe_account=package.stripe_acct_id,
+                    backdate_start_date=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
+                )
+            # if expiry is in the future
+            else:
+                print('forward-date')
+                # create subscription forward-dated to next payment due that is in the future
+                subscription_details = stripe.Subscription.create(
+                    customer=subscription.stripe_id,
+                    items=[
+                        {
+                            "plan": subscription.price.stripe_price_id,
+                        },
+                    ],
+                    stripe_account=package.stripe_acct_id,
+                    billing_cycle_anchor=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
+                )
+        # there is no value for expiry date so start the subscription from today
         else:
-            print('forward-date')
-            # create subscription forward-dated to next payment due that is in the future
+            print('no expiry')
+            # create subscription starting from now
             subscription_details = stripe.Subscription.create(
                 customer=subscription.stripe_id,
                 items=[
@@ -757,7 +768,6 @@ def create_stripe_subscription(request):
                     },
                 ],
                 stripe_account=package.stripe_acct_id,
-                billing_cycle_anchor=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
             )
         
         # if there was already is a stripe subscription, delete it
@@ -784,6 +794,11 @@ def create_stripe_subscription(request):
             }
             return HttpResponse(dumps(result))
         print(subscription_details)
+
+        # set payment method
+        if subscription.payment_method:
+            subscription.payment_method = None
+            subscription.save()
     else:
         # fail if subscription is one time
         result = {
@@ -791,7 +806,6 @@ def create_stripe_subscription(request):
             'feedback': "<strong>Failure message:</strong> <span class='text-danger'>Your subscription uses a one time payment, so no card details are required.</span>"
         }
         return HttpResponse(dumps(result))
-    
     
     result = {
         'result': 'success'
