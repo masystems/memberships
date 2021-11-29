@@ -731,15 +731,34 @@ def create_stripe_subscription(request):
     
     # create stripe subscription if price is recurring
     if subscription.price.interval != 'one_time':
-        subscription_details = stripe.Subscription.create(
-            customer=subscription.stripe_id,
-            items=[
-                {
-                    "plan": subscription.price.stripe_price_id,
-                },
-            ],
-            stripe_account=package.stripe_acct_id,
-        )
+        # if expiry date is in the past
+        if subscription.membership_expiry < datetime.now().date():
+            print('backdate')
+            # create subscription backdated to next payment due that is in the past
+            subscription_details = stripe.Subscription.create(
+                customer=subscription.stripe_id,
+                items=[
+                    {
+                        "plan": subscription.price.stripe_price_id,
+                    },
+                ],
+                stripe_account=package.stripe_acct_id,
+                backdate_start_date=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
+            )
+        # if expiry is in the future
+        else:
+            print('forward-date')
+            # create subscription forward-dated to next payment due that is in the future
+            subscription_details = stripe.Subscription.create(
+                customer=subscription.stripe_id,
+                items=[
+                    {
+                        "plan": subscription.price.stripe_price_id,
+                    },
+                ],
+                stripe_account=package.stripe_acct_id,
+                billing_cycle_anchor=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
+            )
         subscription.stripe_subscription_id = subscription_details.id
 
         subscription.active = True
@@ -750,7 +769,7 @@ def create_stripe_subscription(request):
                 'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"
             }
             return HttpResponse(dumps(result))
-
+        print(subscription_details)
         result = {
             'result': 'success'
         }
