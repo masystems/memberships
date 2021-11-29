@@ -365,7 +365,7 @@ def get_inbuilt_items(subscription, membership_package):
         stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
                                                            stripe_account=membership_package.stripe_acct_id)
         membership_start_date = datetime.fromtimestamp(stripe_subscription.start_date).strftime(
-            "%d/%m/%Y<br/>%H:%M")
+            "%d/%m/%Y\n%H:%M")
 
     # custom fields
     custom_fields = []
