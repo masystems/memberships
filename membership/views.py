@@ -759,10 +759,24 @@ def create_stripe_subscription(request):
                 stripe_account=package.stripe_acct_id,
                 billing_cycle_anchor=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
             )
+        
+        # if there was already is a stripe subscription, delete it
+        if subscription.stripe_subscription_id:
+            try:
+                stripe.api_key = get_stripe_secret_key(request)
+                stripe.Subscription.delete(subscription.stripe_subscription_id, stripe_account=package.stripe_acct_id)
+                print('delete')
+            except stripe.error.InvalidRequestError:
+                print('no delete')
+                pass
+        
+        # set subscription ID to match new subscription
         subscription.stripe_subscription_id = subscription_details.id
 
         subscription.active = True
         subscription.save()
+        
+        # fail if didn't work
         if subscription_details['status'] != 'active':
             result = {
                 'result': 'fail',
@@ -770,16 +784,19 @@ def create_stripe_subscription(request):
             }
             return HttpResponse(dumps(result))
         print(subscription_details)
-        result = {
-            'result': 'success'
-        }
-        return HttpResponse(dumps(result))
     else:
+        # fail if subscription is one time
         result = {
             'result': 'fail',
             'feedback': "<strong>Failure message:</strong> <span class='text-danger'>Your subscription uses a one time payment, so no card details are required.</span>"
         }
         return HttpResponse(dumps(result))
+    
+    
+    result = {
+        'result': 'success'
+    }
+    return HttpResponse(dumps(result))
 
 
 @login_required(login_url='/accounts/login/')
