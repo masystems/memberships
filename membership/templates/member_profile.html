@@ -9,11 +9,7 @@
 
 {% block content %}
 
-{% if customer %}
-    {% include 'spinner-overlay.html' with msg='Updating Member Card...' %}
-{% else %}
-    {% include 'spinner-overlay.html' with msg='Creating Member Payment...' %}
-{% endif %}
+{% include 'spinner-overlay.html' with msg='Updating Member Card...' %}
 
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
@@ -318,6 +314,12 @@
                                             <li><i class="fad fa-chevron-right"></i> Area Code: {{ customer.sources.data.0.address_zip }}</li>
                                         </ul>
                                     {% endif %}
+                                </div>
+                            </div>
+                            <!-- if no stripe subscription, tell them updating card will create one -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <p>Keeping your card up to date allows your subscription payments to happen automatically each time they are due.</p>
                                 </div>
                             </div>
                             <hr>
