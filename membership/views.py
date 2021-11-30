@@ -730,8 +730,21 @@ def create_stripe_subscription(request):
         if not subscription.stripe_subscription_id:
             # if the subscription has a value for expiry date
             if subscription.membership_expiry:
-                # if expiry date is in the past
-                if subscription.membership_expiry < datetime.now().date():
+                # start date of subscription
+                sub_start = subscription.membership_expiry
+                
+                # if their next interval to be paid for is partially paid for
+                if subscription.remaining_amount:
+                    if int(subscription.remaining_amount) < int(subscription.price.amount):
+                        print('increment start')
+                        # increment start date by one interval
+                        if subscription.price.interval == 'year':
+                            sub_start = sub_start + relativedelta(years=1)
+                        elif subscription.price.interval == 'month':
+                            sub_start = sub_start + relativedelta(months=1)
+                
+                # if sub start date is in the past
+                if sub_start < datetime.now().date():
                     print('backdate')
                     # create subscription backdated to next payment due that is in the past
                     subscription_details = stripe.Subscription.create(
@@ -742,9 +755,9 @@ def create_stripe_subscription(request):
                             },
                         ],
                         stripe_account=package.stripe_acct_id,
-                        backdate_start_date=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
+                        backdate_start_date=int(datetime.combine(sub_start, datetime.min.time()).timestamp())
                     )
-                # if expiry is in the future
+                # if sub start is in the future
                 else:
                     print('forward-date')
                     # create subscription forward-dated to next payment due that is in the future
@@ -756,7 +769,7 @@ def create_stripe_subscription(request):
                             },
                         ],
                         stripe_account=package.stripe_acct_id,
-                        billing_cycle_anchor=int(datetime.combine(subscription.membership_expiry, datetime.min.time()).timestamp())
+                        billing_cycle_anchor=int(datetime.combine(sub_start, datetime.min.time()).timestamp())
                     )
             # there is no value for expiry date so start the subscription from today
             else:
