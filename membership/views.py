@@ -733,7 +733,7 @@ def create_stripe_subscription(request):
                 # start date of subscription
                 sub_start = subscription.membership_expiry
                 
-                # if their next interval to be paid for is partially paid for
+                # if their next interval to be paid for is partially paid for (remaining amount can be collected by admin)
                 if subscription.remaining_amount:
                     if int(subscription.remaining_amount) < int(subscription.price.amount):
                         # increment start date by one interval
@@ -756,7 +756,7 @@ def create_stripe_subscription(request):
                         backdate_start_date=int(datetime.combine(sub_start, datetime.min.time()).timestamp())
                     )
                 # if sub start is in the future
-                else:
+                elif sub_start > datetime.now().date():
                     # create subscription forward-dated to next payment due that is in the future
                     subscription_details = stripe.Subscription.create(
                         customer=subscription.stripe_id,
@@ -767,6 +767,18 @@ def create_stripe_subscription(request):
                         ],
                         stripe_account=package.stripe_acct_id,
                         billing_cycle_anchor=int(datetime.combine(sub_start, datetime.min.time()).timestamp())
+                    )
+                # expires today
+                else:
+                    # create subscription starting from now
+                    subscription_details = stripe.Subscription.create(
+                        customer=subscription.stripe_id,
+                        items=[
+                            {
+                                "plan": subscription.price.stripe_price_id,
+                            },
+                        ],
+                        stripe_account=package.stripe_acct_id,
                     )
             # there is no value for expiry date so start the subscription from today
             else:
