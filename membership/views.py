@@ -736,7 +736,6 @@ def create_stripe_subscription(request):
                 # if their next interval to be paid for is partially paid for
                 if subscription.remaining_amount:
                     if int(subscription.remaining_amount) < int(subscription.price.amount):
-                        print('increment start')
                         # increment start date by one interval
                         if subscription.price.interval == 'year':
                             sub_start = sub_start + relativedelta(years=1)
@@ -745,7 +744,6 @@ def create_stripe_subscription(request):
                 
                 # if sub start date is in the past
                 if sub_start < datetime.now().date():
-                    print('backdate')
                     # create subscription backdated to next payment due that is in the past
                     subscription_details = stripe.Subscription.create(
                         customer=subscription.stripe_id,
@@ -759,7 +757,6 @@ def create_stripe_subscription(request):
                     )
                 # if sub start is in the future
                 else:
-                    print('forward-date')
                     # create subscription forward-dated to next payment due that is in the future
                     subscription_details = stripe.Subscription.create(
                         customer=subscription.stripe_id,
@@ -773,7 +770,6 @@ def create_stripe_subscription(request):
                     )
             # there is no value for expiry date so start the subscription from today
             else:
-                print('no expiry')
                 # create subscription starting from now
                 subscription_details = stripe.Subscription.create(
                     customer=subscription.stripe_id,
