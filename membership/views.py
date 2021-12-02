@@ -726,8 +726,8 @@ def create_stripe_subscription(request):
     
     # create stripe subscription if price is recurring
     if subscription.price.interval != 'one_time':
-        # if user doesn't have stripe subscription, make one
-        if not subscription.stripe_subscription_id:
+        # if user doesn't have stripe subscription or schedule, make one
+        if not subscription.stripe_subscription_id and not subscription.stripe_schedule_id:
             # if the subscription has a value for expiry date
             if subscription.membership_expiry:
                 # start date of subscription
