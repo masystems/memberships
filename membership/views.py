@@ -1781,7 +1781,7 @@ def update_membership_type(request, title, pk):
                 subscription.stripe_subscription_id = ''
             # cancel stripe subscription schedule
             if subscription.stripe_schedule_id:
-                stripe.SubscriptionSchedule.delete(subscription.stripe_schedule_id,
+                stripe.SubscriptionSchedule.cancel(subscription.stripe_schedule_id,
                                         stripe_account=package.stripe_acct_id)
                 subscription.stripe_schedule_id = ''
                 
@@ -2435,7 +2435,7 @@ def remove_member(request, title):
                                     stripe_account=membership_package.stripe_acct_id)
         # cancel subscription schedule
         if subscription.stripe_schedule_id:
-            stripe.SubscriptionSchedule.delete(subscription.stripe_schedule_id,
+            stripe.SubscriptionSchedule.cancel(subscription.stripe_schedule_id,
                                     stripe_account=membership_package.stripe_acct_id)
 
         # delete customer from stripe account
