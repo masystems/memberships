@@ -757,17 +757,20 @@ def create_stripe_subscription(request):
                     )
                 # if sub start is in the future
                 elif sub_start > datetime.now().date():
-                    # create subscription forward-dated to next payment due that is in the future
-                    subscription_details = stripe.Subscription.create(
+                    # schedule a subscription to next payment due
+                    subscription_details = stripe.SubscriptionSchedule.create(
                         customer=subscription.stripe_id,
-                        items=[
+                        stripe_account=package.stripe_acct_id,
+                        start_date=int(datetime.combine(sub_start, datetime.min.time()).timestamp()),
+                        phases=[
                             {
-                                "plan": subscription.price.stripe_price_id,
+                                "items": [
+                                    {
+                                        "plan": subscription.price.stripe_price_id
+                                    },
+                                ],
                             },
                         ],
-                        stripe_account=package.stripe_acct_id,
-                        billing_cycle_anchor=int(datetime.combine(sub_start, datetime.min.time()).timestamp()),
-                        proration_behavior='none'
                     )
                 # expires today
                 else:
@@ -798,7 +801,7 @@ def create_stripe_subscription(request):
             subscription.stripe_subscription_id = subscription_details.id
             
             # fail if didn't work
-            if subscription_details['status'] != 'active':
+            if subscription_details['status'] != 'active' and subscription_details['object'] != 'subscription_schedule':
                 result = {
                     'result': 'fail',
                     'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"
