@@ -766,7 +766,8 @@ def create_stripe_subscription(request):
                             },
                         ],
                         stripe_account=package.stripe_acct_id,
-                        billing_cycle_anchor=int(datetime.combine(sub_start, datetime.min.time()).timestamp())
+                        billing_cycle_anchor=int(datetime.combine(sub_start, datetime.min.time()).timestamp()),
+                        proration_behavior='none'
                     )
                 # expires today
                 else:
