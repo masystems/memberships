@@ -797,8 +797,12 @@ def create_stripe_subscription(request):
                     stripe_account=package.stripe_acct_id,
                 )
             
-            # set subscription ID to match new subscription
-            subscription.stripe_subscription_id = subscription_details.id
+            if subscription_details['object'] == 'subscription':
+                # set subscription ID to match new subscription
+                subscription.stripe_subscription_id = subscription_details.id
+            elif subscription_details['object'] == 'subscription_schedule':
+                # set schedule ID to match new schedule
+                subscription.stripe_schedule_id = subscription_details.id
             
             # fail if didn't work
             if subscription_details['status'] != 'active' and subscription_details['object'] != 'subscription_schedule':
