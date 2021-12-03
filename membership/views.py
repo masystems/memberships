@@ -2443,4 +2443,5 @@ def remove_member(request, title):
 
 @login_required(login_url='/accounts/login/')
 def account_deletion(request):
-    return render(request, 'account_deletion.html')
+    if request.method == 'GET':
+        return render(request, 'account_deletion.html')
