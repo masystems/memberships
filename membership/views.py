@@ -2439,3 +2439,8 @@ def remove_member(request, title):
         subscription.delete()
 
         return HttpResponse(dumps({'status': "success"}), content_type='application/json')
+
+
+@login_required(login_url='/accounts/login/')
+def account_deletion(request):
+    return render(request, 'account_deletion.html')
