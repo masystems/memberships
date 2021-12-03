@@ -820,13 +820,6 @@ def create_stripe_subscription(request):
             subscription.payment_method = None
             
         subscription.save()
-    else:
-        # fail if subscription is one time
-        result = {
-            'result': 'fail',
-            'feedback': "<strong>Failure message:</strong> <span class='text-danger'>Your subscription uses a one time payment, so no card details are required.</span>"
-        }
-        return HttpResponse(dumps(result))
     
     result = {
         'result': 'success'
