@@ -39,10 +39,61 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
-
+                    {% if owned_packages %}
+                        {% for package in owned_packages %}
+                            {% if package.admins.all|length > 0 %}
+                                <p>You are the owner of {{ package.organisation_name }}. So, if you want to delete your account but don't want this organisation to be deleted, please select one of your admins to become the next owner.</p>
+                                <div class="form-group">
+                                    <h5 class="card-title">Select Replacement Owner</h4>
+                                    {% for admin in package.admins.all %}
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" id="{{ admin.id }}" name="next_owner" class="custom-control-input" value="{{ admin.id }}">
+                                            
+                                            <label class="custom-control-label" for="{{ admin.id }}">{{ admin.get_full_name }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>You are the owner of {{ package.organisation_name }}. So deleting your account will cause this organisation to be deleted.</p>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    <hr>
+                    <div class="form-group mb-0 text-right">
+                        <button id="delete_account" class="btn btn-danger waves-effect waves-light">Delete Account</button>
+                        <a href="{% url 'dashboard' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block footer %}
+    <script>
+        $('#delete_account').click(function(){
+            console.log('hello')
+            $.ajax({
+                url: "{% url 'account_deletion' %}",
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: {'admins': $("input[name='next_owner']:checked").val()},
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        $('#overlay-spinner').modal('toggle');
+                        errorMsg(result['message']);
+                    } else {
+                        $('#overlay-spinner').modal('toggle');
+                        infoMsg(result.message);
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
+        })
+    </script>
 {% endblock %}
