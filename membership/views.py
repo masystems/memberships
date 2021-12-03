@@ -2444,4 +2444,15 @@ def remove_member(request, title):
 @login_required(login_url='/accounts/login/')
 def account_deletion(request):
     if request.method == 'GET':
-        return render(request, 'account_deletion.html')
+        print(request.GET)
+        context = {}
+        
+        if MembershipPackage.objects.filter(owner=request.user).exists():
+            context['owned_packages'] = []
+            for package in MembershipPackage.objects.filter(owner=request.user):
+                context['owned_packages'].append(package)
+        
+        return render(request, 'account_deletion.html', context)
+    elif request.method == 'POST':
+        print(request.POST)
+        return HttpResponse(dumps({}))
