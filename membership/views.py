@@ -2443,16 +2443,35 @@ def remove_member(request, title):
 
 @login_required(login_url='/accounts/login/')
 def account_deletion(request):
+    owned_packages = MembershipPackage.objects.filter(owner=request.user)
+    
     if request.method == 'GET':
-        print(request.GET)
         context = {}
-        
-        if MembershipPackage.objects.filter(owner=request.user).exists():
+        # add owned packages to context
+        if owned_packages.exists():
             context['owned_packages'] = []
-            for package in MembershipPackage.objects.filter(owner=request.user):
+            for package in owned_packages:
                 context['owned_packages'].append(package)
         
         return render(request, 'account_deletion.html', context)
     elif request.method == 'POST':
-        print(request.POST)
+        # set the next owner of the owned memberhsip packages if one has been selected
+        if owned_packages.exists():
+            # go through the packages owned by the user
+            for package in owned_packages:
+                # go through admins selected to be the next owner
+                for package_id, admin_id in dict(request.POST).items():
+                    # if this package is in the owned packages
+                    if str(package.id) == package_id:
+                        # if the admin user exists
+                        admin = User.objects.filter(id=list(admin_id)[0])
+                        if admin.exists():
+                            admin = admin.first()
+                            # if admin is an admin of the package
+                            if admin in package.admins.all():
+                                # make the admin the next owner
+                                package.owner = admin
+                                package.admins.remove(admin)
+                                package.save()
+        
         return HttpResponse(dumps({}))
