@@ -2496,9 +2496,9 @@ def account_deletion(request):
         # save email to owners of organisations that user is a member of
         for sub in MembershipSubscription.objects.filter(member__user_account=request.user):
             emails.append({
-                'send_to': sub.membership_package.owner,
+                'send_to': sub.membership_package.owner.email,
                 'subject': f"Account Deleted: {deleted_name}",
-                'body': f"""<p>{deleted_name}, previously a member of {sub.membership_package.organisation_name} has deleted their account with Cloud-Lines Memberships.</p>"""
+                'body': f"""<p>{deleted_name}, previously a member of {sub.membership_package.organisation_name}, has deleted their account with Cloud-Lines Memberships.</p>"""
             })
         
         # delete user
@@ -2506,6 +2506,6 @@ def account_deletion(request):
 
         # send emails
         for email in emails:
-            send_email(emails['subject'], deleted_name, emails['body'], send_to=emails['send_to'])
+            send_email(email['subject'], deleted_name, email['body'], send_to=email['send_to'])
         
         return HttpResponse(dumps({'status': 'success'}))
