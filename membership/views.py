@@ -2473,5 +2473,8 @@ def account_deletion(request):
                                 package.owner = admin
                                 package.admins.remove(admin)
                                 package.save()
+
+        # delete user
+        request.user.delete()
         
-        return HttpResponse(dumps({}))
+        return HttpResponse(dumps({'status': 'success'}))
