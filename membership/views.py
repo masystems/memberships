@@ -2455,6 +2455,11 @@ def account_deletion(request):
         
         return render(request, 'account_deletion.html', context)
     elif request.method == 'POST':
+        # name of user that is deleting their account
+        deleted_name = request.user.get_full_name()
+        # list of dictionaries of emails
+        emails = []
+        
         # set the next owner of the owned memberhsip packages if one has been selected
         if owned_packages.exists():
             # go through the packages owned by the user
@@ -2474,7 +2479,33 @@ def account_deletion(request):
                                 package.admins.remove(admin)
                                 package.save()
 
+                                # add email to new owner
+                                emails.append({
+                                    'send_to': admin.email,
+                                    'subject': f"New Owner: {package.organisation_name}",
+                                    'body': f"""<p>{request.user.get_full_name()}, the previous owner of {package.organisation_name}, has deleted their account and selected you to be the new owner.</p>"""
+                                })
+
+        # save email to user
+        emails.append({
+            'send_to': request.user.email,
+            'subject': f"Account Deleted: {deleted_name}",
+            'body': """<p>Your account with Cloud-Lines Memberships has been deleted. Sorry to see you go.</p>"""
+        })
+
+        # save email to owners of organisations that user is a member of
+        for sub in MembershipSubscription.objects.filter(member__user_account=request.user):
+            emails.append({
+                'send_to': sub.membership_package.owner,
+                'subject': f"Account Deleted: {deleted_name}",
+                'body': f"""<p>{deleted_name}, previously a member of {sub.membership_package.organisation_name} has deleted their account with Cloud-Lines Memberships.</p>"""
+            })
+        
         # delete user
         request.user.delete()
+
+        # send emails
+        for email in emails:
+            send_email(emails['subject'], deleted_name, emails['body'], send_to=emails['send_to'])
         
         return HttpResponse(dumps({'status': 'success'}))
