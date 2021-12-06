@@ -714,6 +714,120 @@ def create_package_on_stripe(request):
 
 
 @login_required(login_url='/accounts/login/')
+def create_stripe_subscription(request):
+    package = MembershipPackage.objects.get(organisation_name=request.POST.get('org_name'))
+    member = Member.objects.get(id=request.POST.get('member_id'))
+    subscription = MembershipSubscription.objects.get(member=member, membership_package=package)
+
+    # validate card to update card
+    result = validate_card(request, 'member', subscription)
+    if result['result'] == 'fail':
+        return HttpResponse(dumps(result))
+    
+    # create stripe subscription if price is recurring
+    if subscription.price.interval != 'one_time':
+        # if user doesn't have stripe subscription or schedule, make one
+        if not subscription.stripe_subscription_id and not subscription.stripe_schedule_id:
+            # if the subscription has a value for expiry date
+            if subscription.membership_expiry:
+                # start date of subscription
+                sub_start = subscription.membership_expiry
+                
+                # if their next interval to be paid for is partially paid for (remaining amount can be collected by admin)
+                if subscription.remaining_amount:
+                    if int(subscription.remaining_amount) < int(subscription.price.amount):
+                        # increment start date by one interval
+                        if subscription.price.interval == 'year':
+                            sub_start = sub_start + relativedelta(years=1)
+                        elif subscription.price.interval == 'month':
+                            sub_start = sub_start + relativedelta(months=1)
+                
+                # if sub start date is in the past
+                if sub_start < datetime.now().date():
+                    # create subscription backdated to next payment due that is in the past
+                    subscription_details = stripe.Subscription.create(
+                        customer=subscription.stripe_id,
+                        items=[
+                            {
+                                "plan": subscription.price.stripe_price_id,
+                            },
+                        ],
+                        stripe_account=package.stripe_acct_id,
+                        backdate_start_date=int(datetime.combine(sub_start, datetime.min.time()).timestamp())
+                    )
+                # if sub start is in the future
+                elif sub_start > datetime.now().date():
+                    # schedule a subscription to next payment due
+                    subscription_details = stripe.SubscriptionSchedule.create(
+                        customer=subscription.stripe_id,
+                        stripe_account=package.stripe_acct_id,
+                        start_date=int(datetime.combine(sub_start, datetime.min.time()).timestamp()),
+                        phases=[
+                            {
+                                "items": [
+                                    {
+                                        "plan": subscription.price.stripe_price_id
+                                    },
+                                ],
+                            },
+                        ],
+                    )
+                # expires today
+                else:
+                    # create subscription starting from now
+                    subscription_details = stripe.Subscription.create(
+                        customer=subscription.stripe_id,
+                        items=[
+                            {
+                                "plan": subscription.price.stripe_price_id,
+                            },
+                        ],
+                        stripe_account=package.stripe_acct_id,
+                    )
+            # there is no value for expiry date so start the subscription from today
+            else:
+                # create subscription starting from now
+                subscription_details = stripe.Subscription.create(
+                    customer=subscription.stripe_id,
+                    items=[
+                        {
+                            "plan": subscription.price.stripe_price_id,
+                        },
+                    ],
+                    stripe_account=package.stripe_acct_id,
+                )
+            
+            if subscription_details['object'] == 'subscription':
+                # set subscription ID to match new subscription
+                subscription.stripe_subscription_id = subscription_details.id
+            elif subscription_details['object'] == 'subscription_schedule':
+                # set schedule ID to match new schedule
+                subscription.stripe_schedule_id = subscription_details.id
+            
+            # fail if didn't work
+            if subscription_details['status'] != 'active' and subscription_details['object'] != 'subscription_schedule':
+                result = {
+                    'result': 'fail',
+                    'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"
+                }
+                return HttpResponse(dumps(result))
+            print(subscription_details)
+
+        subscription.active = True
+
+        # set payment method
+        if subscription.payment_method:
+            subscription.payment_method = None
+            
+        subscription.save()
+    
+    result = {
+        'result': 'success'
+    }
+    return HttpResponse(dumps(result))
+
+
+@login_required(login_url='/accounts/login/')
 def organisation_payment(request):
     if request.POST:
         membership_package = MembershipPackage.objects.get(owner=request.user)
@@ -1658,6 +1772,11 @@ def update_membership_type(request, title, pk):
                 stripe.Subscription.delete(subscription.stripe_subscription_id,
                                         stripe_account=package.stripe_acct_id)
                 subscription.stripe_subscription_id = ''
+            # cancel stripe subscription schedule
+            if subscription.stripe_schedule_id:
+                stripe.SubscriptionSchedule.cancel(subscription.stripe_schedule_id,
+                                        stripe_account=package.stripe_acct_id)
+                subscription.stripe_schedule_id = ''
                 
             subscription.save()
                 
@@ -2306,6 +2425,10 @@ def remove_member(request, title):
         # cancel subscription
         if subscription.stripe_subscription_id:
             stripe.Subscription.delete(subscription.stripe_subscription_id,
+                                    stripe_account=membership_package.stripe_acct_id)
+        # cancel subscription schedule
+        if subscription.stripe_schedule_id:
+            stripe.SubscriptionSchedule.cancel(subscription.stripe_schedule_id,
                                     stripe_account=membership_package.stripe_acct_id)
 
         # delete customer from stripe account

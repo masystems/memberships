@@ -93,6 +93,7 @@ class MembershipSubscription(models.Model):
     price = models.ForeignKey(Price, on_delete=models.CASCADE, blank=True, null=True, related_name='price', verbose_name="Price")
     stripe_id = models.CharField(max_length=255, blank=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
+    stripe_schedule_id = models.CharField(max_length=255, blank=True)
     validated = models.BooleanField(default=False)
     comments = models.TextField(blank=True)
     membership_start = models.DateField(null=True, blank=True, default=datetime.now)
