@@ -7,6 +7,31 @@
 {% endblock %}
 
 {% block content %}
+<!-- Danger Header Modal -->
+<div id="delete_modal" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="comment-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-danger">
+                <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete Account
+                </h4>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-hidden="true">×</button>
+            </div>
+            <form id="commentForm">
+                <div class="modal-body">
+                    <p>Are you sure?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light"
+                        data-dismiss="modal">Cancel</button>
+                    <button id="delete_account" type="button" class="btn btn-danger">Delete Account</button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
 <!-- ============================================================== -->
 <!-- Bread crumb and right sidebar toggle -->
 <!-- ============================================================== -->
@@ -58,12 +83,12 @@
                             {% endif %}
                         {% endfor %}
                     {% else %}
-                        Are you sure you want to delete your account?
+                        Are you sure you want to delete your account? All your data will be lost.
                     {% endif %}
                     <hr>
                     <div class="form-group mb-0 text-right">
-                        <button id="delete_account" class="btn btn-danger waves-effect waves-light">Delete Account</button>
                         <a href="{% url 'dashboard' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+                        <button id="show_modal" class="btn btn-danger waves-effect waves-light">Delete Account</button>
                     </div>
                 </div>
             </div>
@@ -74,6 +99,11 @@
 
 {% block footer %}
     <script>
+        // show the modal to check they want to delete their account
+        $('#show_modal').click(function(){
+            $('#delete_modal').modal('show')
+        })
+        
         $('#delete_account').click(function(){
             // a map of packages to the admin that will be the next owner
             var admins = {}
