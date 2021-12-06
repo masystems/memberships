@@ -47,7 +47,7 @@
                                     <h5 class="card-title">Select Replacement Owner</h4>
                                     {% for admin in package.admins.all %}
                                         <div class="custom-control custom-radio">
-                                            <input type="radio" id="{{ admin.id }}" name="next_owner" class="custom-control-input" value="{{ admin.id }}">
+                                            <input type="radio" id="{{ admin.id }}" name="{{ package.id }}_next_owner" class="custom-control-input next_owner" value="{{ admin.id }}" package="{{ package.id }}">
                                             
                                             <label class="custom-control-label" for="{{ admin.id }}">{{ admin.get_full_name }}</label>
                                         </div>
@@ -73,14 +73,19 @@
 {% block footer %}
     <script>
         $('#delete_account').click(function(){
-            console.log('hello')
+            // a map of packages to the admin that will be the next owner
+            var admins = {}
+            $(".next_owner:checked").each(function(){
+                admins[$(this).attr('package')] = $(this).val()
+            })
+            
             $.ajax({
                 url: "{% url 'account_deletion' %}",
                 enctype: 'multipart/form-data',
                 type: 'POST',
                 dataType: 'text',
                 headers: {'X-CSRFToken': '{{ csrf_token }}'},
-                data: {'admins': $("input[name='next_owner']:checked").val()},
+                data: admins,
                 success: function(data) {
                     var result = JSON.parse(data);
                     if (result['status'] == "fail") {
