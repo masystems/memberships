@@ -57,6 +57,8 @@
                                 <p>You are the owner of {{ package.organisation_name }}. So deleting your account will cause this organisation to be deleted.</p>
                             {% endif %}
                         {% endfor %}
+                    {% else %}
+                        Are you sure you want to delete your account?
                     {% endif %}
                     <hr>
                     <div class="form-group mb-0 text-right">
@@ -93,7 +95,7 @@
                         errorMsg(result['message']);
                     } else {
                         $('#overlay-spinner').modal('toggle');
-                        infoMsg(result.message);
+                        location.replace('{% url "dashboard" %}')
                     }
                  },
                 error: function(jqXHR, textStatus, errorThrown){
