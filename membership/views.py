@@ -811,7 +811,6 @@ def create_stripe_subscription(request):
                     'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"
                 }
                 return HttpResponse(dumps(result))
-            print(subscription_details)
 
         subscription.active = True
 
@@ -2493,13 +2492,41 @@ def account_deletion(request):
             'body': """<p>Your account with Cloud-Lines Memberships has been deleted. Sorry to see you go.</p>"""
         })
 
-        # save email to owners of organisations that user is a member of
+        stripe.api_key = get_stripe_secret_key(request)
+
+        # go through organisations that user is a member of
         for sub in MembershipSubscription.objects.filter(member__user_account=request.user):
+            # save email to owners of organisations
             emails.append({
                 'send_to': sub.membership_package.owner.email,
                 'subject': f"Account Deleted: {deleted_name}",
                 'body': f"""<p>{deleted_name}, previously a member of {sub.membership_package.organisation_name}, has deleted their account with Cloud-Lines Memberships.</p>"""
             })
+            
+            # delete stripe subscription
+            if sub.stripe_subscription_id:
+                try:
+                    stripe.Subscription.delete(sub.stripe_subscription_id, stripe_account=sub.membership_package.stripe_acct_id)
+                except stripe.error.InvalidRequestError:
+                    pass
+            # cancel stripe subscription schedule
+            if sub.stripe_schedule_id:
+                try:
+                    stripe.SubscriptionSchedule.cancel(sub.stripe_schedule_id, stripe_account=sub.membership_package.stripe_acct_id)
+                except stripe.error.InvalidRequestError:
+                    pass
+            # delete stripe customer
+            if sub.stripe_id:
+                try:
+                    stripe.Customer.delete(sub.stripe_id, stripe_account=sub.membership_package.stripe_acct_id)
+                except stripe.error.InvalidRequestError:
+                    pass
+
+        # go through organisations that user owns and delete the stripe account
+        # (owner should be changed by now if user wanted to swap owner)
+        for package in MembershipPackage.objects.filter(owner=request.user):
+            if package.stripe_acct_id:
+                stripe.Account.delete(package.stripe_acct_id)
         
         # delete user
         request.user.delete()
