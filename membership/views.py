@@ -811,7 +811,6 @@ def create_stripe_subscription(request):
                     'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription_details['status']}</span>"
                 }
                 return HttpResponse(dumps(result))
-            print(subscription_details)
 
         subscription.active = True
 
@@ -2439,3 +2438,101 @@ def remove_member(request, title):
         subscription.delete()
 
         return HttpResponse(dumps({'status': "success"}), content_type='application/json')
+
+
+@login_required(login_url='/accounts/login/')
+def account_deletion(request):
+    owned_packages = MembershipPackage.objects.filter(owner=request.user)
+    
+    if request.method == 'GET':
+        context = {}
+        # add owned packages to context
+        if owned_packages.exists():
+            context['owned_packages'] = []
+            for package in owned_packages:
+                context['owned_packages'].append(package)
+        
+        return render(request, 'account_deletion.html', context)
+    elif request.method == 'POST':
+        # name of user that is deleting their account
+        deleted_name = request.user.get_full_name()
+        # list of dictionaries of emails
+        emails = []
+        
+        # set the next owner of the owned memberhsip packages if one has been selected
+        if owned_packages.exists():
+            # go through the packages owned by the user
+            for package in owned_packages:
+                # go through admins selected to be the next owner
+                for package_id, admin_id in dict(request.POST).items():
+                    # if this package is in the owned packages
+                    if str(package.id) == package_id:
+                        # if the admin user exists
+                        admin = User.objects.filter(id=list(admin_id)[0])
+                        if admin.exists():
+                            admin = admin.first()
+                            # if admin is an admin of the package
+                            if admin in package.admins.all():
+                                # make the admin the next owner
+                                package.owner = admin
+                                package.admins.remove(admin)
+                                package.save()
+
+                                # add email to new owner
+                                emails.append({
+                                    'send_to': admin.email,
+                                    'subject': f"New Owner: {package.organisation_name}",
+                                    'body': f"""<p>{request.user.get_full_name()}, the previous owner of {package.organisation_name}, has deleted their account and selected you to be the new owner.</p>"""
+                                })
+
+        # save email to user
+        emails.append({
+            'send_to': request.user.email,
+            'subject': f"Account Deleted: {deleted_name}",
+            'body': """<p>Your account with Cloud-Lines Memberships has been deleted. Sorry to see you go.</p>"""
+        })
+
+        stripe.api_key = get_stripe_secret_key(request)
+
+        # go through organisations that user is a member of
+        for sub in MembershipSubscription.objects.filter(member__user_account=request.user):
+            # save email to owners of organisations
+            emails.append({
+                'send_to': sub.membership_package.owner.email,
+                'subject': f"Account Deleted: {deleted_name}",
+                'body': f"""<p>{deleted_name}, previously a member of {sub.membership_package.organisation_name}, has deleted their account with Cloud-Lines Memberships.</p>"""
+            })
+            
+            # delete stripe subscription
+            if sub.stripe_subscription_id:
+                try:
+                    stripe.Subscription.delete(sub.stripe_subscription_id, stripe_account=sub.membership_package.stripe_acct_id)
+                except stripe.error.InvalidRequestError:
+                    pass
+            # cancel stripe subscription schedule
+            if sub.stripe_schedule_id:
+                try:
+                    stripe.SubscriptionSchedule.cancel(sub.stripe_schedule_id, stripe_account=sub.membership_package.stripe_acct_id)
+                except stripe.error.InvalidRequestError:
+                    pass
+            # delete stripe customer
+            if sub.stripe_id:
+                try:
+                    stripe.Customer.delete(sub.stripe_id, stripe_account=sub.membership_package.stripe_acct_id)
+                except stripe.error.InvalidRequestError:
+                    pass
+
+        # go through organisations that user owns and delete the stripe account
+        # (owner should be changed by now if user wanted to swap owner)
+        for package in MembershipPackage.objects.filter(owner=request.user):
+            if package.stripe_acct_id:
+                stripe.Account.delete(package.stripe_acct_id)
+        
+        # delete user
+        request.user.delete()
+
+        # send emails
+        for email in emails:
+            send_email(email['subject'], deleted_name, email['body'], send_to=email['send_to'])
+        
+        return HttpResponse(dumps({'status': 'success'}))

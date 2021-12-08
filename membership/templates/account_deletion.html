@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block header %}
+    <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Danger Header Modal -->
+<div id="delete_modal" class="modal fade" tabindex="-1" role="dialog"
+    aria-labelledby="comment-modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header modal-colored-header bg-danger">
+                <h4 class="modal-title text-white" id="danger-header-modalLabel">Delete Account
+                </h4>
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-hidden="true">×</button>
+            </div>
+            <form id="commentForm">
+                <div class="modal-body">
+                    <p>Are you sure you want to delete your account?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light"
+                        data-dismiss="modal">Cancel</button>
+                    <button id="delete_account" type="button" class="btn btn-danger">Delete Account</button>
+                </div>
+            </form>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-md-5 align-self-center">
+            <h4 class="page-title">Account Deletion</h4>
+            <div class="d-flex align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Home</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Account Deletion</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+        <div class="col-md-7 align-self-center d-none d-md-block">
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if owned_packages %}
+                        {% for package in owned_packages %}
+                            {% if package.admins.all|length > 0 %}
+                                <p>You are the owner of {{ package.organisation_name }}. So, if you want to delete your account but don't want this organisation to be deleted, please select one of your admins to become the next owner.</p>
+                                <div class="form-group">
+                                    <h5 class="card-title">Select Replacement Owner</h4>
+                                    {% for admin in package.admins.all %}
+                                        <div class="custom-control custom-radio">
+                                            <input type="radio" id="{{ admin.id }}" name="{{ package.id }}_next_owner" class="custom-control-input next_owner" value="{{ admin.id }}" package="{{ package.id }}">
+                                            
+                                            <label class="custom-control-label" for="{{ admin.id }}">{{ admin.get_full_name }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p>You are the owner of {{ package.organisation_name }}. So deleting your account will cause this organisation to be deleted.</p>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        Are you sure you want to delete your account? All your data will be lost.
+                    {% endif %}
+                    <hr>
+                    <div class="form-group mb-0 text-right">
+                        <a href="{% url 'dashboard' %}" class="btn btn-dark waves-effect waves-light">Cancel</a>
+                        <button id="show_modal" class="btn btn-danger waves-effect waves-light">Delete Account</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block footer %}
+    <script>
+        // show the modal to check they want to delete their account
+        $('#show_modal').click(function(){
+            $('#delete_modal').modal('show')
+        })
+        
+        $('#delete_account').click(function(){
+            // a map of packages to the admin that will be the next owner
+            var admins = {}
+            $(".next_owner:checked").each(function(){
+                admins[$(this).attr('package')] = $(this).val()
+            })
+            
+            $.ajax({
+                url: "{% url 'account_deletion' %}",
+                enctype: 'multipart/form-data',
+                type: 'POST',
+                dataType: 'text',
+                headers: {'X-CSRFToken': '{{ csrf_token }}'},
+                data: admins,
+                success: function(data) {
+                    var result = JSON.parse(data);
+                    if (result['status'] == "fail") {
+                        $('#overlay-spinner').modal('toggle');
+                        errorMsg(result['message']);
+                    } else {
+                        $('#overlay-spinner').modal('toggle');
+                        location.replace('{% url "dashboard" %}')
+                    }
+                 },
+                error: function(jqXHR, textStatus, errorThrown){
+                }
+            });
+        })
+    </script>
+{% endblock %}
