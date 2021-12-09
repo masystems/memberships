@@ -1,0 +1,111 @@
+<!-- https://github.com/Wruczek/Bootstrap-Cookie-Alert -->
+<div class="alert text-center cookiealert show" role="alert">
+    We use cookies to improve your experience. By clicking accept you are confirming that you agree with our <a href="https://static.cloud-lines.com/docs/Cookies+Policy+-+Cloud-Lines.com+V2.0.docx" target="_blank">cookies policy</a>.
+
+    <button type="button" class="btn btn-light btn-sm acceptcookies ml-1">
+        Accept
+    </button>
+    <button type="button" class="btn btn-info btn-sm denycookies">
+        Deny
+    </button>
+</div>
+<!-- cookie alert -->
+<!-- https://cdn.jsdelivr.net/gh/Wruczek/Bootstrap-Cookie-Alert@gh-pages/cookiealert.js -->
+<script>
+    // Cookie functions from w3schools
+    function setCookie(cname, cvalue, exdays) {
+        console.log('hello')
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+    function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) === ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) === 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+    
+    (function () {
+        "use strict";
+
+        var cookieAlert = document.querySelector(".cookiealert");
+        var acceptCookies = document.querySelector(".acceptcookies");
+        var denyCookies = document.querySelector(".denycookies");
+
+        if (!cookieAlert) {
+            return;
+        }
+
+        cookieAlert.offsetHeight; // Force browser to trigger reflow (https://stackoverflow.com/a/39451131)
+
+        // Hide the alert if we can find the "acceptCookies" cookie
+        if (getCookie("acceptCookies")) {
+            cookieAlert.classList.remove("show");
+        }
+
+        // Hide the alert if we can't find any of the third party cookies
+        if (!getCookie("_ga") && !getCookie("_gid") && !getCookie("__gads") && !getCookie("_gat_gtag_UA_148376956_1")) {
+            cookieAlert.classList.remove("show");
+        }
+
+        // When clicking on the agree button, create a 1 year
+        // cookie to remember user's choice and close the banner
+        acceptCookies.addEventListener("click", function () {
+            setCookie("acceptCookies", true, 365);
+            cookieAlert.classList.remove("show");
+
+            // dispatch the accept event
+            window.dispatchEvent(new Event("cookieAlertAccept"))
+        });
+
+        // When clicking on the deny button, delete unneeded cookies
+        denyCookies.addEventListener("click", function () {
+            // remove google cookies
+            document.cookie = "_ga=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "_gid=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "__gads=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            document.cookie = "_gat_gtag_UA_148376956_1=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            
+            cookieAlert.classList.remove("show");
+
+            // dispatch the deny event
+            window.dispatchEvent(new Event("cookieAlertDeny"))
+        });
+    })();
+</script>
+<style>
+    .cookiealert.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0%);
+        transition-delay: 1000ms;
+    }
+
+    .cookiealert {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        margin: 0 !important;
+        z-index: 999;
+        opacity: 0;
+        visibility: hidden;
+        border-radius: 0;
+        transform: translateY(100%);
+        transition: all 500ms ease-out;
+        transition-delay: 0s;
+        color: #ecf0f1;
+        background: #212327;
+    }
+</style>
