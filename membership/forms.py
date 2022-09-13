@@ -18,7 +18,6 @@ class MembershipPackageForm(forms.ModelForm):
                    'stripe_product_id',
                    'bolton',
                    'custom_fields',
-                   'cloud_lines_account',
                    'enabled',
                    'payment_reminder_email')
         help_texts = {
@@ -26,7 +25,8 @@ class MembershipPackageForm(forms.ModelForm):
         }
         widgets = {
             'organisation_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'business_type': forms.Select(attrs={'class': 'form-control'})
+            'business_type': forms.Select(attrs={'class': 'form-control'}),
+            'cloud_lines_account': forms.TextInput(attrs={'class': 'form-control'})
         }
 
 

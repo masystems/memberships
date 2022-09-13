@@ -26,7 +26,7 @@ class MembershipPackage(models.Model):
                                 help_text="Select your business type")
     custom_fields = models.TextField(blank=True)
     cloud_lines_account = models.CharField(max_length=100, blank=True,
-                                           help_text="Link your membership account to your cloud-lines account")
+                                           help_text="Link your membership account to your cloud-lines account (e.g. https://unicorns.cloud-lines.com)")
     enabled = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     payment_reminder_email = models.TextField(blank=True)
