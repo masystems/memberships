@@ -9,6 +9,7 @@ from django.forms import ModelChoiceField
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
+from .cloud_lines_utils import add_cloud_lines_member
 from json import dumps, loads, JSONDecodeError
 import stripe
 from re import match
@@ -1325,6 +1326,11 @@ def member_reg_form(request, title, pk):
                     custom_fields[id]['field_value'] = request.POST.get(custom_fields[id]['field_name'])
                 subscription.custom_fields = dumps(custom_fields)
             subscription.save()
+
+            if membership_package.cloud_lines_account and not form.errors:
+                if new_membership:
+                    # inform cloud-lines account of the added member
+                    add_cloud_lines_member(membership_package.cloud_lines_account, member)
 
             # direct user to correct next location
             # if user is owner/admin...
