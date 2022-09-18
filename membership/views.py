@@ -9,7 +9,7 @@ from django.forms import ModelChoiceField
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
-from .cloud_lines_utils import add_cloud_lines_member
+from .cloud_lines_utils import add_cloud_lines_member, edit_cloud_lines_member
 from json import dumps, loads, JSONDecodeError
 import stripe
 from re import match
@@ -1204,6 +1204,8 @@ def member_reg_form(request, title, pk):
         # user can edit only themselves
         form = MemberForm(request.POST)
         if form.is_valid():
+            old_member = {}
+            
             if (pk == 0 and request.user == membership_package.owner) or (pk == 0 and request.user in membership_package.admins.all()):
                 # new member
                 # validate user not already a member of package
@@ -1243,6 +1245,13 @@ def member_reg_form(request, title, pk):
 
             # if member is owner, admin, or user is member
             elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all())  or (pk != 0 and request.user == member.user_account):
+                # save details before they are changed so we may later know which fields have changed
+                old_member = {
+                    "first_name": member.user_account.first_name,
+                    "last_name": member.user_account.last_name,
+                    "phone": member.contact_number,
+                }
+                
                 # edit member
                 # validate email not already in use
                 try:
@@ -1331,6 +1340,9 @@ def member_reg_form(request, title, pk):
                 if new_membership:
                     # inform cloud-lines account of the added member
                     add_cloud_lines_member(membership_package.cloud_lines_account, member)
+                else:
+                    # inform cloud-lines account of edited member
+                    edit_cloud_lines_member(membership_package.cloud_lines_account, member, old_member)
 
             # direct user to correct next location
             # if user is owner/admin...
