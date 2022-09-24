@@ -9,7 +9,7 @@ from django.forms import ModelChoiceField
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
-from .cloud_lines_utils import add_cloud_lines_member, edit_cloud_lines_member
+from .cloud_lines_utils import add_cloud_lines_member, delete_cloud_lines_member, edit_cloud_lines_member, get_member_type
 from json import dumps, loads, JSONDecodeError
 import stripe
 from re import match
@@ -107,8 +107,21 @@ def manage_admins(request, title):
                 send_email(f"New Admin Account: {membership_package.organisation_name}",
                            user.get_full_name(), body, send_to=user.email, reply_to=request.user.email)
 
+                old_member = None
+            else:
+                member = Member.objects.get(user_account=user)
+                old_member = {"member_type": get_member_type(member, membership_package)}
+
             # add user admin of membership_package
             membership_package.admins.add(user)
+            
+            # link with cloud-lines account
+            if membership_package.cloud_lines_account:
+                if old_member is None:
+                    add_cloud_lines_member(membership_package.cloud_lines_account, member, "admin")
+                else:
+                    edit_cloud_lines_member(membership_package.cloud_lines_account, member, old_member, "admin")
+            
             return HttpResponse(dumps({'status': "success",
                                        'message': "Member assigned successfully!"}), content_type='application/json')
             # send email to user
@@ -121,6 +134,21 @@ def manage_admins(request, title):
                                            'message': "User doesn't exists!"}), content_type='application/json')
             # remove from admins
             membership_package.admins.remove(user)
+            
+            # link with cloud-lines account
+            if membership_package.cloud_lines_account:
+                member = Member.objects.get(user_account=user)
+                new_member_type = get_member_type(member, membership_package)
+                
+                if new_member_type is not None:
+                    # user is still associated with the membership_package
+                    old_member = {"member_type": "admin"}
+                    edit_cloud_lines_member(membership_package.cloud_lines_account, member, old_member, new_member_type)
+                
+                else:
+                    # user has nothing to do with the membership package anymore
+                    delete_cloud_lines_member(member, membership_package.cloud_lines_account)
+            
             # return success
             return HttpResponse(dumps({'status': "success",
                                        'message': "User successfully removed"}), content_type='application/json')
