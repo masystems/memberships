@@ -2503,6 +2503,10 @@ def remove_member(request, title):
 
         subscription.delete()
 
+        # link with cloud-lines
+        if membership_package.cloud_lines_account:
+            delete_cloud_lines_member(member, membership_package.cloud_lines_account)
+
         return HttpResponse(dumps({'status': "success"}), content_type='application/json')
 
 
@@ -2587,6 +2591,10 @@ def account_deletion(request):
                     stripe.Customer.delete(sub.stripe_id, stripe_account=sub.membership_package.stripe_acct_id)
                 except stripe.error.InvalidRequestError:
                     pass
+
+            # link with cloud-lines
+            if sub.membership_package.cloud_lines_account:
+                delete_cloud_lines_member(sub.member, sub.membership_package.cloud_lines_account)
 
         # go through organisations that user owns and delete the stripe account
         # (owner should be changed by now if user wanted to swap owner)
