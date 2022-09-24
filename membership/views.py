@@ -1205,6 +1205,7 @@ def member_reg_form(request, title, pk):
         form = MemberForm(request.POST)
         if form.is_valid():
             old_member = {}
+            new_membership_subscription = True
             
             if (pk == 0 and request.user == membership_package.owner) or (pk == 0 and request.user in membership_package.admins.all()):
                 # new member
@@ -1287,6 +1288,7 @@ def member_reg_form(request, title, pk):
 
             try:
                 subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+                new_membership_subscription = False
             except MembershipSubscription.DoesNotExist:
                 membership_number = get_next_membership_number()
 
@@ -1337,7 +1339,7 @@ def member_reg_form(request, title, pk):
             subscription.save()
 
             if membership_package.cloud_lines_account and not form.errors:
-                if new_membership:
+                if new_membership_subscription:
                     # inform cloud-lines account of the added member
                     add_cloud_lines_member(membership_package.cloud_lines_account, member)
                 else:
