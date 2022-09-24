@@ -2295,8 +2295,16 @@ def member_payment_form_edit(request, title, pk, payment_id):
 def update_user(request, pk):
     # where the user can update their own basic information
     if request.method == 'POST':
-        # update user and get user object
         member = Member.objects.get(id=pk)
+        
+        # save details before they are changed so we may later know which fields have changed
+        old_member = {
+            "first_name": member.user_account.first_name,
+            "last_name": member.user_account.last_name,
+            "phone": member.contact_number,
+        }
+        
+        # update user and get user object
         member.user_account.first_name = request.POST.get('user-settings-first-name')
         member.user_account.last_name = request.POST.get('user-settings-last-name')
         member.user_account.email = request.POST.get('user-settings-email')
@@ -2316,6 +2324,11 @@ def update_user(request, pk):
         member.contact_number = request.POST.get('user-settings-phone')
         member.company = request.POST.get('user-settings-company')
         member.save()
+
+        # update cloud-lines member for each subscription whose membership_package has a cloud_lines_account
+        for subscription in MembershipSubscription.objects.filter(member=member):
+            if subscription.membership_package.cloud_lines_account:
+                edit_cloud_lines_member(subscription.membership_package.cloud_lines_account, member, old_member)
 
         return HttpResponse(True)
 
