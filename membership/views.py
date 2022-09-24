@@ -9,7 +9,7 @@ from django.forms import ModelChoiceField
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
-from .cloud_lines_utils import add_cloud_lines_member, delete_cloud_lines_member, edit_cloud_lines_member, get_member_type
+from .utils import add_cloud_lines_member, delete_cloud_lines_member, edit_cloud_lines_member, get_member_type
 from json import dumps, loads, JSONDecodeError
 import stripe
 from re import match
