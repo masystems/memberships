@@ -1279,6 +1279,7 @@ def member_reg_form(request, title, pk):
                     "first_name": member.user_account.first_name,
                     "last_name": member.user_account.last_name,
                     "phone": member.contact_number,
+                    "email": member.user_account.email,
                 }
                 
                 # edit member

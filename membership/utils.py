@@ -47,6 +47,8 @@ def edit_cloud_lines_member(cloud_lines_account, member, old_member, member_type
         changes.update({"phone": member.contact_number})
     if "member_type" in old_member and old_member["member_type"] != member_type:
         changes.update({"member_type": member_type})
+    if "email" in old_member and old_member["email"] != member.user_account.email:
+        changes.update({"email": member.user_account.email})
 
     if len(changes) > 0:
         data = {
