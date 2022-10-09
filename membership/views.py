@@ -637,12 +637,6 @@ class CreateMembershipPackage(LoginRequiredMixin, TemplateView):
         except MembershipPackage.DoesNotExist:
             form = MembershipPackageForm(self.request.POST or None)
 
-        if form.data["cloud_lines_account"] != "":
-            # check domain is valid
-            pattern = re.compile("https:\/\/[a-z0-9]+\.cloud-lines\.com")
-            if pattern.fullmatch(form.data["cloud_lines_account"]) is None:
-                form.add_error("cloud_lines_account", f"Error: The domain entered is not valid.")
-
         if form.is_valid():
             # save form
             form.instance.owner = self.request.user
