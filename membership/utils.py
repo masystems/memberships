@@ -26,7 +26,7 @@ def add_cloud_lines_member(cloud_lines_account, member, member_type="read_only")
 
 def edit_cloud_lines_member(cloud_lines_account, member, old_member, member_type=None):
     """
-    Inform cloud-lines account of the edited member by sending a PATCH request.
+    Inform cloud-lines account of the edited member by sending a PUT request.
     The data sent are:
         1. the key (to be used to get the user which has been edited)
         2. the changes (new values the changed fields)
@@ -55,7 +55,7 @@ def edit_cloud_lines_member(cloud_lines_account, member, old_member, member_type
             },
             "changes": changes
         }
-        response = requests.patch(f"{cloud_lines_account}/api/memberships", json=data)
+        response = requests.put(f"{cloud_lines_account}/api/memberships", json=data)
 
 def delete_cloud_lines_member(member, cloud_lines_account):
     """
