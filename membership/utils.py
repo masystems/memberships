@@ -22,7 +22,7 @@ def add_cloud_lines_member(cloud_lines_account, member, member_type="read_only")
         "phone": member.contact_number,
         "member_type": member_type,
     }
-    response = requests.post(f"{cloud_lines_account}/api/memberships", json=data)
+    response = requests.post(f"{cloud_lines_account}/api/memberships/", json=data)
 
 def edit_cloud_lines_member(cloud_lines_account, member, old_member, member_type=None):
     """
@@ -57,7 +57,7 @@ def edit_cloud_lines_member(cloud_lines_account, member, old_member, member_type
             },
             "changes": changes
         }
-        response = requests.put(f"{cloud_lines_account}/api/memberships", json=data)
+        response = requests.put(f"{cloud_lines_account}/api/memberships/", json=data)
 
 def delete_cloud_lines_member(member, cloud_lines_account):
     """
@@ -66,7 +66,7 @@ def delete_cloud_lines_member(member, cloud_lines_account):
     """
 
     data = {"username": member.user_account.email}
-    response = requests.delete(f"{cloud_lines_account}/api/memberships", json=data)
+    response = requests.delete(f"{cloud_lines_account}/api/memberships/", json=data)
 
 def get_member_type(member, membership_package):
     """
