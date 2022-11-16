@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
+from django.forms import ModelChoiceField
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
@@ -2255,6 +2256,10 @@ def member_payment_form(request, title, pk):
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
         form = PaymentForm(initial={'gift_aid': subscription.gift_aid})
+        
+        # limit payment method choices to just the payment methods for this membership package
+        payment_methods = PaymentMethod.objects.filter(membership_package=membership_package)
+        form.fields["payment_method"] = ModelChoiceField(queryset=payment_methods)
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,
