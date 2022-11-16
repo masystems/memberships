@@ -469,11 +469,12 @@ def manage_account(request, title):
     stripe.api_key = get_stripe_secret_key(request)
 
     stripe_package = stripe.Account.retrieve(membership_package.stripe_acct_id)
-
+    edit_account = None
     if membership_package.stripe_acct_id:
         try:
             edit_account = stripe.Account.create_login_link(membership_package.stripe_acct_id)
         except stripe.error.InvalidRequestError:
+            # account not created yet
             pass
 
     return render(request, 'manage-account.html', {
