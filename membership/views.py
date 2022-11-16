@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.db.models import Q
+from django.forms import ModelChoiceField
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
@@ -828,79 +829,129 @@ def create_stripe_subscription(request):
 
 @login_required(login_url='/accounts/login/')
 def organisation_payment(request):
-    if request.POST:
-        membership_package = MembershipPackage.objects.get(owner=request.user)
+    membership_package = MembershipPackage.objects.get(owner=request.user)
 
-        # get package IDs
-        if request.user.is_superuser:
-            price_id = settings.MEMBERSHIP_ORG_PRICE_TEST_ID
-        else:
-            price_id = settings.MEMBERSHIP_ORG_PRICE_ID
+    # # get package IDs
+    # if request.user.is_superuser:
+    #     price_id = settings.MEMBERSHIP_ORG_PRICE_TEST_ID
+    # else:
+    #     price_id = settings.MEMBERSHIP_ORG_PRICE_ID
 
-        # get strip secret key
-        stripe.api_key = get_stripe_secret_key(request)
+    # get strip secret key
+    # stripe.api_key = get_stripe_secret_key(request)
 
-        # create or get customer id
-        if not membership_package.stripe_owner_id:
-            # create stripe user
-            customer = stripe.Customer.create(
-                name=request.user.get_full_name(),
-                email=request.user.email
-            )
-            customer_id = customer['id']
-            membership_package.stripe_owner_id = customer_id
-            membership_package.save()
-        else:
-            stripe.Customer.modify(
-                membership_package.stripe_owner_id,
-                name=request.user.get_full_name(),
-                email=request.user.email
-            )
+    session_url = org_charging_session(request, membership_package)
+    return HttpResponse(dumps({'result': 'payment_redirect', 'url': session_url}))
+        # # create or get customer id
+        # if not membership_package.stripe_owner_id:
+        #     # create stripe user
+        #     customer = stripe.Customer.create(
+        #         name=request.user.get_full_name(),
+        #         email=request.user.email
+        #     )
+        #     customer_id = customer['id']
+        #     membership_package.stripe_owner_id = customer_id
+        #     membership_package.save()
+        # else:
+        #     stripe.Customer.modify(
+        #         membership_package.stripe_owner_id,
+        #         name=request.user.get_full_name(),
+        #         email=request.user.email
+        #     )
+        #
+        # # validate the card
+        # result = validate_card(request, 'package')
 
-        # validate the card
-        result = validate_card(request, 'package')
-        if result['result'] == 'fail':
-            return HttpResponse(dumps(result))
 
-        subscription = stripe.Subscription.create(
-            customer=membership_package.stripe_owner_id,
-            items=[
-                {
-                    "plan": price_id,
-                },
-            ],
+        # if result['result'] == 'fail':
+        #     return HttpResponse(dumps(result))
+        #
+        # subscription = stripe.Subscription.create(
+        #     customer=membership_package.stripe_owner_id,
+        #     items=[
+        #         {
+        #             "plan": price_id,
+        #         },
+        #     ],
+        # )
+        # if subscription['status'] != 'active':
+        #     result = {'result': 'fail',
+        #               'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription['status']}</span>"}
+        #     return HttpResponse(dumps(result))
+        # else:
+        #     invoice = stripe.Invoice.list(customer=membership_package.stripe_owner_id, subscription=subscription.id, limit=1)
+        #     receipt = stripe.Charge.list(customer=membership_package.stripe_owner_id)
+        #
+        #     result = {'result': 'success',
+        #               'invoice': invoice.data[0].invoice_pdf,
+        #               'receipt': receipt.data[0].receipt_url}
+
+@login_required(login_url='/accounts/login/')
+def organisation_payment_success(request):
+    membership_package = MembershipPackage.objects.get(owner=request.user)
+    membership_package.enabled = True
+    membership_package.save()
+
+    # send confirmation email
+    body = f"""<p>This email confirms the successful creation of your new Cloud-Lines Memberships package.
+
+            <ul>
+            <li>Membership Organisation: {membership_package.organisation_name}</li>
+            </ul>
+
+            <p>Thank you for choosing Cloud-Lines Memberships. Please contact us if you need anything - contact@masys.co.uk</p>
+
+            """
+    send_email(f"New Organisation Created: {membership_package.organisation_name}",
+               request.user.get_full_name(), body, send_to=request.user.email)#, reply_to=request.user.email)
+    #send_email(f"Organisation Confirmation: {membership_package.organisation_name}",
+               #request.user.get_full_name(), body, reply_to=request.user.email)
+
+    return redirect('membership_package', membership_package.organisation_name)
+
+
+def org_charging_session(request, membership_package):
+    stripe.api_key = get_stripe_secret_key(request)
+
+    # get package IDs
+    if request.user.is_superuser:
+        price_id = settings.MEMBERSHIP_ORG_PRICE_TEST_ID
+    else:
+        price_id = settings.MEMBERSHIP_ORG_PRICE_ID
+
+    # get or create customer
+    if not membership_package.stripe_owner_id:
+        # create stripe user
+        customer = stripe.Customer.create(
+            name=request.user.get_full_name(),
+            email=request.user.email
         )
-        if subscription['status'] != 'active':
-            result = {'result': 'fail',
-                      'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription['status']}</span>"}
-            return HttpResponse(dumps(result))
-        else:
-            invoice = stripe.Invoice.list(customer=membership_package.stripe_owner_id, subscription=subscription.id, limit=1)
-            receipt = stripe.Charge.list(customer=membership_package.stripe_owner_id)
+        customer_id = customer['id']
+        membership_package.stripe_owner_id = customer_id
+        membership_package.save()
+    else:
+        customer = stripe.Customer.modify(
+            membership_package.stripe_owner_id,
+            name=request.user.get_full_name(),
+            email=request.user.email
+        )
 
-            result = {'result': 'success',
-                      'invoice': invoice.data[0].invoice_pdf,
-                      'receipt': receipt.data[0].receipt_url}
+    # create session
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[
+            {
+                "price": price_id,
+                "quantity": 1,
+            },
+        ],
+        mode='subscription',
+        customer=customer.id,
+        success_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}/membership/organisation_payment_success",
+        cancel_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}",
+    )
 
-            membership_package.enabled = True
-            membership_package.save()
-
-            # send confirmation email
-            body = f"""<p>This email confirms the successful creation of your new Cloud-Lines Memberships package.
-
-                    <ul>
-                    <li>Membership Organisation: {membership_package.organisation_name}</li>
-                    </ul>
-
-                    <p>Thank you for choosing Cloud-Lines Memberships. Please contact us if you need anything - contact@masys.co.uk</p>
-
-                    """
-            send_email(f"New Organisation Created: {membership_package.organisation_name}",
-                       request.user.get_full_name(), body, send_to=request.user.email)#, reply_to=request.user.email)
-            #send_email(f"Organisation Confirmation: {membership_package.organisation_name}",
-                       #request.user.get_full_name(), body, reply_to=request.user.email)
-
-            return HttpResponse(dumps(result))
+    return session.url
 
 
 @login_required(login_url='/accounts/login/')
@@ -2205,6 +2256,10 @@ def member_payment_form(request, title, pk):
             return redirect('member_payments', membership_package.organisation_name, member.id)
     else:
         form = PaymentForm(initial={'gift_aid': subscription.gift_aid})
+        
+        # limit payment method choices to just the payment methods for this membership package
+        payment_methods = PaymentMethod.objects.filter(membership_package=membership_package)
+        form.fields["payment_method"] = ModelChoiceField(queryset=payment_methods)
 
     return render(request, 'payment_form.html', {'form': form,
                                                  'membership_package': membership_package,

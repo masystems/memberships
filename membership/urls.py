@@ -21,6 +21,7 @@ urlpatterns = [
     path('export_members_detailed/<str:title>', reports.export_members_detailed, name="export_members_detailed"),
     path('export_payments_detailed/<str:title>', reports.export_payments_detailed, name="export_payments_detailed"),
     path('organisation-payment', views.organisation_payment, name='organisation_payment'),
+    path('organisation_payment_success', views.organisation_payment_success, name='organisation_payment_success'),
     path('create-package-on-stripe', views.create_package_on_stripe, name='create_package_on_stripe'),
     path('create_stripe_subscription', views.create_stripe_subscription, name='create_stripe_subscription'),
     path('membership-package-settings', views.CreateMembershipPackage.as_view(), name="membership_package_settings"),
