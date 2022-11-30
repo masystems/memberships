@@ -47,4 +47,6 @@ urlpatterns = [
     path('payment-reminder/<str:title>/<int:pk>', views.payment_reminder, name='payment_reminder'),
     path('get-donations/<str:title>', tabledata.get_donations, name="get_donations"),
     path('account_deletion', views.account_deletion, name='account_deletion'),
+    path('enable_subscription/<int:sub_id>', views.enable_subscription, name='enable_subscription'),
+    path('update_card/<int:sub_id>', views.update_card, name='update_card'),
 ]

@@ -8,6 +8,7 @@ from django.db.models import Q
 from django.forms import ModelChoiceField
 from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
+from .charging import *
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
 from json import dumps, loads, JSONDecodeError
 import stripe
@@ -1870,51 +1871,80 @@ def update_membership_type(request, title, pk):
             if price.amount == "0":
                 return HttpResponse(dumps({'status': "fail",
                                            'message': f'You cannot select Card Payment with {price.nickname}'}), content_type='application/json')
-            
-            # if membership type has changed, save the old one
-            old_price = ''
-            if subscription.price:
-                if price != subscription.price:
-                    old_price = subscription.price.id
 
-            subscription.price = price
-            subscription.payment_method = None
-            subscription.save()
-
-            # send confirmation email to new member
-            body = f"""<p>This is a confirmation email for your new Organisation Subscription.
-
-                                        <ul>
-                                        <li>Congratulations, you are now a member of {package.organisation_name} Organisation.</li>
-                                        </ul>
-
-                                        <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
-
-                                        """
-            send_email(f"Organisation Confirmation: {package.organisation_name}",
-                    member.user_account.get_full_name(), body, send_to=member.user_account.email)
-
-            # send email to owner
-            if price.interval == 'one_time':
-                price_string = 'One Time Price: £'
-            elif price.interval == 'year':
-                price_string = 'Price Per Year: £'
+            # check if stripe subscription already exists
+            if subscription.stripe_subscription_id:
+                # modify existing subscription
+                result = modifiy_subscription(request, subscription, price, package)
+                if result != True:
+                    # return with error
+                    return HttpResponse(dumps({'status': "fail",
+                                               'message': f'{result}: {price.nickname}'}),
+                                        content_type='application/json')
+                else:
+                    # return and redirect to memberships
+                    return HttpResponse(dumps({'status': "success",
+                                           'redirect': True}), content_type='application/json')
             else:
-                price_string = 'Price Per Month: £'
-            body = f"""<p>Congratulations, a new member has subscribed to your Cloud-Lines Memberships package - {package.organisation_name}.
-                                        <p>New member details:</p>
-                                        <ul>
-                                            <li>Name: {member.user_account.get_full_name()}</li>
-                                            <li>ID: {subscription.membership_number}</li>
-                                            <li>Email: {member.user_account.email}</li>
-                                            <li>Membership Type: {price.nickname}</li>
-                                            <li>{price_string}{'{:.2f}'.format(int(price.amount) / 100)}</li>
-                                        </ul>
-                                    """
-            send_email(f"New Member: {package.organisation_name}",
-                    package.owner.get_full_name(), body, send_to=package.owner.email)
+                # NEW subscription, create session
+                session_url = create_charging_session(request, package, member, subscription, price)
+                # return and redirect to stripe
+                return HttpResponse(dumps({'status': "success", 'session_url': session_url}), content_type='application/json')
 
-            return HttpResponse(dumps({'status': "success", 'old_price': old_price}), content_type='application/json')
+
+@login_required(login_url="/accounts/login")
+def enable_subscription(request, sub_id):
+    subscription = MembershipSubscription.objects.get(id=sub_id)
+    # validate user is allow to approve this
+    if request.user in subscription.membership_package.admins.all() or request.user == subscription.membership_package.owner:
+        pass
+    else:
+        # you should not be here!
+        return redirect('membership')
+
+    session = get_checkout_session(request, subscription)
+    if session['status'] == 'paid':
+        subscription.active = True
+        subscription.save()
+    else:
+        subscription.active = False
+        subscription.save()
+        return redirect('membership')
+
+    # send confirmation email to new member
+    body = f"""<p>This is a confirmation email for your new Organisation Subscription.
+
+        <ul>
+        <li>Congratulations, you are now a member of {subscription.membership_package.organisation_name} Organisation.</li>
+        </ul>
+
+        <p>Thank you for choosing Cloud-Lines Memberships and please contact us if you need anything.</p>
+
+        """
+    send_email(f"Organisation Confirmation: {subscription.membership_package.organisation_name}",
+            subscription.member.user_account.get_full_name(), body, send_to=subscription.member.user_account.email)
+
+    # send email to owner
+    if subscription.price.interval == 'one_time':
+        subscription.price_string = 'One Time Price: £'
+    elif subscription.price.interval == 'year':
+        subscription.price_string = 'Price Per Year: £'
+    else:
+        subscription.price_string = 'Price Per Month: £'
+    body = f"""<p>Congratulations, a new member has subscribed to your Cloud-Lines Memberships package - {subscription.membership_package.organisation_name}.
+                                <p>New member details:</p>
+                                <ul>
+                                    <li>Name: {subscription.member.user_account.get_full_name()}</li>
+                                    <li>ID: {subscription.membership_number}</li>
+                                    <li>Email: {subscription.member.user_account.email}</li>
+                                    <li>Membership Type: {subscription.price.nickname}</li>
+                                    <li>{subscription.price_string}{'{:.2f}'.format(int(subscription.price.amount) / 100)}</li>
+                                </ul>
+                            """
+    send_email(f"New Member: {subscription.membership_package.organisation_name}",
+            subscription.membership_package.owner.get_full_name(), body, send_to=subscription.membership_package.owner.email)
+
+    return redirect('membership')
 
 
 class MemberProfileView(MembershipBase):
@@ -1976,6 +2006,13 @@ class MemberProfileView(MembershipBase):
                 context['payments'].append(payment)
 
         return context
+
+
+@login_required(login_url='/accounts/login/')
+def update_card(request, sub_id):
+    subscription = MembershipSubscription.objects.get(id=sub_id)
+    url = update_card_session(request, subscription)
+    return redirect(url, code=303)
 
 
 @login_required(login_url='/accounts/login/')

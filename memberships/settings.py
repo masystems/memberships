@@ -101,3 +101,4 @@ USE_L10N = False
 
 USE_TZ = True
 
+TEST_STRIPE_DOMAINS = ['localhost:8000']

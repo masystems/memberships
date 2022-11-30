@@ -79,7 +79,8 @@ class Member(models.Model):
     county = models.CharField(max_length=255, blank=True)
     country = models.CharField(max_length=255, blank=True)
     postcode = models.CharField(max_length=255)
-    contact_number = models.CharField(max_length=255, blank=True)
+    contact_number = models.CharField(max_length=255, blank=True, null=True)
+    secondary_contact_number = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return f"{self.user_account.email} - {self.user_account.username}"
@@ -91,6 +92,7 @@ class MembershipSubscription(models.Model):
     membership_package = models.ForeignKey(MembershipPackage, on_delete=models.CASCADE, related_name='membership_package', verbose_name="Membership Package")
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.CASCADE, blank=True, null=True, related_name='spayment_method', verbose_name="Payment Method")
     price = models.ForeignKey(Price, on_delete=models.CASCADE, blank=True, null=True, related_name='price', verbose_name="Price")
+    stripe_payment_token = models.CharField(max_length=255, blank=True)
     stripe_id = models.CharField(max_length=255, blank=True)
     stripe_subscription_id = models.CharField(max_length=255, blank=True)
     stripe_schedule_id = models.CharField(max_length=255, blank=True)
