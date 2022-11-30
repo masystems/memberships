@@ -331,37 +331,43 @@
                                     <h6>Membership is now active!</h6>
                                 {% endif %}
                             </div>
-                            <div class="col-lg-6 offset-lg-3">
-                                <form id="payment-form">
-                                    <div class="input-group mb-3">
-                                        <div class="input-group-prepend">
-                                            <label class="input-group-text" for="orgPaymentSelection">Select Organisation</label>
-                                        </div>
-                                        <select class="custom-select" name="org_payment_selection" id="orgPaymentSelection">
-                                            {% for subscription in member.subscription.all %}
-                                                {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member.user_account %}
-                                                    <option value="{{ subscription }}">{{subscription}}</option>
-                                                {% endif %}
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <label>Card Holders Name:</label>
-                                    <input id="cardholder-name" type="text" class="form-control" value="{{ user.get_full_name }}">
-                                    <!-- placeholder for Elements -->
-                                    <div id="card-element"></div>
-                                    <!-- Used to display Element errors. -->
-                                    <div id="card-errors" role="alert"></div>
-                                    <div class="text-center" id="cardTypes">
-                                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:50px">
-                                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:50px">
-                                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:50px">
-                                    </div>
-                                </form>
-                            </div>
-                            <hr>
+<!--                            <div class="col-lg-6 offset-lg-3">-->
+<!--                                <form id="payment-form">-->
+<!--                                    <div class="input-group mb-3">-->
+<!--                                        <div class="input-group-prepend">-->
+<!--                                            <label class="input-group-text" for="orgPaymentSelection">Select Organisation</label>-->
+<!--                                        </div>-->
+<!--                                        <select class="custom-select" name="org_payment_selection" id="orgPaymentSelection">-->
+<!--                                            {% for subscription in member.subscription.all %}-->
+<!--                                                {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member.user_account %}-->
+<!--                                                    <option value="{{ subscription }}">{{subscription}}</option>-->
+<!--                                                {% endif %}-->
+<!--                                            {% endfor %}-->
+<!--                                        </select>-->
+<!--                                    </div>-->
+<!--                                    <label>Card Holders Name:</label>-->
+<!--                                    <input id="cardholder-name" type="text" class="form-control" value="{{ user.get_full_name }}">-->
+<!--                                    &lt;!&ndash; placeholder for Elements &ndash;&gt;-->
+<!--                                    <div id="card-element"></div>-->
+<!--                                    &lt;!&ndash; Used to display Element errors. &ndash;&gt;-->
+<!--                                    <div id="card-errors" role="alert"></div>-->
+<!--                                    <div class="text-center" id="cardTypes">-->
+<!--                                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/1.png' %}" alt="Card" style="max-height:50px">-->
+<!--                                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/2.png' %}" alt="Card" style="max-height:50px">-->
+<!--                                        <img class="mt-2" src="{% static 'cloud-lines/images/cards/22.png' %}" alt="Card" style="max-height:50px">-->
+<!--                                    </div>-->
+<!--                                </form>-->
+<!--                            </div>-->
+<!--                            <hr>-->
                             <div class="card-body" id="payment-buttons">
-                                <div class="form-group mb-0 text-right">
-                                    <button id="save-membership" class="btn btn-info waves-effect waves-light">Update Card</button>
+                                <div class="form-group mb-0">
+                                    <p>Update Card details for membership subscriptions</p>
+                                    {% for subscription in member.subscription.all %}
+                                        {% if request.user == subscription.membership_package.owner or request.user in subscription.membership_package.admins.all or request.user.is_superuser or request.user == member.user_account %}
+                                            <a href="{% url 'update_card' subscription.id %}" class="btn btn-outline-info" rel="4">{{ subscription.membership_package }} - Update Card</a>
+                                        {% endif %}
+                                    {% endfor %}
+<!--                                    <button id="save-membership" class="btn btn-info waves-effect waves-light">Update Card</button>-->
                                 </div>
                             </div>
                         </div>
