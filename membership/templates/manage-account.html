@@ -52,10 +52,13 @@
                         <!-- Tabs -->
                         <div class="tab-pane" id="account-overview" role="tabpanel">
                             <div class="card-body">
-                                <div class="d-flex no-block align-items-center mb-4">
+
+                                <div class="align-items-center mb-4">
+                                    <!-- Button to link organisation to cl-->
+                                    <button type="button" class="btn btn-success float-right ml-1" data-toggle="modal" data-target="#link-org-modal">Link Cloud-Lines</button>
                                     <div class="ml-auto">
                                         <a href="{{ edit_account.url }}">
-                                            <button type="button" class="btn btn-info" style="width: 100%">
+                                            <button type="button" class="btn btn-info float-right">
                                                 <i class="fad fa-pencil-alt mr-2"></i> Edit Package
                                             </button>
                                         </a>
@@ -143,6 +146,45 @@
                                         </div><!-- /.modal-dialog -->
                                     </div><!-- /.modal -->
                                 {% endif %}
+
+                                <!-- Modal to link organisation to cl-->
+                                <div id="link-org-modal" class="modal fade" tabindex="-1" role="dialog"
+                                     aria-labelledby="delete-org-modalLabel" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header modal-colored-header bg-success">
+                                                <h4 class="modal-title text-white" id="link-org-modal">
+                                                    Link Organisation to Cloud-Lines</h4>
+                                                <button type="button" class="close" data-dismiss="modal" data-toggle="tooltip"
+                                                        title="Exit Window" aria-hidden="true">×</button>
+                                            </div>
+                                            <form id="memberForm" class="form-horizontal" action="#" method="POST">
+                                                <div class="modal-body">
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-4" for="domain">Domain name</label>
+                                                        <div class="col-sm-8">
+                                                            <input type="text" id="domain" name="domain"><br>
+                                                            <small>e.g. demo.cloud-lines.com</small>
+                                                        </div>
+
+                                                        <label class="col-sm-4 pt-2" for="token">Token</label>
+                                                        <div class="col-sm-8 pt-2">
+                                                            <input type="password" id="token" name="token"><br>
+                                                            <small>This is found in the user settings section within your Cloud-Lines account</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                                                    <a href="{% url 'link_account'
+                                                     membership_package.organisation_name %}">
+                                                        <button type="button" class="btn btn-danger">Continue</button>
+                                                    </a>
+                                                </div>
+                                            </form>
+                                        </div><!-- /.modal-content -->
+                                    </div><!-- /.modal-dialog -->
+                                </div><!-- /.modal -->
                             </div>
                         </div>
                     </div>

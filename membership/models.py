@@ -25,8 +25,10 @@ class MembershipPackage(models.Model):
     business_type = models.CharField(max_length=19, choices=BUSINESS_TYPE, default='individual',
                                 help_text="Select your business type")
     custom_fields = models.TextField(blank=True)
-    cloud_lines_account = models.CharField(max_length=100, blank=True,
+    cloud_lines_domain = models.CharField(max_length=100, blank=True, default='cloud-lines.com',
                                            help_text="Link your membership account to your cloud-lines account")
+    cloud_lines_token = models.CharField(max_length=255, blank=True)
+
     enabled = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     payment_reminder_email = models.TextField(blank=True)
