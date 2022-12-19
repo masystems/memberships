@@ -10,6 +10,7 @@ from memberships.functions import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .charging import *
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
+from .cl_sync import *
 from json import dumps, loads, JSONDecodeError
 import stripe
 from re import match
@@ -1903,8 +1904,14 @@ def enable_subscription(request, sub_id):
         return redirect('membership')
 
     session = get_checkout_session(request, subscription)
-    if session['status'] == 'paid':
+    print(session)
+    if session['status'] == 'complete':
         subscription.active = True
+        subscription.stripe_subscription_id = session['subscription']
+        stripe_subscription = get_subscription(request, subscription)
+        print(stripe_subscription)
+        subscription.membership_start = datetime.fromtimestamp(stripe_subscription['current_period_start']).strftime('%Y-%m-%d')
+        subscription.membership_expiry = datetime.fromtimestamp(stripe_subscription['current_period_end']).strftime('%Y-%m-%d')
         subscription.save()
     else:
         subscription.active = False
