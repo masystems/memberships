@@ -1737,6 +1737,8 @@ def update_membership_type(request, title, pk):
         member = Member.objects.get(id=pk)
         subscription = member.subscription.get(member=member, membership_package=package)
         price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
+        subscription.price = price
+        subscription.save()
         if request.POST.get('payment_method') != 'Card Payment':
             # if there was a previous membership type
             if subscription.price:
@@ -1904,12 +1906,10 @@ def enable_subscription(request, sub_id):
         return redirect('membership')
 
     session = get_checkout_session(request, subscription)
-    print(session)
     if session['status'] == 'complete':
         subscription.active = True
         subscription.stripe_subscription_id = session['subscription']
         stripe_subscription = get_subscription(request, subscription)
-        print(stripe_subscription)
         subscription.membership_start = datetime.fromtimestamp(stripe_subscription['current_period_start']).strftime('%Y-%m-%d')
         subscription.membership_expiry = datetime.fromtimestamp(stripe_subscription['current_period_end']).strftime('%Y-%m-%d')
         subscription.save()
