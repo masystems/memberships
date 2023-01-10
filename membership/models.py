@@ -108,6 +108,9 @@ class MembershipSubscription(models.Model):
     last_reminder = models.DateField(null=True, blank=True)
     remaining_amount = models.CharField(max_length=255, blank=True)
 
+    # cloud lines data
+    breeding_prefix = models.CharField(max_length=255, blank=True)
+
     def __str__(self):
         return self.membership_package.organisation_name
 
