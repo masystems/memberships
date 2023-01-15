@@ -6,7 +6,7 @@
 
 	<div class="text_body" style="font-family: Arial,sans-serif; font-size: 14px; background-color:white; margin: 5px 5px 5px 5px;">
 		{% if request.user.is_authenticated %}
-		    <p>Dear {{ request.user.get_full_name }},</p>
+		    <p>Dear {{ user.get_full_name }},</p>
 		{% endif %}
 
     			{% autoescape off %}
