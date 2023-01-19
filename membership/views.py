@@ -1277,24 +1277,24 @@ def member_reg_form(request, title, pk):
                     
                 except User.DoesNotExist:
                     user = User.objects.create(first_name=form.cleaned_data['first_name'],
-                                        last_name=form.cleaned_data['last_name'],
-                                        email=form.cleaned_data['email'],
-                                        username=generate_username(form.cleaned_data['first_name'],
-                                                                   form.cleaned_data['last_name']))
+                                               last_name=form.cleaned_data['last_name'],
+                                               email=form.cleaned_data['email'],
+                                               username=generate_username(form.cleaned_data['first_name'],
+                                                                          form.cleaned_data['last_name']))
 
                     member = Member.objects.create(user_account=User.objects.get(email=form.cleaned_data['email']),
-                                          title=form.cleaned_data['title'],
-                                          company=form.cleaned_data['company'],
-                                          address_line_1=form.cleaned_data['address_line_1'],
-                                          address_line_2=form.cleaned_data['address_line_2'],
-                                          town=form.cleaned_data['town'],
-                                          county=form.cleaned_data['county'],
-                                          country=form.cleaned_data['country'],
-                                          postcode=form.cleaned_data['postcode'],
-                                          contact_number=form.cleaned_data['contact_number'])
+                                                   title=form.cleaned_data['title'],
+                                                   company=form.cleaned_data['company'],
+                                                   address_line_1=form.cleaned_data['address_line_1'],
+                                                   address_line_2=form.cleaned_data['address_line_2'],
+                                                   town=form.cleaned_data['town'],
+                                                   county=form.cleaned_data['county'],
+                                                   country=form.cleaned_data['country'],
+                                                   postcode=form.cleaned_data['postcode'],
+                                                   contact_number=form.cleaned_data['contact_number'])
 
             # if member is owner, admin, or user is member
-            elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all())  or (pk != 0 and request.user == member.user_account):
+            elif (pk != 0 and request.user == membership_package.owner) or (pk != 0 and request.user in membership_package.admins.all()) or (pk != 0 and request.user == member.user_account):
                 # edit member
                 # validate email not already in use
                 try:
@@ -1378,6 +1378,8 @@ def member_reg_form(request, title, pk):
                     custom_fields[id]['field_value'] = request.POST.get(custom_fields[id]['field_name'])
                 subscription.custom_fields = dumps(custom_fields)
             subscription.save()
+
+
 
             # direct user to correct next location
             # if user is owner/admin...
@@ -1903,7 +1905,7 @@ def enable_subscription(request, sub_id):
         pass
     else:
         # you should not be here!
-        return redirect('membership')
+        return redirect('member-profile', subscription.member.id)
 
     session = get_checkout_session(request, subscription)
     if session['status'] == 'complete':
@@ -1951,7 +1953,7 @@ def enable_subscription(request, sub_id):
     send_email(f"New Member: {subscription.membership_package.organisation_name}",
             subscription.membership_package.owner.get_full_name(), body, send_to=subscription.membership_package.owner.email)
 
-    return redirect('membership')
+    return redirect('member-profile', subscription.member.id)
 
 
 class MemberProfileView(MembershipBase):
