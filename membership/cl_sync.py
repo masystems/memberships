@@ -1,62 +1,38 @@
 """
 Functions used to send data about members to cloud-lines
 """
+
 import requests
+import sys
+from json import loads, dumps
+from requests.auth import HTTPBasicAuth
 
 from membership.models import MembershipSubscription
 
 
-def add_cloud_lines_member(cloud_lines_account, member, member_type="read_only"):
-    """
-    Inform cloud-lines account of the added member by sending a POST request.
-    @param cloud_lines_account: (str) the domain of the clouod-lines account - used to form the url to send requests to
-    @param member: (Member) the new member whose details are to be sent to cloud-lines
-    """
+def add_or_edit_user_on_cl(subscription):
+    # membership_package = MembershipPackage.objects.get(organisation_name='Test Org2')
+    # member = MembershipSubscription.objects.first()
+    ## create header
+    headers = {'Content-Type': 'application/json'}
+    data = {'token': f'{subscription.membership_package.cloud_lines_token}',
+            'email': f'{subscription.member.user_account.email}',
+            'username': f'{subscription.member.user_account.email.strip().replace(" ", "").lower()}',
+            'first_name': f'{subscription.member.user_account.first_name}',
+            'last_name': f'{subscription.member.user_account.last_name}',
+            'phone': f'{subscription.member.contact_number}',
+            'permission_level': 'read_only_users'}
+    post_res = requests.post(url=f'{subscription.membership_package.cloud_lines_domain}/api/membership-add-edit-user',
+                             headers=headers,
+                             data=dumps(data))
 
-    data = {
-        "email": member.user_account.email,
-        "username": member.user_account.email,
-        "first_name": member.user_account.first_name,
-        "last_name": member.user_account.last_name,
-        "phone": member.contact_number,
-        "member_type": get_member_type(),
-    }
-    response = requests.post(f"{cloud_lines_account}/api/memberships/", json=data)
+    if post_res.status_code == 403:
+        # permission denied
+        print(post_res.json()['detail'])
+    elif post_res.status_code == 200:
+        # all good
+        print(post_res.json())
 
-
-def edit_cloud_lines_member(cloud_lines_account, member, old_member, member_type=None):
-    """
-    Inform cloud-lines account of the edited member by sending a PUT request.
-    The data sent are:
-        1. the key (to be used to get the user which has been edited)
-        2. the changes (new values the changed fields)
-    @param cloud_lines_account: (str) the domain of the clouod-lines account - used to form the url to send requests to
-    @param member: (Member) the new member whose details are to be sent to cloud-lines
-    @param changes: (dict) the details of the member before it was changed
-    """
-
-    changes = {}
-
-    # for each field that has changed, get the new value
-    if "first_name" in old_member and old_member["first_name"] != member.user_account.first_name:
-        changes.update({"first_name": member.user_account.first_name})
-    if "last_name" in old_member and old_member["last_name"] != member.user_account.last_name:
-        changes.update({"last_name": member.user_account.last_name})
-    if "phone" in old_member and old_member["phone"] != member.contact_number:
-        changes.update({"phone": member.contact_number})
-    if "member_type" in old_member and old_member["member_type"] != member_type:
-        changes.update({"member_type": member_type})
-    if "email" in old_member and old_member["email"] != member.user_account.email:
-        changes.update({"email": member.user_account.email})
-
-    if len(changes) > 0:
-        data = {
-            "key": {
-                "username": member.user_account.email
-            },
-            "changes": changes
-        }
-        response = requests.put(f"{cloud_lines_account}/api/memberships/", json=data)
 
 
 def delete_cloud_lines_member(member, cloud_lines_account):
