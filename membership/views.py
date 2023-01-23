@@ -1330,6 +1330,9 @@ def member_reg_form(request, title, pk):
 
             try:
                 subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+                # update CL if needed
+                if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
+                    add_or_edit_user_on_cl(subscription)
             except MembershipSubscription.DoesNotExist:
                 membership_number = get_next_membership_number()
 
@@ -1905,7 +1908,7 @@ def enable_subscription(request, sub_id):
         pass
     else:
         # you should not be here!
-        return redirect('member-profile', subscription.member.id)
+        return redirect('member_profile', subscription.member.id)
 
     session = get_checkout_session(request, subscription)
     if session['status'] == 'complete':
@@ -1915,6 +1918,10 @@ def enable_subscription(request, sub_id):
         subscription.membership_start = datetime.fromtimestamp(stripe_subscription['current_period_start']).strftime('%Y-%m-%d')
         subscription.membership_expiry = datetime.fromtimestamp(stripe_subscription['current_period_end']).strftime('%Y-%m-%d')
         subscription.save()
+
+        # update CL if needed
+        if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
+            add_or_edit_user_on_cl(subscription)
     else:
         subscription.active = False
         subscription.save()
@@ -1953,7 +1960,7 @@ def enable_subscription(request, sub_id):
     send_email(f"New Member: {subscription.membership_package.organisation_name}",
             subscription.membership_package.owner.get_full_name(), body, send_to=subscription.membership_package.owner.email)
 
-    return redirect('member-profile', subscription.member.id)
+    return redirect('member_profile', subscription.member.id)
 
 
 class MemberProfileView(MembershipBase):
@@ -2393,6 +2400,12 @@ def update_user(request, pk):
         member.contact_number = request.POST.get('user-settings-phone')
         member.company = request.POST.get('user-settings-company')
         member.save()
+
+        # update CL if needed
+        subscriptions = MembershipSubscription.objects.filter(member=member)
+        for subscription in subscriptions:
+            if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
+                add_or_edit_user_on_cl(subscription)
 
         return HttpResponse(True)
 
