@@ -36,12 +36,13 @@ class GetStripePayments:
                     amount = payment['amount_paid']
                     created = datetime.fromtimestamp(payment['created'])
                     stripe_id = payment['charge']
-                    Payment.objects.create(subscription=subscription,
-                                           payment_number=payment_number,
-                                           type=type,
-                                           amount=amount,
-                                           created=created,
-                                           stripe_id=stripe_id)
+                    if stripe_id:
+                        Payment.objects.create(subscription=subscription,
+                                               payment_number=payment_number,
+                                               type=type,
+                                               amount=amount,
+                                               created=created,
+                                               stripe_id=stripe_id)
 
 
 if __name__ == '__main__':
