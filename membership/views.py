@@ -1911,7 +1911,7 @@ def enable_subscription(request, sub_id):
         return redirect('member_profile', subscription.member.id)
 
     session = get_checkout_session(request, subscription)
-    if session['status'] == 'complete':
+    if session['payment_status'] == 'paid':
         subscription.active = True
         subscription.stripe_subscription_id = session['subscription']
         stripe_subscription = get_subscription(request, subscription)
@@ -1920,8 +1920,8 @@ def enable_subscription(request, sub_id):
         subscription.save()
 
         # update CL if needed
-        if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
-            add_or_edit_user_on_cl(subscription)
+        # if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
+        #     add_or_edit_user_on_cl(subscription)
     else:
         subscription.active = False
         subscription.save()
