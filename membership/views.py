@@ -1904,7 +1904,9 @@ def update_membership_type(request, title, pk):
 def enable_subscription(request, sub_id):
     subscription = MembershipSubscription.objects.get(id=sub_id)
     # validate user is allow to approve this
-    if request.user in subscription.membership_package.admins.all() or request.user == subscription.membership_package.owner:
+    if request.user in subscription.membership_package.admins.all() or \
+            request.user == subscription.membership_package.owner or \
+        request.user == subscription.member.user_account:
         pass
     else:
         # you should not be here!
