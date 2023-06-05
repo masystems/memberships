@@ -91,11 +91,34 @@
                                         </div>
                                     </div>
                                 </div>
-                                <!-- generate report -->
-                                {% if membership_package.organisation_name == 'Suffolk Horse Society' or request.user.is_superuser %}
-                                    {% if request.user == membership_package.owner or request.user in membership_package.admins.all %}
+                                <!-- generate reports -->
+                                <div>
+                                    <hr>
+                                    <a class="float-right" href="{% url 'reports' membership_package.organisation_name 'mailing-list' 'xlsx' %}"><button class="btn btn-success">Generate Mailing List Report</button></a>
+                                    <h4 class="card-title">Mailing List Report</h4>
+                                    <p>
+                                        Generate report to export users compatable for common mailing lists.
+                                    </p>
+                                    <p>
+                                        A spreadsheet will be created which contains the following details for members that have active subscriptions and have not ticked the "Do not mail" tickbox:
+                                        <ul>
+                                            <li>Title</li>
+                                            <li>First Name</li>
+                                            <li>Surname</li>
+                                            <li>Company Name</li>
+                                            <li>Address 1</li>
+                                            <li>Address 2</li>
+                                            <li>Address 3</li>
+                                            <li>Address 4</li>
+                                            <li>Postcode</li>
+                                            <li>Country</li>
+                                        </ul>
+                                    </p>
+                                </div>
+                                <!-- {% if membership_package.organisation_name == 'Suffolk Horse Society' or request.user.is_superuser %}
+                                    {% if request.user == membership_package.owner or request.user in membership_package.admins.all %} -->
                                         <!-- raffle report -->
-                                        <div>
+                                        <!-- <div>
                                             <hr>
                                             <a class="float-right" href="{% url 'reports' membership_package.organisation_name 'raffle' 'xlsx' %}"><button class="btn btn-success">Generate Raffle Tickets Report</button></a>
                                             <h4 class="card-title">Generate Raffle Tickets Report</h4>
@@ -121,7 +144,6 @@
                                                 </ul>
                                             </p>
                                         </div>
-                                        <!-- gift aid report -->
                                         <div>
                                             <hr>
                                             <a class="float-right" href="{% url 'reports' membership_package.organisation_name 'gift_aid' 'xlsx' %}"><button class="btn btn-success">Generate Gift Aid Report</button></a>
@@ -132,9 +154,9 @@
                                             <p>
                                                 The generated spreadsheet will produce a similar report to the raffle tickets report, detailed above, but containing details for active members who have ticked the "Gift aid decision" tickbox, instead of those who have not ticked the "Do not mail" tickbox. Also, "Raffle Tickets" information will not be included.
                                             </p>
-                                        </div>
-                                    {% endif %}
-                                {% endif %}
+                                        </div> -->
+                                    <!-- {% endif %}
+                                {% endif %} -->
                             </div>
                         </div>
                     </div>
