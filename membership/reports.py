@@ -69,32 +69,32 @@ def reports(request, title, report, file_type):
                     raffle_tickets = 'Yes'
                     custom_fields = loads(subscription.custom_fields)
 
-                    for key, field in custom_fields.items():
-                        # do not mail
-                        if field['field_name'] == 'Do not mail':
-                            try:
-                                # do not mail is true, so don't mail
-                                if field['field_value']:
-                                    mail = False
-                                    break
-                            # they haven't ever ticked the box, so mail
-                            except KeyError:
-                                pass
+                    # for key, field in custom_fields.items():
+                        # # do not mail
+                        # if field['field_name'] == 'Do not mail':
+                        #     try:
+                        #         # do not mail is true, so don't mail
+                        #         if field['field_value']:
+                        #             mail = False
+                        #             break
+                        #     # they haven't ever ticked the box, so mail
+                        #     except KeyError:
+                        #         pass
                         # second name
-                        elif field['field_name'] == 'Second name':
-                            try:
-                                second_name = field['field_value']
-                            except KeyError:
-                                pass
-                        # raffle tickets
-                        elif field['field_name'] == 'No raffle tickets':
-                            try:
-                                # no raffle tickets is true, so no
-                                if field['field_value']:
-                                    raffle_tickets = 'No'
-                            # they haven't ever ticked the box, so yes
-                            except KeyError:
-                                pass
+                        # elif field['field_name'] == 'Second name':
+                        #     try:
+                        #         second_name = field['field_value']
+                        #     except KeyError:
+                        #         pass
+                        # # raffle tickets
+                        # elif field['field_name'] == 'No raffle tickets':
+                        #     try:
+                        #         # no raffle tickets is true, so no
+                        #         if field['field_value']:
+                        #             raffle_tickets = 'No'
+                        #     # they haven't ever ticked the box, so yes
+                        #     except KeyError:
+                        #         pass
 
                     # try to get membership type
                     try:
