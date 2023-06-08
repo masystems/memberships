@@ -52,6 +52,7 @@ class Price(models.Model):
     )
     interval = models.CharField(max_length=19, choices=INTERVAL, null=True, default='monthly',
                                       help_text="Payment frequency")
+    currency = models.CharField(max_length=255, default="GBP", blank=True)
     amount = models.CharField(max_length=255, blank=True)
     visible = models.BooleanField(default=True)
     active = models.BooleanField(default=False)

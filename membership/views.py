@@ -170,6 +170,7 @@ def manage_membership_types(request, title):
                     request.POST.get('type_id'),
                     # recurring={"interval": request.POST.get('interval')},
                     nickname=request.POST.get('nickname'),
+                    currency=request.POST.get('currency'),
                     # unit_amount=int(float(request.POST.get('amount')) * 100),
                     stripe_account=membership_package.stripe_acct_id
                 )
@@ -184,7 +185,7 @@ def manage_membership_types(request, title):
                     price = stripe.Price.create(
                         request.POST.get('type_id'),
                         product=membership_package.stripe_product_id,
-                        currency="gbp",
+                        currency=request.POST.get('currency'),
                         nickname=request.POST.get('nickname'),
                         unit_amount=int(float(request.POST.get('amount')) * 100),
                         stripe_account=membership_package.stripe_acct_id
@@ -207,7 +208,7 @@ def manage_membership_types(request, title):
                     price = stripe.Price.create(
                         request.POST.get('type_id'),
                         product=membership_package.stripe_product_id,
-                        currency="gbp",
+                        currency=request.POST.get('currency'),
                         recurring={"interval": request.POST.get('interval')},
                         nickname=request.POST.get('nickname'),
                         unit_amount=int(float(request.POST.get('amount')) * 100),
@@ -218,6 +219,7 @@ def manage_membership_types(request, title):
                                         nickname=price.nickname,
                                         interval=price.recurring.interval,
                                         visible=visible_value,
+                                        currency=request.POST.get('currency'),
                                         amount=price.unit_amount,
                                         active=True)
                     return HttpResponse(dumps({'status': "success",
@@ -229,6 +231,7 @@ def manage_membership_types(request, title):
     else:
         membership_types_list = []
         price_list = []
+        from membership.currencies import get_currencies
 
         for price in Price.objects.filter(membership_package=membership_package, active=True):
             membership_types_list.append(stripe.Price.retrieve(price.stripe_price_id, stripe_account=membership_package.stripe_acct_id))
@@ -236,7 +239,8 @@ def manage_membership_types(request, title):
 
         return render(request, 'manage-membership-types.html', {'membership_package': membership_package,
                                                                 'membership_types_list': membership_types_list,
-                                                                'price_list': price_list})
+                                                                'price_list': price_list,
+                                                                'currencies': get_currencies()})
 
 
 @login_required(login_url='/accounts/login/')
