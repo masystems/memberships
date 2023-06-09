@@ -1898,8 +1898,12 @@ def update_membership_type(request, title, pk):
                     return HttpResponse(dumps({'status': "success",
                                            'redirect': True}), content_type='application/json')
             else:
+                if subscription.price.interval == 'one_time':
+                    mode = 'payment'
+                else:
+                    mode = 'subscription'
                 # NEW subscription, create session
-                session_url = create_charging_session(request, package, member, subscription, price)
+                session_url = create_charging_session(request, package, member, subscription, price, mode)
                 # return and redirect to stripe
                 return HttpResponse(dumps({'status': "success", 'session_url': session_url}), content_type='application/json')
 

@@ -194,7 +194,6 @@
                         } else {
                             // redirect to payment session
                             window.location.replace(result.session_url);
-<!--                        generateCardToken(result['old_price']);-->
                         }
                     }
                  },
@@ -202,106 +201,5 @@
                 }
             });
         }
-
-<!--        // STRIPE STUFF-->
-<!--        var stripe = Stripe('{{ public_api_key }}');-->
-<!--        var elements = stripe.elements();-->
-
-<!--        // Custom styling can be passed to options when creating an Element.-->
-<!--        var style = {-->
-<!--          base: {-->
-<!--            color: '#32325d',-->
-<!--            fontFamily: '"Helvetica Neue", Helvetica, sans-serif',-->
-<!--            fontSmoothing: 'antialiased',-->
-<!--            fontSize: '24px',-->
-<!--            '::placeholder': {-->
-<!--              color: '#aab7c4'-->
-<!--            }-->
-<!--          },-->
-<!--          invalid: {-->
-<!--            color: '#fa755a',-->
-<!--            iconColor: '#fa755a'-->
-<!--          }-->
-<!--        };-->
-
-<!--        // Create an instance of the card Element.-->
-<!--        var card = elements.create('card', {style: style});-->
-
-<!--        // Add an instance of the card Element into the `card-element` <div>.-->
-<!--        card.mount('#card-element');-->
-
-
-<!--        card.addEventListener('change', function(event) {-->
-<!--          var displayError = document.getElementById('card-errors');-->
-<!--          if (event.error) {-->
-<!--            displayError.textContent = event.error.message;-->
-<!--            $('#overlay-spinner').modal('hide');-->
-<!--          } else {-->
-<!--            displayError.textContent = '';-->
-<!--          }-->
-<!--        });-->
-
-<!--        // Create a token or display an error when the form is submitted.-->
-<!--        function generateCardToken(old_price) {-->
-<!--            stripe.createToken(card).then(function(result) {-->
-<!--                if (result.error) {-->
-<!--                    // Inform the customer that there was an error.-->
-<!--                    var errorElement = document.getElementById('card-errors');-->
-<!--                    $('#overlay-spinner').modal('hide');-->
-<!--                    errorElement.textContent = result.error.message;-->
-<!--                } else {-->
-<!--                    // Send the token to your server.-->
-<!--                    stripeTokenHandler(result.token, old_price);-->
-<!--                }-->
-<!--            });-->
-<!--        }-->
-
-<!--        function stripeTokenHandler(token, old_price) {-->
-
-<!--            // Submit the token-->
-<!--            $.ajax({-->
-<!--                url: '{% url 'member_payment' package.organisation_name member.id %}',-->
-<!--                type: 'post',-->
-<!--                dataType: 'text',-->
-<!--                headers: {'X-CSRFToken': '{{ csrf_token }}'},-->
-<!--                data: {-->
-<!--                    'token': token,-->
-<!--                    'old_price': old_price,-->
-<!--                    },-->
-<!--                beforeSend: function() {-->
-<!--                    $('#paymentSuccess').addClass('d-none');-->
-<!--                    $('#paymentFail').addClass('d-none');-->
-<!--                },-->
-<!--                success: function(data) {-->
-<!--                    var result = JSON.parse(data);-->
-<!--                    if (result.result == 'fail') {-->
-<!--                        $('#overlay-spinner').modal('hide');-->
-<!--                        $('#card-errors').html(result.feedback);-->
-<!--                    } else {-->
-<!--                        $('#existing-customer-details').addClass('d-none');-->
-<!--                        $('#payment-form').addClass('d-none');-->
-<!--                        $('#payment-buttons').addClass('d-none');-->
-<!--                        loadSuccessPage(result);-->
-<!--                    }-->
-<!--                 },-->
-<!--                error: function(jqXHR, textStatus, errorThrown){-->
-<!--                    console.log('jqXHR:');-->
-<!--                    console.log(jqXHR);-->
-<!--                    console.log('textStatus:');-->
-<!--                    console.log(textStatus);-->
-<!--                    console.log('errorThrown:');-->
-<!--                    console.log(errorThrown);-->
-<!--                }-->
-<!--            });-->
-<!--        }-->
-
-<!--        function loadSuccessPage(result) {-->
-<!--            $('#overlay-spinner').modal('hide');-->
-
-<!--            //update layout-->
-<!--            $('#result').removeClass('d-none');-->
-<!--            $('#receipt').attr("href", result.receipt);-->
-<!--            $('#goToMemberPageLink').attr("href", '/membership/member-profile/{{ member.pk }}');-->
-<!--        }-->
     </script>
 {% endblock %}
