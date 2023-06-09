@@ -27,7 +27,7 @@ def get_stripe_public_key(request):
 
 
 @login_required(login_url="/account/login")
-def create_charging_session(request, package, member, subscription, price):
+def create_charging_session(request, package, member, subscription, price, mode='subscription'):
     stripe.api_key = get_stripe_secret_key(request)
 
     # get or create customer
@@ -50,7 +50,7 @@ def create_charging_session(request, package, member, subscription, price):
                 "quantity": 1,
             },
         ],
-        mode='subscription',
+        mode=mode,
         customer=customer.id,
         success_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}/membership/enable_subscription/{subscription.id}",
         cancel_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}/membership",
