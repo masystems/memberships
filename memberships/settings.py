@@ -19,6 +19,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'crispy_forms',
+    'crispy_bootstrap4',
 ]
 
 AUTHENTICATION_BACKENDS = (
@@ -102,3 +103,5 @@ USE_L10N = False
 USE_TZ = True
 
 TEST_STRIPE_DOMAINS = ['localhost:8000']
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
