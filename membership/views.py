@@ -488,6 +488,7 @@ def manage_account(request, title):
                                                     'edit_account': edit_account,
                                                     'stripe_package': stripe_package,
                                                     'members': members,
+                                                    'payments': stripe.PaymentIntent.list(customer=membership_package.stripe_owner_id, limit=100),
                                                   })
 
 
