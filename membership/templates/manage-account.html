@@ -116,7 +116,7 @@
                                     </table>
                                 </div>
                                 <hr>
-                                <h3 class="text-dark">Payments</h3>
+                                <h3 class="text-dark">Invoices</h3>
                                 <div class="table-responsive">
                                     <table class="table table-bordered nowrap display" id="accountDetailsTable">
                                         <thead>
@@ -124,14 +124,16 @@
                                                 <th>Date</th>
                                                 <th>Amount</th>
                                                 <th>Status</th>
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {% for payment in payments.data %}
+                                            {% for invoice in invoices %}
                                             <tr>
-                                                <td>{{ payment.created|parsetimestamp }}</td>
-                                                <td>{{ payment.amount|price }} {{ payment.currency|upper }}</td>
-                                                <td>{{ payment.status|title }}</td>
+                                                <td>{{ invoice.created|parsetimestamp }}</td>
+                                                <td>{{ invoice.amount_due|price }} {{ invoice.currency|upper }}</td>
+                                                <td>{{ invoice.status|title }}</td>
+                                                <td><a href="https://stripe.com{{ invoice.lines.url }}"><button class="btn btn-info"></button></a></td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
