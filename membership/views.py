@@ -482,13 +482,20 @@ def manage_account(request, title):
         except stripe.error.InvalidRequestError:
             # account not created yet
             pass
+    
+    payments = stripe.PaymentIntent.list(customer=membership_package.stripe_owner_id, limit=100)
+    invoices = []
+    for payment_intent in payments:
+        if 'invoice' in payment_intent:
+            # Retrieve the invoice
+            invoices.append(stripe.Invoice.retrieve(payment_intent['invoice']))
 
     return render(request, 'manage-account.html', {
                                                     'membership_package': membership_package,
                                                     'edit_account': edit_account,
                                                     'stripe_package': stripe_package,
                                                     'members': members,
-                                                    'payments': stripe.PaymentIntent.list(customer=membership_package.stripe_owner_id, limit=100),
+                                                    'invoices': invoices,
                                                   })
 
 
