@@ -14,6 +14,7 @@ django.setup()
 from django.conf import settings
 from membership.models import MembershipPackage, Payment, MembershipSubscription
 from memberships.functions import *
+from .charging import *
 
 
 class GetStripePayments:

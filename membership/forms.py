@@ -16,6 +16,7 @@ class MembershipPackageForm(forms.ModelForm):
                    'stripe_acct_id',
                    'stripe_owner_id',
                    'stripe_product_id',
+                   'stripe_subscription_id',
                    'bolton',
                    'custom_fields',
                    'cloud_lines_account',

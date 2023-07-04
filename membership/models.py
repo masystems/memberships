@@ -10,7 +10,7 @@ class MembershipPackage(models.Model):
     stripe_acct_id = models.CharField(max_length=255, blank=True)
     stripe_owner_id = models.CharField(max_length=255, blank=True)
     stripe_product_id = models.CharField(max_length=255, blank=True)
-
+    stripe_subscription_id = models.CharField(max_length=255, blank=True)
     BOLTONS = (
         ('none', 'None'),
         ('equine', 'Equine'),

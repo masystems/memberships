@@ -133,7 +133,7 @@
                                                 <td>{{ invoice.created|parsetimestamp }}</td>
                                                 <td>{{ invoice.amount_due|price }} {{ invoice.currency|upper }}</td>
                                                 <td>{{ invoice.status|title }}</td>
-                                                <td><a href="https://invoice.stripe.com{{ invoice.lines.url }}" target="_blank"><button class="btn btn-info">View</button></a></td>
+                                                <td><a href="{{ invoice.hosted_invoice_url }}" target="_blank"><button class="btn btn-info">View</button></a></td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>

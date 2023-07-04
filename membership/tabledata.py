@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirec
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from memberships.functions import *
+from .charging import *
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Donation
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
 from json import dumps, loads, JSONDecodeError
