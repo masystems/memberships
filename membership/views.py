@@ -483,12 +483,11 @@ def manage_account(request, title):
             # account not created yet
             pass
     
-    payments = stripe.PaymentIntent.list(customer=membership_package.stripe_owner_id, limit=100)
-    invoices = []
-    for payment_intent in payments:
-        if 'invoice' in payment_intent:
-            # Retrieve the invoice
-            invoices.append(stripe.Invoice.retrieve(payment_intent['invoice']))
+    if membership_package.stripe_subscription_id not in ['', None]:
+        subscription = stripe.Subscription.retrieve(membership_package.stripe_subscription_id)
+        invoices = stripe.Invoice.list(subscription=subscription, limit=100)
+    else:
+        invoices = []
 
     return render(request, 'manage-account.html', {
                                                     'membership_package': membership_package,
@@ -845,61 +844,9 @@ def create_stripe_subscription(request):
 @login_required(login_url='/accounts/login/')
 def organisation_payment(request):
     membership_package = MembershipPackage.objects.get(owner=request.user)
-
-    # # get package IDs
-    # if request.user.is_superuser:
-    #     price_id = settings.MEMBERSHIP_ORG_PRICE_TEST_ID
-    # else:
-    #     price_id = settings.MEMBERSHIP_ORG_PRICE_ID
-
-    # get strip secret key
-    # stripe.api_key = get_stripe_secret_key(request)
-
     session_url = org_charging_session(request, membership_package)
     return HttpResponse(dumps({'result': 'payment_redirect', 'url': session_url}))
-        # # create or get customer id
-        # if not membership_package.stripe_owner_id:
-        #     # create stripe user
-        #     customer = stripe.Customer.create(
-        #         name=request.user.get_full_name(),
-        #         email=request.user.email
-        #     )
-        #     customer_id = customer['id']
-        #     membership_package.stripe_owner_id = customer_id
-        #     membership_package.save()
-        # else:
-        #     stripe.Customer.modify(
-        #         membership_package.stripe_owner_id,
-        #         name=request.user.get_full_name(),
-        #         email=request.user.email
-        #     )
-        #
-        # # validate the card
-        # result = validate_card(request, 'package')
 
-
-        # if result['result'] == 'fail':
-        #     return HttpResponse(dumps(result))
-        #
-        # subscription = stripe.Subscription.create(
-        #     customer=membership_package.stripe_owner_id,
-        #     items=[
-        #         {
-        #             "plan": price_id,
-        #         },
-        #     ],
-        # )
-        # if subscription['status'] != 'active':
-        #     result = {'result': 'fail',
-        #               'feedback': f"<strong>Failure message:</strong> <span class='text-danger'>{subscription['status']}</span>"}
-        #     return HttpResponse(dumps(result))
-        # else:
-        #     invoice = stripe.Invoice.list(customer=membership_package.stripe_owner_id, subscription=subscription.id, limit=1)
-        #     receipt = stripe.Charge.list(customer=membership_package.stripe_owner_id)
-        #
-        #     result = {'result': 'success',
-        #               'invoice': invoice.data[0].invoice_pdf,
-        #               'receipt': receipt.data[0].receipt_url}
 
 @login_required(login_url='/accounts/login/')
 def organisation_payment_success(request):
