@@ -430,7 +430,6 @@ def get_all_member_payments(request, title):
     end = int(request.POST.get('length', 20))
     search = request.POST.get('search[value]', "")
     sort_by = request.POST.get(f'columns[{request.POST.get("order[0][column]")}][data]')
-    stripe.api_key = get_stripe_secret_key(request)
 
     # desc or asc
     if request.POST.get('order[0][dir]') == 'asc':
@@ -472,8 +471,7 @@ def get_all_member_payments(request, title):
                                               Q(gift_aid_percentage__icontains=search) |
                                               Q(amount__icontains=search),
                                               subscription__membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
-    # get stripe payments
-    #total_payments = Payment.objects.filter(subscription__membership_package=membership_package).distinct().count()
+
     if search == "":
         total_payments = Payment.objects.filter(subscription__membership_package=membership_package).distinct().count()
     else:
@@ -502,14 +500,18 @@ def get_all_member_payments(request, title):
             # set method to card if it doesn't exist
             if payment.payment_method:
                 method = payment.payment_method.payment_name
+                send_receipt = ""
             else:
                 method = 'Card Payment'
+                send_receipt = f'<a href="/membership/email-payment-receipt/{payment.id}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info"></i></button></a>'
             
             # set params
             payments.append({
                                 'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
                                                                                                     'pk': payment.subscription.member.id, 'payment_id': payment.id})}?next=payments_detailed"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
-                                                <a href="javascript:deletePayment({payment.subscription.member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
+                                                {send_receipt}
+                                                <a href="javascript:deletePayment({payment.subscription.member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>
+                                                """,
                                 'payment_id': payment.payment_number,
                                 'name': payment.subscription.member.user_account.get_full_name(),
                                 'membership_id': payment.subscription.membership_number,

@@ -3,27 +3,28 @@ from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.base import TemplateView
 from django.contrib.auth.decorators import login_required, user_passes_test
-
-
-
 import json
 import stripe
 
 
-@login_required(login_url="/account/login")
-def get_stripe_secret_key(request):
-    if request.META['HTTP_HOST'] in settings.TEST_STRIPE_DOMAINS:
-        return settings.STRIPE_SECRET_TEST_KEY
+def get_stripe_secret_key(request=None):
+    if request:
+        if request.META['HTTP_HOST'] in settings.TEST_STRIPE_DOMAINS:
+            return settings.STRIPE_SECRET_TEST_KEY
+        else:
+            return settings.STRIPE_SECRET_KEY
     else:
-        return settings.STRIPE_SECRET_KEY
+        return settings.STRIPE_SECRET_TEST_KEY
 
 
-@login_required(login_url="/account/login")
-def get_stripe_public_key(request):
+def get_stripe_public_key(request=None):
+    if request:
         if request.META['HTTP_HOST'] in settings.TEST_STRIPE_DOMAINS:
             return settings.STRIPE_PUBLIC_TEST_KEY
         else:
             return settings.STRIPE_PUBLIC_KEY
+    else:
+        return settings.STRIPE_PUBLIC_TEST_KEY
 
 
 @login_required(login_url="/account/login")

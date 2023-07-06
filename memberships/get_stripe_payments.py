@@ -7,6 +7,7 @@ import stripe
 from json import loads
 from datetime import datetime
 
+#sys.path.append('/opt/memberships/dev-memberships')
 sys.path.append('/opt/memberships/memberships')
 os.environ["DJANGO_SETTINGS_MODULE"] = "memberships.settings"
 django.setup()
@@ -14,11 +15,12 @@ django.setup()
 from django.conf import settings
 from membership.models import MembershipPackage, Payment, MembershipSubscription
 from memberships.functions import *
-from .charging import *
+from membership.charging import *
 
 
 class GetStripePayments:
     def __init__(self):
+        #stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
         stripe.api_key = settings.STRIPE_SECRET_KEY
 
     def run(self):
