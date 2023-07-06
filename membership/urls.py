@@ -33,6 +33,7 @@ urlpatterns = [
     path('member-payment-form-edit/<str:title>/<int:pk>/<int:payment_id>/', views.member_payment_form_edit, name="member_payment_form_edit"),
     path('get-member-payments/<str:title>/<int:pk>', tabledata.get_member_payments, name="get_member_payments"),
     path('get-all-member-payments/<str:title>', tabledata.get_all_member_payments, name="get_all_member_payments"),
+    path('email-payment-receipt/<int:payment_id>', views.email_payment_receipt, name="email_payment_receipt"),
     path('member-form/<str:title>/<int:pk>', views.member_reg_form, name="member_form"),
     path('member-bolton-form/<str:title>/<int:pk>', views.member_bolton_form, name="member_bolton_form"),
     path('edit-sub-comment/<int:id>', views.edit_sub_comment, name="edit_sub_comment"),

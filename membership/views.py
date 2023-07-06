@@ -2340,6 +2340,41 @@ def member_payment_form_edit(request, title, pk, payment_id):
                                                       'next_page': request.GET.get('next', '')})
 
 
+def email_payment_receipt(request, payment_id):
+    payment = Payment.objects.get(id=payment_id)
+    membership_package = payment.subscription.membership_package
+    member = payment.subscription.member
+
+    if request.user in payment.subscription.membership_package.admins.all() or \
+    request.user == payment.subscription.membership_package.owner:
+        # get invoice from stripe
+        stripe.api_key = get_stripe_secret_key(request)
+        charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
+        invoice = stripe.Invoice.retrieve(charge.invoice, stripe_account=membership_package.stripe_acct_id)
+
+        # send email
+        body = f"""
+        Click <a href="{invoice.hosted_invoice_url}">HERE</a> to view your receipt
+
+        or copy the below URL into your browser.
+        {invoice.hosted_invoice_url}
+        """
+        send_email(f"Payment Receipt: {membership_package.organisation_name}",
+        member.user_account.get_full_name(), body, send_to=member.user_account.email)
+
+        # return user back to last page
+        referer_url = request.META.get('HTTP_REFERER')
+        if referer_url:
+            # If the referrer URL exists, redirect back to it
+            return HttpResponseRedirect(referer_url)
+        else:
+            # If not, redirect to a default page (e.g., home page)
+            return HttpResponseRedirect('/')
+    else:
+        # failed security
+        return HttpResponseRedirect('/')
+
+
 @login_required(login_url="/accounts/login")
 def update_user(request, pk):
     # where the user can update their own basic information
