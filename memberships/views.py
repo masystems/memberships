@@ -279,6 +279,21 @@ def send_payment_error(error):
     return feedback
 
 
+class HomeBase(TemplateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
+
+class HomePage(HomeBase):
+    template_name = 'home.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect('dashboard')
+        else:
+            return super().get(request, *args, **kwargs)
+
+
 class DashboardBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -287,7 +302,7 @@ class DashboardBase(TemplateView):
 
 class Dashboard(LoginRequiredMixin, DashboardBase):
     template_name = 'dashboard.html'
-    login_url = '/accounts/login'
+    login_url = '/accounts/login/'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -305,6 +320,7 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
             pass
 
         return context
+
 
 
 class HomeBase(TemplateView):

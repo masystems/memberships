@@ -1,0 +1,146 @@
+{% extends 'homebase.html' %}
+{% load static %}
+{% load custom_tags %}
+{% block header %}
+
+<style>
+    .dark-background {
+      background-color: rgba(0, 0, 0, 0.5); /* Black background with 0.5 opacity */
+      color: white; /* White text color */
+      border-radius: 10px; /* Rounded edges */
+      padding: 10px; /* Some padding to ensure content does not touch the border */
+    }
+  </style>
+
+{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+<div class="container-fluid">
+    <!-- Row -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <img class="card-img-top" src="{% static 'assets/images/background/login-register.jpg' %}" alt="Card image cap" style="max-height: 450px">
+                <div class="card-img-overlay">
+                    <div class="dark-background">
+                        <span><i class="fad fa-clouds display-4"></i></span>
+                        <br>
+                        <span class="display-6">Cloud-Lines Memberships
+                        <span class="font-20"></span>
+                        </span>
+                        <span class="font-20"></span>
+                        <span class="font-20">
+                        <span class="font-size-16"></span>
+                        </span>
+                        <p class="font-14 mb-0">Manage your organisations memberships</p>
+                    </div>
+                    <h4 class="text-white mt-4">Already a member?</h4>
+                    <a href="{% url 'account_login' %}"><button class="btn btn-info mt-2">Login</button></a>
+                    <a href="{% url 'account_signup' %}"><button class="btn btn-info mt-2">Register</button></a>
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="row text-center">
+                                <div class="col-12 col-xl-2 col-lg-6 col-md-6 col-sm-12 border-right">
+                                    <div class="mb-2"><strong>Simple Member sign-up</strong></div>
+                                    <i class="fad fa-file-signature fa-3x mb-2"></i>
+                                    <div>
+                                        <p>Cloud-Lines Memberships makes the process of joining your membership organsation as simple as possible. Once prospective members have signed-up to CLM, their dashboard enables them to join any organisation using CLM with just 2 clicks!
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-2 col-lg-6 col-md-6 col-sm-12 border-right">
+                                    <div class="mb-2"><strong>Subscription-based card payments</strong></div>
+                                    <i class="fad fa-credit-card-blank fa-3x mb-2"></i>
+                                    <div>
+                                        <p>Still spending hours chasing payments throughout the year? CLM uses the subscription payment model to setup recurring annual or monthly payments. This means chasing members for payments can be a thing of the past! What will you do with all that free time?!
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-2 col-lg-6 col-md-6 col-sm-12 border-right">
+                                    <div class="mb-2"><strong>>Record Offline payments</strong></div>
+                                    <i class="fad fa-money-bill-alt fa-3x mb-2"></i>
+                                    <div>
+                                        <p>It's a fact of modern life that payment systems need to accomodate both offline payments and electronic card payments. CLM provides the functionality to record Cheque, Standing-Order, Paypal, or any other external or "offline" payment type.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-2 col-lg-6 col-md-6 col-sm-12 border-right">
+                                    <div class="mb-2"><strong>Payment reminders</strong></div>
+                                    <i class="fad fa-envelope-open-dollar fa-3x mb-2"></i>
+                                    <div>
+                                        <p>CLM provide Admins a clear view of those members who have overdue payments (usually offline payers). A simple 2-click function enables the admin to send customised payment reminders to overdue members, logging the reminder in an audit trail.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-2 col-lg-6 col-md-6 col-sm-12 border-right">
+                                    <div class="mb-2"><strong>Invoicing & receipts</strong></div>
+                                    <i class="fad fa-receipt fa-3x mb-2"></i>
+                                    <div>
+                                        <p>Full integration with Stripe (card payments), and a whole bunch of receipt & invoice templates for offline-payers, means invoicing & receipts within CLM are a breeze.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-xl-2 col-lg-6 col-md-6 col-sm-12">
+                                    <div class="mb-2"><strong>Donations</strong></div>
+                                    <i class="fad fa-donate fa-3x mb-2"></i>
+                                    <div>
+                                        <p>If your organisation is able to accept donations, CLM not only records those payments, but also gives you a set of handy HTML buttons for your website or social-media presence - making it as easy as possible for people to donate.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Row -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <p>
+                        Cloud-Lines-Memberships is an easy-to-use membership management system which offers a more streamlined way to manage members, simplify new-member sign-up, and optionally integrate with an existing Cloud-Lines.com package.
+                    </p>
+                    <p>
+                        Cloud-Lines-Memberships functions as a stand-alone membership management system for any type of membership organisation, but is especially tuned to the Livestock & Animal Breeding sectors. Breed Societies, Oversight Organisations, NGOs, and Charities within those sectors will find CLM an intuitive system, tuned to their day-to-day requirements.
+                    </p>
+                    <p>
+                        The optional integration with an existing Cloud-Lines.com package (pedigrees) ensures that new members are given access to your breeding system as soon as they're signed-up & paid. This integration also ensure that lapsed or removed members have their Cloud-Lines.com access similarly removed.
+                    </p>
+                    <p>
+                        Get in touch today to discuss your memberships management needs!
+                    </p>
+                    <p>
+                        <a href="mailto:contact@masys.co.uk">Email Us!</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Container fluid  -->
+<!-- ============================================================== -->
+
+{% endblock %}
+
+{% block footer %}
+    <script>
+        
+    </script>
+
+{% endblock %}
