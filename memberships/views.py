@@ -3,6 +3,7 @@ from django.views.generic.base import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
+from allauth.account.forms import LoginForm
 from membership.models import MembershipPackage, Member, MembershipSubscription, Donation
 from .functions import *
 from json import dumps
@@ -282,6 +283,7 @@ def send_payment_error(error):
 class HomeBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['form'] = LoginForm()
         return context
 
 class HomePage(HomeBase):
@@ -319,16 +321,4 @@ class Dashboard(LoginRequiredMixin, DashboardBase):
         except MembershipPackage.DoesNotExist:
             pass
 
-        return context
-
-
-
-class HomeBase(TemplateView):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        return context
-
-class Home(HomeBase):
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
         return context
