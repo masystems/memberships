@@ -283,13 +283,13 @@ def send_payment_error(error):
 class HomeBase(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = LoginForm()
         return context
 
 class HomePage(HomeBase):
     template_name = 'home.html'
 
     def get(self, request, *args, **kwargs):
+        print('this')
         if request.user.is_authenticated:
             return redirect('dashboard')
         else:

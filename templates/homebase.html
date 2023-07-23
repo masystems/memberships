@@ -1,7 +1,5 @@
 {% load static %}
-{% load crispy_forms_tags %}
-{% load i18n %}
-{% load account socialaccount %}
+
 
 <!DOCTYPE html>
 <html dir="ltr" lang="en">
@@ -99,39 +97,27 @@
                             <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <span class=""><button class="btn btn-info"><i class="fad fa-sign-in mr-2"></i>Login/Create Account</button></span>
                             </a>
-                            <form id="donationForm">
-                                <div class="dropdown-menu animated bounceInDown">
-                                    <div class="mega-dropdown-menu row">
-                                        <div class="col-lg-3 col-xlg-2 mb-4">
-                                            <p>Use the login form to login to your existing account or use the below link to register in order to create your own membership account or become a member of an existing account.</p>
-                                            <a href="{% url 'account_signup' %}"><button class="btn btn-info mt-2">Register</button></a>
-                                        </div>
-                                        <div class="col-lg-3  mb-4">
-                                            <h4 class="mb-3">Login</h4>
-
-                                            <form class="form-horizontal mt-3 form-material" method="POST" action="{% url 'account_login' %}">
-                                                {% csrf_token %}
-                                                {{ form|crispy }}
-                                                {% if redirect_field_value %}
-                                                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-                                                {% endif %}
-                                                <a id="to-recover" class="text-dark float-right mb-3" href="{% url 'account_reset_password' %}">{% trans "Forgot Password?" %}</a>
-                                                <div class="form-group text-center">
-                                                      <button class="btn btn-info btn-lg btn-block text-uppercase waves-effect waves-light" type="submit">{% trans "Sign In" %}</button>
-                                                </div>
-                                            </form>
-
-                                        </div>
-                                        <div class="col-lg-3">
-                                            
-                                        </div>
-                                        <div class="col-lg-3 col-xlg-3 mb-4 offset-lg-0">
-                                            
-                                            
-                                        </div>
+                            <div class="dropdown-menu animated bounceInDown">
+                                <div class="mega-dropdown-menu row">
+                                    <div class="col-lg-3 col-xlg-2 mb-4">
+                                        <h4 class="mb-3">New Members/Organisations</h4>
+                                        <p>Use the login form to login to your existing account or use the below link to register in order to create your own membership account or become a member of an existing account.</p>
+                                        <a href="{% url 'account_signup' %}"><button class="btn btn-info mt-2">Register</button></a>
+                                    </div>
+                                    <div class="col-lg-3  mb-4">
+                                        <h4 class="mb-3">Login</h4>
+                                        <p>Exising members and organisions can login using the link below.</p>
+                                        <a href="{% url 'account_login' %}"><button class="btn btn-info mt-2">Login</button></a>
+                                    </div>
+                                    <div class="col-lg-3">
+                                        <img class="img-fluid" src="{% static 'assets/images/background/login-register.jpg' %}" alt="Login Register Background">
+                                    </div>
+                                    <div class="col-lg-3 col-xlg-3 mb-4 offset-lg-0">
+                                        
+                                        
                                     </div>
                                 </div>
-                            </form>
+                            </div>
                         </li>
                         <!-- ============================================================== -->
                         <!-- End mega menu -->
