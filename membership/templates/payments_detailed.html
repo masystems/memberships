@@ -4,6 +4,14 @@
 
 {% block header %}
     <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
+
+    <style>
+        .btn-disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -190,6 +198,40 @@
             var column = $('#show_hide_col').dataTable().api().column($(this).attr('data-column'));
             // Toggle the visibility
             column.visible(!column.visible());
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#show_hide_col').on('click', '.btn-receipt', function() {
+                // get the payment id from the id of the button
+                var paymentId = this.id;
+
+                // get the clicked button
+                var $button = $(this);
+                
+                // disable the button
+                $button.prop('disabled', true);
+
+                // disable the button and add spinner
+                $button.prop('disabled', true);
+                $button.addClass('btn-disabled');
+                $button.html('<i class="fa fa-spinner fa-spin"></i>');
+
+                // construct the URL
+                var url = "/membership/email-payment-receipt/" + paymentId;
+
+                // send the GET request
+                $.get(url, function(data) {
+                    // handle the response data
+                    $button.html('<i class="fad fa-mail-bulk text-info" aria-hidden="true"></i>'); // restore button text or leave it blank
+                    infoMsg("Receipt sent!");
+                }).fail(function() {
+                    // handle failure
+                    $button.html('<i class="fad fa-mail-bulk text-info" aria-hidden="true"></i>'); // restore button text or leave it blank
+                    errorMsg("Receipt failed to send.");
+                });
+            });
         });
     </script>
 
