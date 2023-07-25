@@ -289,7 +289,6 @@ class HomePage(HomeBase):
     template_name = 'home.html'
 
     def get(self, request, *args, **kwargs):
-        print('this')
         if request.user.is_authenticated:
             return redirect('dashboard')
         else:
