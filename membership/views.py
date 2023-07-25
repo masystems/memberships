@@ -2342,7 +2342,6 @@ def member_payment_form_edit(request, title, pk, payment_id):
 
 
 def email_payment_receipt(request, payment_id):
-    print('Started')
     payment = Payment.objects.get(id=payment_id)
     membership_package = payment.subscription.membership_package
     member = payment.subscription.member
@@ -2363,7 +2362,6 @@ def email_payment_receipt(request, payment_id):
         """
         send_email(f"Payment Receipt: {membership_package.organisation_name}",
         member.user_account.get_full_name(), body, send_to=member.user_account.email)
-        print('Ended')
         return JsonResponse(True, safe=False)
     else:
         # failed security
