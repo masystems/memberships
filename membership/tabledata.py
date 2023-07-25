@@ -503,7 +503,7 @@ def get_all_member_payments(request, title):
                 send_receipt = ""
             else:
                 method = 'Card Payment'
-                send_receipt = f'<a href="/membership/email-payment-receipt/{payment.id}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info"></i></button></a>'
+                send_receipt = f'<button id="{payment.id}" class="btn btn-sm btn-rounded btn-receipt btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>'
             
             # set params
             payments.append({
@@ -581,12 +581,16 @@ def get_member_payments(request, title, pk=None):
             # set method to card if it doesn't exist
             if payment.payment_method:
                 method = payment.payment_method.payment_name
+                send_receipt = ""
             else:
                 method = 'Card Payment'
+                send_receipt = f'<button id="{payment.id}" class="btn btn-sm btn-rounded btn-receipt btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>'
+
 
             # set params
             payments.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id, 'payment_id': payment.id})}?next=member_payments"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
+                                                                                {send_receipt}
                                             <a href="javascript:deletePayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
                              'id': payment.payment_number,
                              'method': method,
