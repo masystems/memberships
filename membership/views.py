@@ -2348,21 +2348,38 @@ def email_payment_receipt(request, payment_id):
 
     if request.user in payment.subscription.membership_package.admins.all() or \
     request.user == payment.subscription.membership_package.owner:
-        # get invoice from stripe
-        stripe.api_key = get_stripe_secret_key(request)
-        charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
-        invoice = stripe.Invoice.retrieve(charge.invoice, stripe_account=membership_package.stripe_acct_id)
+        if payment.payment_method == None:
+            # get invoice from stripe
+            stripe.api_key = get_stripe_secret_key(request)
+            charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
+            invoice = stripe.Invoice.retrieve(charge.invoice, stripe_account=membership_package.stripe_acct_id)
 
-        # send email
-        body = f"""
-        Click <a href="{invoice.hosted_invoice_url}">HERE</a> to view your receipt
+            # send email
+            body = f"""
+            Click <a href="{invoice.hosted_invoice_url}">HERE</a> to view your receipt
 
-        or copy the below URL into your browser.
-        {invoice.hosted_invoice_url}
-        """
+            or copy the below URL into your browser.
+            {invoice.hosted_invoice_url}
+            """
+            
+        else:
+            # send email
+            amount = float(payment.amount) / 100
+            body = f"""
+            Payment received, thank you.
+            <ul>
+                <li>Date: {payment.created}</li>
+                <li>Paid: {amount} {payment.subscription.price.currency.upper()}</li>
+                <li>Type: {payment.type.title()}</li>
+                <li>Method: {payment.payment_method.payment_name}</li>
+            </ul>
+
+            """
+
         send_email(f"Payment Receipt: {membership_package.organisation_name}",
         member.user_account.get_full_name(), body, send_to=member.user_account.email)
         return JsonResponse(True, safe=False)
+
     else:
         # failed security
         return JsonResponse(False, safe=False)
