@@ -941,12 +941,24 @@ def payment_reminder(request, title, pk):
             # stripe subscription
             stripe.api_key = get_stripe_secret_key(request)
             stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
+            # connect account information
+            connect_account = stripe.Account.retrieve(membership_package.stripe_acct_id)
+            connect_account_info = f"""
+                        <strong>Comapny Information</strong>
+                        <ul>
+                            <li>Buisiness name: {connect_account.business_profile.name}</li>
+                            <li>Address: {connect_account.business_profile.support_address}</li>
+                            <li>Email: {connect_account.business_profile.support_email}</li>
+                            <li>Phone: {connect_account.business_profile.support_phone}</li>
+                            <li>URL: {connect_account.business_profile.support_url}</li>
+                        </ul>
+                        """
             
             # if payments are outstanding
             if stripe_subscription.status == "past_due":
                 outstanding_string = f"<p>Payment to renew your subscription failed. Please try again or contact the owner or an admin of {membership_package.organisation_name}.</p>"
 
-            body = f"""<p>This is a reminder for you to pay for your subscription.</p>
+            body = f"""<p>This is a reminder for you to pay for your subscription to {membership_package.organisation_name}.</p>
                         {outstanding_string}
                         <ul>
                             <li>Membership Organisation: {membership_package.organisation_name}</li>
@@ -954,6 +966,8 @@ def payment_reminder(request, title, pk):
                             <li>Payment Method: {temp_payment_method}</li>
                             <li>Payment Interval: {subscription.price.interval}</li>
                         </ul>
+
+                        {connect_account_info}
                         """
 
         # payment method is not card payment
@@ -962,7 +976,7 @@ def payment_reminder(request, title, pk):
             payment_info_string = ""
             if payment_method.information != '':
                 payment_info_string = f"<li>Payment Information: {payment_method.information}</li>"
-            body = f"""<p>This is a reminder for you to pay for your subscription.
+            body = f"""<p>This is a reminder for you to pay for your subscription to {membership_package.organisation_name}.</p>
                         <ul>
                             <li>Membership Organisation: {membership_package.organisation_name}</li>
                             <li>Amount Due: £{"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
@@ -970,6 +984,8 @@ def payment_reminder(request, title, pk):
                             <li>Payment Interval: {subscription.price.interval}</li>
                             {payment_info_string}
                         </ul>
+
+                        {connect_account_info}
                         """
     # use custom payment reminder email
     else:
