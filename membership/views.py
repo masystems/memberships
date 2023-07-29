@@ -941,12 +941,24 @@ def payment_reminder(request, title, pk):
             # stripe subscription
             stripe.api_key = get_stripe_secret_key(request)
             stripe_subscription = stripe.Subscription.retrieve(subscription.stripe_subscription_id, stripe_account=membership_package.stripe_acct_id)
+            # connect account information
+            connect_account = stripe.Account.retrieve(membership_package.stripe_acct_id)
+            connect_account_info = f"""
+                        <strong>Comapny Information</strong>
+                        <ul>
+                            <li>Buisiness name: {connect_account.business_profile.name}</li>
+                            <li>Address: {connect_account.business_profile.support_address}</li>
+                            <li>Email: {connect_account.business_profile.support_email}</li>
+                            <li>Phone: {connect_account.business_profile.support_phone}</li>
+                            <li>URL: {connect_account.business_profile.support_url}</li>
+                        </ul>
+                        """
             
             # if payments are outstanding
             if stripe_subscription.status == "past_due":
                 outstanding_string = f"<p>Payment to renew your subscription failed. Please try again or contact the owner or an admin of {membership_package.organisation_name}.</p>"
 
-            body = f"""<p>This is a reminder for you to pay for your subscription.</p>
+            body = f"""<p>This is a reminder for you to pay for your subscription to {membership_package.organisation_name}.</p>
                         {outstanding_string}
                         <ul>
                             <li>Membership Organisation: {membership_package.organisation_name}</li>
@@ -954,6 +966,8 @@ def payment_reminder(request, title, pk):
                             <li>Payment Method: {temp_payment_method}</li>
                             <li>Payment Interval: {subscription.price.interval}</li>
                         </ul>
+
+                        {connect_account_info}
                         """
 
         # payment method is not card payment
@@ -962,7 +976,7 @@ def payment_reminder(request, title, pk):
             payment_info_string = ""
             if payment_method.information != '':
                 payment_info_string = f"<li>Payment Information: {payment_method.information}</li>"
-            body = f"""<p>This is a reminder for you to pay for your subscription.
+            body = f"""<p>This is a reminder for you to pay for your subscription to {membership_package.organisation_name}.</p>
                         <ul>
                             <li>Membership Organisation: {membership_package.organisation_name}</li>
                             <li>Amount Due: £{"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
@@ -970,6 +984,8 @@ def payment_reminder(request, title, pk):
                             <li>Payment Interval: {subscription.price.interval}</li>
                             {payment_info_string}
                         </ul>
+
+                        {connect_account_info}
                         """
     # use custom payment reminder email
     else:
@@ -2348,21 +2364,38 @@ def email_payment_receipt(request, payment_id):
 
     if request.user in payment.subscription.membership_package.admins.all() or \
     request.user == payment.subscription.membership_package.owner:
-        # get invoice from stripe
-        stripe.api_key = get_stripe_secret_key(request)
-        charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
-        invoice = stripe.Invoice.retrieve(charge.invoice, stripe_account=membership_package.stripe_acct_id)
+        if payment.payment_method == None:
+            # get invoice from stripe
+            stripe.api_key = get_stripe_secret_key(request)
+            charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
+            invoice = stripe.Invoice.retrieve(charge.invoice, stripe_account=membership_package.stripe_acct_id)
 
-        # send email
-        body = f"""
-        Click <a href="{invoice.hosted_invoice_url}">HERE</a> to view your receipt
+            # send email
+            body = f"""
+            Click <a href="{invoice.hosted_invoice_url}">HERE</a> to view your receipt
 
-        or copy the below URL into your browser.
-        {invoice.hosted_invoice_url}
-        """
+            or copy the below URL into your browser.
+            {invoice.hosted_invoice_url}
+            """
+            
+        else:
+            # send email
+            amount = float(payment.amount) / 100
+            body = f"""
+            Payment received, thank you.
+            <ul>
+                <li>Date: {payment.created}</li>
+                <li>Paid: {amount} {payment.subscription.price.currency.upper()}</li>
+                <li>Type: {payment.type.title()}</li>
+                <li>Method: {payment.payment_method.payment_name}</li>
+            </ul>
+
+            """
+
         send_email(f"Payment Receipt: {membership_package.organisation_name}",
         member.user_account.get_full_name(), body, send_to=member.user_account.email)
         return JsonResponse(True, safe=False)
+
     else:
         # failed security
         return JsonResponse(False, safe=False)
