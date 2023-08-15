@@ -567,10 +567,10 @@ def get_member_payments(request, title, pk=None):
         for payment in all_payments:
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
-                temp_amount = "£%.2f" % (float(payment.amount)/100)
+                amount = "%.2f" % (float(payment.amount)/100)
             # handle when payment amount is empty
             else:
-                temp_amount = ''
+                amount = ''
             if payment.gift_aid:
                 giftaid = '<i class="fad fa-check text-success"></i>'
             else:
@@ -579,21 +579,29 @@ def get_member_payments(request, title, pk=None):
             # set method to card if it doesn't exist
             if payment.payment_method:
                 method = payment.payment_method.payment_name
-                send_receipt = ""
+                status = ''
             else:
                 method = 'Card Payment'
-                send_receipt = f'<button id="{payment.id}" class="btn btn-sm btn-rounded btn-receipt btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>'
+                # lookup stripe data
+                stripe.api_key = get_stripe_secret_key(request)
+                charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
+                amount = "%.2f %s" % (float(charge.amount)/100, charge.currency.upper())
+                if charge.status != "succeeded":
+                    status = f"{charge.status.title()}\n{charge.failure_message}"
+                else:
+                    status = f"{charge.status.title()}"
 
 
             # set params
             payments.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id, 'payment_id': payment.id})}?next=member_payments"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
-                                                                                {send_receipt}
+                                                <button id="{payment.id}" class="btn btn-sm btn-rounded btn-receipt btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>
                                             <a href="javascript:deletePayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
                              'id': payment.payment_number,
+                             'status': status,
                              'method': method,
                              'type': str(payment.type).title(),
-                             'amount': temp_amount,
+                             'amount': amount,
                              'comments': payment.comments,
                              'created': str(payment.created),
                              'gift_aid': giftaid,
