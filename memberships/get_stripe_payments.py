@@ -7,8 +7,8 @@ import stripe
 from json import loads
 from datetime import datetime
 
-#sys.path.append('/opt/memberships/dev-memberships')
-sys.path.append('/opt/memberships/memberships')
+sys.path.append('/opt/memberships/dev-memberships')
+#sys.path.append('/opt/memberships/memberships')
 os.environ["DJANGO_SETTINGS_MODULE"] = "memberships.settings"
 django.setup()
 
@@ -16,12 +16,12 @@ from django.conf import settings
 from membership.models import MembershipPackage, Payment, MembershipSubscription
 from memberships.functions import *
 from membership.charging import *
-
+from pprint import pprint
 
 class GetStripePayments:
     def __init__(self):
-        #stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
-        stripe.api_key = settings.STRIPE_SECRET_KEY
+        stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
+        #stripe.api_key = settings.STRIPE_SECRET_KEY
 
     def run(self):
         for sub in MembershipSubscription.objects.filter(stripe_subscription_id__isnull=False,
@@ -36,8 +36,11 @@ class GetStripePayments:
                         type = 'subscription'
                     else:
                         type = 'donation'
+                    # get charge amount
                     amount = payment['amount_paid']
-                    created = datetime.fromtimestamp(payment['created'])
+                    # get charge date
+                    charge = stripe.Charge.retrieve(payment['charge'], stripe_account=sub.membership_package.stripe_acct_id)
+                    created = datetime.fromtimestamp(charge['created'])
                     stripe_id = payment['charge']
                     if stripe_id:
                         Payment.objects.create(subscription=subscription,
@@ -50,3 +53,4 @@ class GetStripePayments:
 
 if __name__ == '__main__':
     GetStripePayments().run()
+
