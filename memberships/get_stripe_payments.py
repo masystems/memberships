@@ -16,7 +16,7 @@ from django.conf import settings
 from membership.models import MembershipPackage, Payment, MembershipSubscription
 from memberships.functions import *
 from membership.charging import *
-
+from pprint import pprint
 
 class GetStripePayments:
     def __init__(self):
@@ -33,26 +33,34 @@ class GetStripePayments:
                 if not Payment.objects.filter(stripe_id=payment['charge']).exists():
                     subscription = sub
                     payment_number = get_next_payment_number()
-                    if payment['lines']['data'][0]['plan']['interval'] in ('month', 'year'):
-                        type = 'subscription'
-                    else:
-                        type = 'donation'
+                    try:
+                        if payment['lines']['data'][0]['plan']['interval'] in ('month', 'year'):
+                            type = 'subscription'
+                        else:
+                            type = 'donation'
+                    except IndexError:
+                        # no payment plan interval??
+                        # pprint(payment)
+                        continue
                     # get charge amount
                     amount = payment['amount_paid']
                     # get charge date
-                    charge = stripe.Charge.retrieve(payment['charge'], stripe_account=sub.membership_package.stripe_acct_id)
-                    created = datetime.fromtimestamp(charge['created'])
-                    stripe_id = payment['charge']
-                    if stripe_id:
-                        dj_price, was_created = Payment.objects.get_or_create(stripe_id=stripe_id)
-                        dj_price.subscription = subscription
-                        dj_price.payment_number = payment_number
-                        dj_price.type = type
-                        dj_price.amount = amount
-                        dj_price.created = created
-                        dj_price.save()
+                    # print(f"STRIPE ID: {sub.membership_package.stripe_acct_id}")
+                    # print(f"PAYMENT ID: {payment['charge']}")
+                    if payment['charge'] is not None:
+                        charge = stripe.Charge.retrieve(payment['charge'], stripe_account=sub.membership_package.stripe_acct_id)
+                        created = datetime.fromtimestamp(charge['created'])
+                        stripe_id = payment['charge']
+                        if stripe_id:
+                            dj_price, was_created = Payment.objects.get_or_create(stripe_id=stripe_id,
+                                                                                  defaults={'subscription': subscription,
+                                                                                            'payment_number': payment_number,
+                                                                                            'type': type,
+                                                                                            'amount': amount,
+                                                                                            'created': created})
+                            if was_created:
+                                dj_price.save()
 
 
 if __name__ == '__main__':
     GetStripePayments().run()
-
