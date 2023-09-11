@@ -486,6 +486,7 @@ def get_all_member_payments(request, title):
     # if there are payments in our database
     if all_payments.count() > 0:
         for payment in all_payments:
+            receipt = ""
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
                 temp_amount = "£%.2f" % (float(payment.amount)/100)
@@ -502,12 +503,17 @@ def get_all_member_payments(request, title):
                 method = payment.payment_method.payment_name
             else:
                 method = 'Card Payment'
+                stripe.api_key = get_stripe_secret_key(request)
+                charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
+                receipt = f'<a href="{charge.receipt_url}" target="_blank"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="View receipt"><i class="fad fa-receipt text-info" aria-hidden="true"></i></button></a>'
+
             
             # set params
             payments.append({
                                 'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
                                                                                                     'pk': payment.subscription.member.id, 'payment_id': payment.id})}?next=payments_detailed"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
                                                 <button id="{payment.id}" class="btn btn-sm btn-rounded btn-receipt btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>
+                                                {receipt}
                                                 <a href="javascript:deletePayment({payment.subscription.member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>
                                                 """,
                                 'payment_id': payment.payment_number,
@@ -565,6 +571,7 @@ def get_member_payments(request, title, pk=None):
     # if there are payments in our database
     if all_payments.count() > 0:
         for payment in all_payments:
+            receipt = ""
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
                 amount = "%.2f" % (float(payment.amount)/100)
@@ -585,6 +592,7 @@ def get_member_payments(request, title, pk=None):
                 # lookup stripe data
                 stripe.api_key = get_stripe_secret_key(request)
                 charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
+                receipt = f'<a href="{charge.receipt_url}" target="_blank"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="View receipt"><i class="fad fa-receipt text-info" aria-hidden="true"></i></button></a>'
                 amount = "%.2f %s" % (float(charge.amount)/100, charge.currency.upper())
                 if charge.status != "succeeded":
                     status = f'<strong class="text-danger">{charge.status.title()}\n{charge.failure_message}</strong>'
@@ -595,7 +603,8 @@ def get_member_payments(request, title, pk=None):
             # set params
             payments.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id, 'payment_id': payment.id})}?next=member_payments"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
-                                                <button id="{payment.id}" class="btn btn-sm btn-rounded btn-receipt btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>
+                                            <button id="{payment.id}" class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>
+                                            {receipt}
                                             <a href="javascript:deletePayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
                              'id': payment.payment_number,
                              'status': status,
