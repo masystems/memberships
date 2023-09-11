@@ -587,9 +587,9 @@ def get_member_payments(request, title, pk=None):
                 charge = stripe.Charge.retrieve(payment.stripe_id, stripe_account=membership_package.stripe_acct_id)
                 amount = "%.2f %s" % (float(charge.amount)/100, charge.currency.upper())
                 if charge.status != "succeeded":
-                    status = f"{charge.status.title()}\n{charge.failure_message}"
+                    status = f'<strong class="text-danger">{charge.status.title()}\n{charge.failure_message}</strong>'
                 else:
-                    status = f"{charge.status.title()}"
+                    status = f'<strong class="text-success">{charge.status.title()}</strong>'
 
 
             # set params
