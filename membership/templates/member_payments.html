@@ -59,14 +59,14 @@
                         <div class="col b-r float-right text-danger"> <strong>Overdue</strong>
                             <br>
                             <p>
-                                Payment is overdue
+                                {{ status_message }}
                             </p>
                         </div>
                     {% else %}
                         <div class="col b-r float-right"> <strong>Not Overdue</strong>
                             <br>
                             <p class="text-muted">
-                                No payments overdue
+                                {{ status_message }}
                             </p>
                         </div>
                     {% endif %}

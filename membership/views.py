@@ -599,7 +599,8 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         context['overdue_members'] = {}
         for member in context['members'].all()[:500]:
             sub = member.subscription.get(member=member, membership_package=context['membership_package'])
-            if get_overdue(self.request, sub) and sub.active:
+            overdue, message = get_overdue(self.request, sub)
+            if overdue and sub.active:
                 context['overdue_members'][member] = sub.membership_expiry
         return context
 
@@ -2080,23 +2081,46 @@ def get_overdue_and_next(request, subscription):
 
 
 def get_overdue(request, subscription):
-    payment_number = Payment.objects.filter(subscription=subscription, type__icontains='subscription').count()
     overdue = False
-    # their subscription is free
-    if float(subscription.price.amount) == 0:
-        pass
-    # if they have never paid, they are overdue
-    elif payment_number == 0:
-        overdue = True
-    # onetime membership type
-    elif not subscription.membership_expiry:
-        pass
-    # if expiry is in the past or now
-    elif subscription.membership_expiry:
-        if subscription.membership_expiry <= datetime.now().date():
+    message = "No payments overdue"
+    stripe.api_key = get_stripe_secret_key(request)
+    last_payment = Payment.objects.filter(subscription=subscription, type__icontains='subscription').last()
+
+    if last_payment and not last_payment.payment_method:
+        # must be card payment
+        try:
+            charge = stripe.Charge.retrieve(last_payment.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
+            if charge['status'] == 'succeeded':
+                message = "The last charge was successful."
+                overdue = False
+            elif charge['status'] == 'failed':
+                message = "The charge has failed."
+                overdue = True
+            else:
+                message = f"The charge is in {charge['status']} status."
+                overdue = True
+        except stripe.error.StripeError as e:
+            message = f"An error occurred: {e}"
             overdue = True
 
-    return overdue
+    else:
+        payment_number = Payment.objects.filter(subscription=subscription, type__icontains='subscription').count()
+        # their subscription is free
+        if float(subscription.price.amount) == 0:
+            pass
+        # if they have never paid, they are overdue
+        elif payment_number == 0:
+            message = "Payment is overdue"
+            overdue = True
+        # onetime membership type
+        elif not subscription.membership_expiry:
+            pass
+        # if expiry is in the past or now
+        elif subscription.membership_expiry:
+            if subscription.membership_expiry <= datetime.now().date():
+                message = "Payment is overdue"
+                overdue = True
+    return overdue, message
 
 
 @login_required(login_url='/accounts/login/')
@@ -2186,9 +2210,10 @@ def member_payments(request, title, pk):
     # find out whether the member is overdue, and date of next payment
     overdue_and_next = get_overdue_and_next(request, subscription)
     # use expiry if possible
+    status_message = ''
     if subscription.membership_expiry:
         next_payment_date = subscription.membership_expiry
-        overdue = get_overdue(request, subscription)
+        overdue, status_message = get_overdue(request, subscription)
     else:
         next_payment_date = overdue_and_next['next_payment_date']
         overdue = overdue_and_next['overdue']
@@ -2197,7 +2222,8 @@ def member_payments(request, title, pk):
                                                     'member': member,
                                                     'subscription': subscription,
                                                     'next_payment_date': next_payment_date,
-                                                    'overdue': overdue})
+                                                    'overdue': overdue,
+                                                    'status_message': status_message})
 
 
 def member_payment_form(request, title, pk):
