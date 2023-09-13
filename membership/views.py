@@ -2089,16 +2089,13 @@ def get_overdue(request, subscription):
     if last_payment and not last_payment.payment_method:
         # must be card payment
         try:
-            charge = stripe.Charge.retrieve(last_payment.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
-            if charge['status'] == 'succeeded':
-                message = "The last charge was successful."
-                overdue = False
-            elif charge['status'] == 'failed':
-                message = "The charge has failed."
-                overdue = True
-            else:
-                message = f"The charge is in {charge['status']} status."
-                overdue = True
+            sub = stripe.Subscription.retrieve(
+                subscription.stripe_subscription_id,
+                stripe_account=subscription.membership_package.stripe_acct_id
+                )
+
+            # charge = stripe.Charge.retrieve(last_payment.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
+            message = f"The subscription is in <strong class='text-warning'>{sub['status'].replace('_', ' ').title()}</strong> status."
         except stripe.error.StripeError as e:
             message = f"An error occurred: {e}"
             overdue = True
