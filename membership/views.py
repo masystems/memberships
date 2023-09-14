@@ -2083,8 +2083,31 @@ def get_overdue_and_next(request, subscription):
 def get_overdue(request, subscription):
     overdue = False
     message = "No payments overdue"
+    
+    payment_number = Payment.objects.filter(subscription=subscription, type__icontains='subscription').order_by('-created').count()
+    # their subscription is free
+    if float(subscription.price.amount) == 0:
+        pass
+    # if they have never paid, they are overdue
+    elif payment_number == 0:
+        message = "Payment is overdue"
+        overdue = True
+    # onetime membership type
+    elif not subscription.membership_expiry:
+        pass
+    # if expiry is in the past or now
+    elif subscription.membership_expiry:
+        if subscription.membership_expiry <= datetime.now().date():
+            message = "Payment is overdue"
+            overdue = True
+    return overdue, message
+
+
+@login_required(login_url='/accounts/login/')
+def get_stripe_status(request, subscription):
+    status = ''
     stripe.api_key = get_stripe_secret_key(request)
-    last_payment = Payment.objects.filter(subscription=subscription, type__icontains='subscription').last()
+    last_payment = Payment.objects.filter(subscription=subscription, type__icontains='subscription').order_by('-created').last()
 
     if last_payment and not last_payment.payment_method:
         # must be card payment
@@ -2095,29 +2118,10 @@ def get_overdue(request, subscription):
                 )
 
             # charge = stripe.Charge.retrieve(last_payment.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
-            message = f"The subscription is in <strong class='text-warning'>{sub['status'].replace('_', ' ').title()}</strong> status."
+            status = f"The subscription is in <strong class='text-warning'>{sub['status'].replace('_', ' ').title()}</strong> status."
         except stripe.error.StripeError as e:
-            message = f"An error occurred: {e}"
-            overdue = True
-
-    else:
-        payment_number = Payment.objects.filter(subscription=subscription, type__icontains='subscription').count()
-        # their subscription is free
-        if float(subscription.price.amount) == 0:
-            pass
-        # if they have never paid, they are overdue
-        elif payment_number == 0:
-            message = "Payment is overdue"
-            overdue = True
-        # onetime membership type
-        elif not subscription.membership_expiry:
-            pass
-        # if expiry is in the past or now
-        elif subscription.membership_expiry:
-            if subscription.membership_expiry <= datetime.now().date():
-                message = "Payment is overdue"
-                overdue = True
-    return overdue, message
+            status = f"An error occurred: {e}"
+    return status
 
 
 @login_required(login_url='/accounts/login/')
@@ -2211,6 +2215,7 @@ def member_payments(request, title, pk):
     if subscription.membership_expiry:
         next_payment_date = subscription.membership_expiry
         overdue, status_message = get_overdue(request, subscription)
+        stripe_status = get_stripe_status(request, subscription)
     else:
         next_payment_date = overdue_and_next['next_payment_date']
         overdue = overdue_and_next['overdue']
@@ -2220,7 +2225,8 @@ def member_payments(request, title, pk):
                                                     'subscription': subscription,
                                                     'next_payment_date': next_payment_date,
                                                     'overdue': overdue,
-                                                    'status_message': status_message})
+                                                    'status_message': status_message,
+                                                    'stripe_status': stripe_status})
 
 
 def member_payment_form(request, title, pk):
