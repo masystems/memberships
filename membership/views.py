@@ -2212,11 +2212,10 @@ def member_payments(request, title, pk):
     overdue_and_next = get_overdue_and_next(request, subscription)
     # use expiry if possible
     status_message = ''
-    stripe_status = ''
+    stripe_status = get_stripe_status(request, subscription)
     if subscription.membership_expiry:
         next_payment_date = subscription.membership_expiry
         overdue, status_message = get_overdue(request, subscription)
-        stripe_status = get_stripe_status(request, subscription)
     else:
         next_payment_date = overdue_and_next['next_payment_date']
         overdue = overdue_and_next['overdue']
