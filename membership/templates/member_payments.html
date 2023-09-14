@@ -55,13 +55,21 @@
                     </p>
                 </div>
                 {% if subscription.active %}
-                <div class="col b-r float-right"> <strong>Status</strong>
-                    <br>
-                    <p>{% autoescape off %}
-                        {{ status_message }}
-                        {% endautoescape %}
-                    </p>
-                </div>
+                    <div class="col b-r float-right {% if overdue %}text-danger{% endif %}"> <strong>Overdue Status</strong>
+                        <br>
+                        <p>
+                            {{ status_message }}
+                        </p>
+                    </div>
+                    {% if stripe_status %}
+                    <div class="col b-r float-right text-danger"> <strong>Stripe Status</strong>
+                        <br>
+                        <p>{% autoescape off %}
+                            {{ stripe_status }}
+                            {% endautoescape %}
+                        </p>
+                    </div>
+                    {% endif %}
                 {% endif %}
                 <div class="col b-r float-right"> <strong>Membership No.</strong>
                     <br>
