@@ -30,7 +30,7 @@ class GetStripePayments:
             data = loads(str(stripe.Invoice.list(customer=sub.stripe_id, stripe_account=sub.membership_package.stripe_acct_id)))
             for payment in data['data']:
                 # 'not' removed able to allow updating existing payment objects
-                if not Payment.objects.filter(stripe_id=payment['charge']).exists():
+                if not Payment.objects.filter(stripe_id=payment['id']).exists():
                     subscription = sub
                     payment_number = get_next_payment_number()
                     try:
@@ -47,10 +47,10 @@ class GetStripePayments:
                     # get charge date
                     # print(f"STRIPE ID: {sub.membership_package.stripe_acct_id}")
                     # print(f"PAYMENT ID: {payment['charge']}")
-                    if payment['charge'] is not None:
-                        charge = stripe.Charge.retrieve(payment['charge'], stripe_account=sub.membership_package.stripe_acct_id)
-                        created = datetime.fromtimestamp(charge['created'])
-                        stripe_id = payment['charge']
+                    if payment['payment_intent'] is not None:
+                        intent = stripe.PaymentIntent.retrieve(payment['payment_intent'], stripe_account=sub.membership_package.stripe_acct_id)
+                        created = datetime.fromtimestamp(intent['created'])
+                        stripe_id = payment['id']
                         if stripe_id:
                             dj_price, was_created = Payment.objects.get_or_create(stripe_id=stripe_id,
                                                                                   defaults={'subscription': subscription,
