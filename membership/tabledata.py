@@ -486,7 +486,8 @@ def get_all_member_payments(request, title):
     # if there are payments in our database
     if all_payments.count() > 0:
         for payment in all_payments:
-            receipt = ""
+            receipt = ''
+            email_receipt = ''
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
                 amount = "£%.2f" % (float(payment.amount)/100)
@@ -590,7 +591,8 @@ def get_member_payments(request, title, pk=None):
     # if there are payments in our database
     if all_payments.count() > 0:
         for payment in all_payments:
-            receipt = ""
+            receipt = ''
+            email_receipt = ''
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
                 amount = "%.2f" % (float(payment.amount)/100)
