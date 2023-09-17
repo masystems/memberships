@@ -117,6 +117,7 @@
                                 </div>
                                 <hr>
                                 <h3 class="text-dark">Invoices</h3>
+                                {% if request.user.email == stripe_package.email %}
                                 <div class="table-responsive">
                                     <table class="table table-bordered nowrap display" id="accountDetailsTable">
                                         <thead>
@@ -139,6 +140,9 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                {% else %}
+                                <p>You are not the owner of this package, please contact {{ stripe_package.email }} to view these invoices.</p>
+                                {% endif %}
                                 <!-- Button to delete organisation -->
                                 {% if request.user == membership_package.owner and members == 0  %}
                                     <div class="boarder-bottom p-3">
