@@ -620,8 +620,12 @@ def get_member_payments(request, title, pk=None):
                 # pprint(invoice)
                 if invoice['charge']:
                     charge = stripe.Charge.retrieve(invoice['charge'], stripe_account=membership_package.stripe_acct_id)
-                    view_receipt = f'<a href="{charge.receipt_url}" target="_blank"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="View receipt"><i class="fad fa-receipt text-info" aria-hidden="true"></i></button></a>'
-                    email_receipt = '<button id="{payment.id}" class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>'
+                    if charge.receipt_url:
+                        view_receipt = f'<a href="{charge.receipt_url}" target="_blank"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="View receipt"><i class="fad fa-receipt text-info" aria-hidden="true"></i></button></a>'
+                        email_receipt = '<button id="{payment.id}" class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>'
+                    else:
+                        view_receipt = ''
+                        email_receipt = ''
                 else:
                     view_receipt = ''
                     email_receipt = ''
