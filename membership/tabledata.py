@@ -486,7 +486,7 @@ def get_all_member_payments(request, title):
     # if there are payments in our database
     if all_payments.count() > 0:
         for payment in all_payments:
-            receipt = ''
+            view_receipt = ''
             email_receipt = ''
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
@@ -591,7 +591,7 @@ def get_member_payments(request, title, pk=None):
     # if there are payments in our database
     if all_payments.count() > 0:
         for payment in all_payments:
-            receipt = ''
+            view_receipt = ''
             email_receipt = ''
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
@@ -627,11 +627,40 @@ def get_member_payments(request, title, pk=None):
                     email_receipt = ''
                 intent = stripe.PaymentIntent.retrieve(invoice['payment_intent'], stripe_account=membership_package.stripe_acct_id)
                 
-                if intent['status'] != "succeeded":
-                    status = f'<strong class="text-danger">{intent["status"].replace("_", " ").title()}</strong>'
-                else:
-                    status = f'<strong class="text-success">{intent["status"].title()}</strong>' 
+                statuses = {'succeeded': {
+                    'class': 'text-success',
+                    'msg': 'Payment received'
+                },
+                'requires_payment_method': {
+                    'class': 'text-danger',
+                    'msg': 'Please add a card'
+                },
+                'requires_confirmation': {
+                    'class': 'text-warning',
+                    'msg': ''
+                },
+                'requires_action': {
+                    'class': 'text-warning',
+                    'msg': ''
+                },
+                'processing': {
+                    'class': 'text-warning',
+                    'msg': 'Payment still processing'
+                },
+                'requires_capture': {
+                    'class': 'text-warning',
+                    'msg': ''
+                },
+                'canceled': {
+                    'class': 'text-danger',
+                    'msg': ''
+                },
+                }
+                class_value = statuses.get(intent["status"], {}).get('class', 'text-default')
+                msg_value = statuses.get(intent["status"], {}).get('msg', '')
 
+                status = f'<strong class="{class_value}">{intent["status"].replace("_", " ").title()}</strong></br>{msg_value}'
+                
                 amount = "%.2f %s" % (float(invoice['amount_due'])/100, invoice['currency'].upper())
                 
 
@@ -639,7 +668,7 @@ def get_member_payments(request, title, pk=None):
             payments.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id, 'payment_id': payment.id})}?next=member_payments"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
                                             {email_receipt}
-                                            {receipt}
+                                            {view_receipt}
                                             <a href="javascript:deletePayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
                              'id': payment.payment_number,
                              'status': status,
