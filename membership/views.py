@@ -581,6 +581,40 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
         # get stripe secret key
         stripe.api_key = get_stripe_secret_key(self.request)
+
+        try:
+            canceled_members = stripe.Subscription.list(
+                limit=100, 
+                status="canceled", 
+                stripe_account=context['membership_package'].stripe_acct_id
+            )
+        except Exception as e:
+            print(f"Stripe API Error: {e}")
+            # Handle error here
+        else:
+            context['canceled_members'] = canceled_members
+            modified_data = []
+
+            for sub in canceled_members.get('data', []):
+                modified_sub = sub.copy()
+                print(sub['customer'])  # Using print instead of pprint just for simplicity
+
+                try:
+                    subscription = MembershipSubscription.objects.get(stripe_subscription_id=sub['id'])
+                    modified_sub['member_fullname'] = subscription.member.user_account.get_full_name()
+                    modified_sub['member_id'] = subscription.member.id
+                    modified_sub['member_email'] = subscription.member.user_account.email
+                except MembershipSubscription.DoesNotExist:
+                    # cannot find sub with given ID
+                    pass
+
+                modified_data.append(modified_sub)
+
+            context['canceled_members']['data'] = modified_data
+            from pprint import pprint
+            pprint(context['canceled_members']['data'])
+
+
         context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
 
         if context['membership_package'].stripe_acct_id:
