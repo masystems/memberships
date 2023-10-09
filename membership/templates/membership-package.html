@@ -285,7 +285,7 @@
                                                         <!-- name -->
                                                         <td>{{ subscription.member_fullname }}</td>
                                                         <!-- reason -->
-                                                        <td>{{ subscription.cancellation_details.reason|choicefieldformat }}</td>
+                                                        <td>{% if subscription.cancellation_details.reason %}{{ subscription.cancellation_details.reason|choicefieldformat }}{% endif %}</td>
                                                         <!-- cancelled date -->
                                                         <td>{{ subscription.canceled_at|parsetimestamp }}</td>
                                                     </tr>
