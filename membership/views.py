@@ -597,18 +597,17 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
 
             for sub in canceled_members.get('data', []):
                 modified_sub = sub.copy()
-                print(sub['customer'])  # Using print instead of pprint just for simplicity
-
                 try:
                     subscription = MembershipSubscription.objects.get(stripe_subscription_id=sub['id'])
-                    modified_sub['member_fullname'] = subscription.member.user_account.get_full_name()
-                    modified_sub['member_id'] = subscription.member.id
-                    modified_sub['member_email'] = subscription.member.user_account.email
+                    # validate stripe sub ID is being used in django sub object
+                    if sub['id'] == subscription.stripe_subscription_id:
+                        modified_sub['member_fullname'] = subscription.member.user_account.get_full_name()
+                        modified_sub['member_id'] = subscription.member.id
+                        modified_sub['member_email'] = subscription.member.user_account.email
+                        modified_data.append(modified_sub)
                 except MembershipSubscription.DoesNotExist:
                     # cannot find sub with given ID
                     pass
-
-                modified_data.append(modified_sub)
 
             context['canceled_members']['data'] = modified_data
             from pprint import pprint
@@ -2263,6 +2262,12 @@ def member_payments(request, title, pk):
                                                     'stripe_status': stripe_status})
 
 
+@login_required(login_url='/accounts/login/')
+def create_invoice(request):
+    return HttpResponse(dumps({'status': "success",
+                               'message': "Comments updated"}))
+
+@login_required(login_url='/accounts/login/')
 def member_payment_form(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
