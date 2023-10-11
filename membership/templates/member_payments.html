@@ -95,6 +95,41 @@
             </div>
         </div>
         <div class="col-md-2 align-self-center d-none d-md-block">
+            {% if 'Canceled' in stripe_status or 'expired' in stripe_status %}
+                <button class="btn btn-warning float-right mb-2" id="enable-subscription" data-url="{% url 'enable_subscription' subscription.id %}">Renew Subscription</button>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        const button = document.getElementById("enable-subscription");
+                    
+                        button.addEventListener("click", function() {
+                            let url = this.getAttribute("data-url");
+                            url += "?used_checkout_session=False";
+
+                            fetch(url, {
+                            method: "GET",
+                            headers: {
+                                "Content-Type": "application/json",
+                                // Add any other headers you need, like CSRF token for Django
+                            },
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                            // Handle your JSON response here
+                            console.log("Success:", data);
+                            if (data.status == 'success'){
+                                infoMsg(data.msg);
+                            } else {
+                                warningMsg(data.msg)
+                            }
+                            
+                            })
+                            .catch((error) => {
+                            console.error("Error:", error);
+                            });
+                        });
+                    });
+                </script>
+            {% endif %}
             <a href="{% url 'member_payment_form' membership_package.organisation_name member.id %}"><button class="btn btn-success float-right">Add Payment</button></a>
         </div>
     </div>

@@ -589,8 +589,8 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
                 stripe_account=context['membership_package'].stripe_acct_id
             )
         except Exception as e:
-            print(f"Stripe API Error: {e}")
-            # Handle error here
+            # print(f"Stripe API Error: {e}")
+            pass
         else:
             context['canceled_members'] = canceled_members
             modified_data = []
@@ -601,18 +601,15 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
                     subscription = MembershipSubscription.objects.get(stripe_subscription_id=sub['id'])
                     # validate stripe sub ID is being used in django sub object
                     if sub['id'] == subscription.stripe_subscription_id:
-                        modified_sub['member_fullname'] = subscription.member.user_account.get_full_name()
-                        modified_sub['member_id'] = subscription.member.id
-                        modified_sub['member_email'] = subscription.member.user_account.email
+                        modified_sub['local_sub'] = {k: v for k, v in subscription.__dict__.items() if not k.startswith('_')}
+                        modified_sub['local_sub']['email'] = subscription.member.user_account.email
+                        modified_sub['local_sub']['full_name'] = subscription.member.user_account.get_full_name()
                         modified_data.append(modified_sub)
                 except MembershipSubscription.DoesNotExist:
                     # cannot find sub with given ID
                     pass
 
             context['canceled_members']['data'] = modified_data
-            from pprint import pprint
-            pprint(context['canceled_members']['data'])
-
 
         context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
 
@@ -1916,7 +1913,11 @@ def update_membership_type(request, title, pk):
 
 @login_required(login_url="/accounts/login")
 def enable_subscription(request, sub_id):
+    # either enable a subscription after a user has been through a checkout OR
+    # re-enable a subscription by making a new one
+    used_checkout_session = request.GET.get('used_checkout_session', 'True') == 'True'
     subscription = MembershipSubscription.objects.get(id=sub_id)
+
     # validate user is allow to approve this
     if request.user in subscription.membership_package.admins.all() or \
             request.user == subscription.membership_package.owner or \
@@ -1925,11 +1926,60 @@ def enable_subscription(request, sub_id):
     else:
         # you should not be here!
         return redirect('member_profile', subscription.member.id)
+    
+    if not used_checkout_session:
+        # create a new subscription row
+        subscription.id = None
+        payment_status = None
+        # stripe calls to create a new subscription with default payment method
+        stripe.api_key = get_stripe_secret_key(request)
+        stripe_sub = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
+                                                     stripe_account=subscription.membership_package.stripe_acct_id)
 
-    session = get_checkout_session(request, subscription)
-    if session['payment_status'] == 'paid':
+        # Check if the subscription is canceled or incomplete_expired
+        if stripe_sub.status in ['canceled', 'incomplete_expired']:
+            # Create a new subscription
+            try:
+                new_subscription = stripe.Subscription.create(
+                    customer=subscription.stripe_id,
+                    items=[
+                        {"price": subscription.price.stripe_price_id},
+                    ],
+                    stripe_account=subscription.membership_package.stripe_acct_id
+                )
+                stripe_subscription_id = new_subscription['id']
+            except stripe.error.InvalidRequestError as e:
+                # Invalid parameters were supplied to Stripe's API
+                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+
+            except stripe.error.AuthenticationError as e:
+                # Authentication with Stripe's API failed
+                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+
+            except stripe.error.APIConnectionError as e:
+                # Network communication with Stripe failed
+                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+
+            except stripe.error.StripeError as e:
+                # Display a very generic error to the user, and maybe send yourself an email
+                return HttpResponse(json.dumps({'status': "error", 'msg': "An error occurred. Please try again later."}), content_type='application/json')
+
+            except Exception as e:
+                # Something else happened, completely unrelated to Stripe
+                return HttpResponse(json.dumps({'status': "error", 'msg': "An unexpected error occurred."}), content_type='application/json')
+        else:
+            return HttpResponse(dumps({'status': "error", 'msg': "Customer's latest subscription is still active"}), content_type='application/json')
+    #return HttpResponse(dumps({'status': "success", 'msg': 'initial message'}), content_type='application/json')
+
+    else:
+        # get the session object
+        session = get_checkout_session(request, subscription)
+        payment_status = session['payment_status']
+        stripe_subscription_id = session['subscription']
+
+    if payment_status == 'paid' or not used_checkout_session:
         subscription.active = True
-        subscription.stripe_subscription_id = session['subscription']
+        subscription.stripe_subscription_id = stripe_subscription_id
         stripe_subscription = get_subscription(request, subscription)
         subscription.membership_start = datetime.fromtimestamp(stripe_subscription['current_period_start']).strftime('%Y-%m-%d')
         subscription.membership_expiry = datetime.fromtimestamp(stripe_subscription['current_period_end']).strftime('%Y-%m-%d')
@@ -1976,8 +2026,10 @@ def enable_subscription(request, sub_id):
     send_email(f"New Member: {subscription.membership_package.organisation_name}",
             subscription.membership_package.owner.get_full_name(), body, send_to=subscription.membership_package.owner.email)
 
-    return redirect('member_profile', subscription.member.id)
-
+    if used_checkout_session: 
+        return redirect('member_profile', subscription.member.id)
+    else:
+        return HttpResponse(dumps({'status': "success", 'msg': "New subscription created!"}), content_type='application/json')
 
 class MemberProfileView(MembershipBase):
     template_name = 'member_profile.html'
@@ -2266,6 +2318,7 @@ def member_payments(request, title, pk):
 def create_invoice(request):
     return HttpResponse(dumps({'status': "success",
                                'message': "Comments updated"}))
+
 
 @login_required(login_url='/accounts/login/')
 def member_payment_form(request, title, pk):
