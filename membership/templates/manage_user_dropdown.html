@@ -14,6 +14,10 @@
     <li>
         <a href="{% url 'member_payments' membership_package.organisation_name subscription.member.id %}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>
     </li>
+    <!-- member profile -->
+    <li>
+        <a href="{% url 'member_profile' subscription.member.id %}" class="dropdown-item"><i class="fad fa-user-alt text-info mr-2"></i>Member Profile</a>
+    </li>
     <!-- edit member -->
     <li>
         <a href="{% url 'member_form' membership_package.organisation_name subscription.member.id %}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>
