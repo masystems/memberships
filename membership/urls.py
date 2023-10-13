@@ -50,4 +50,6 @@ urlpatterns = [
     path('account_deletion', views.account_deletion, name='account_deletion'),
     path('enable_subscription/<int:sub_id>', views.enable_subscription, name='enable_subscription'),
     path('update_card/<int:sub_id>', views.update_card, name='update_card'),
+    path('update-card-success/<int:sub_id>/', views.update_card_succeeded, name='update_card_succeeded'),
+
 ]

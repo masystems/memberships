@@ -525,7 +525,7 @@ class SelectMembershipPackageView(LoginRequiredMixin, MembershipBase):
 def update_membership_status(request, pk, status, title):
     member = Member.objects.get(id=pk)
     membership_package = MembershipPackage.objects.get(organisation_name=title)
-    subscription = member.subscription.get(member=member, membership_package=membership_package)
+    subscription = member.subscription.get(member=member, membership_package=membership_package, canceled=False)
 
     subscription.active = status
     subscription.save()
@@ -589,8 +589,8 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
                 stripe_account=context['membership_package'].stripe_acct_id
             )
         except Exception as e:
-            print(f"Stripe API Error: {e}")
-            # Handle error here
+            # print(f"Stripe API Error: {e}")
+            pass
         else:
             context['canceled_members'] = canceled_members
             modified_data = []
@@ -598,21 +598,18 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
             for sub in canceled_members.get('data', []):
                 modified_sub = sub.copy()
                 try:
-                    subscription = MembershipSubscription.objects.get(stripe_subscription_id=sub['id'])
+                    subscription = MembershipSubscription.objects.get(stripe_subscription_id=sub['id'], canceled=False)
                     # validate stripe sub ID is being used in django sub object
                     if sub['id'] == subscription.stripe_subscription_id:
-                        modified_sub['member_fullname'] = subscription.member.user_account.get_full_name()
-                        modified_sub['member_id'] = subscription.member.id
-                        modified_sub['member_email'] = subscription.member.user_account.email
+                        modified_sub['local_sub'] = {k: v for k, v in subscription.__dict__.items() if not k.startswith('_')}
+                        modified_sub['local_sub']['email'] = subscription.member.user_account.email
+                        modified_sub['local_sub']['full_name'] = subscription.member.user_account.get_full_name()
                         modified_data.append(modified_sub)
                 except MembershipSubscription.DoesNotExist:
                     # cannot find sub with given ID
                     pass
 
             context['canceled_members']['data'] = modified_data
-            from pprint import pprint
-            pprint(context['canceled_members']['data'])
-
 
         context['stripe_package'] = stripe.Account.retrieve(context['membership_package'].stripe_acct_id)
 
@@ -631,10 +628,13 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
         # get active members with overdue subscriptions
         context['overdue_members'] = {}
         for member in context['members'].all()[:500]:
-            sub = member.subscription.get(member=member, membership_package=context['membership_package'])
-            overdue, message = get_overdue(self.request, sub)
-            if overdue and sub.active:
-                context['overdue_members'][member] = sub.membership_expiry
+            try:
+                sub = member.subscription.get(member=member, membership_package=context['membership_package'], canceled=False)
+                overdue, message = get_overdue(self.request, sub)
+                if overdue and sub.active:
+                    context['overdue_members'][member] = sub.membership_expiry
+            except MembershipSubscription.DoesNotExist:
+                pass
         return context
 
 
@@ -767,7 +767,7 @@ def create_package_on_stripe(request):
 def create_stripe_subscription(request):
     package = MembershipPackage.objects.get(organisation_name=request.POST.get('org_name'))
     member = Member.objects.get(id=request.POST.get('member_id'))
-    subscription = MembershipSubscription.objects.get(member=member, membership_package=package)
+    subscription = MembershipSubscription.objects.get(member=member, membership_package=package, canceled=False)
 
     # validate card to update card
     result = validate_card(request, 'member', subscription)
@@ -958,7 +958,7 @@ def payment_reminder(request, title, pk):
     # the member that needs reminding
     member = Member.objects.get(id=pk)
 
-    subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+    subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package, canceled=False)
     
     # variables used to construct the email
     temp_payment_method = subscription.payment_method
@@ -1186,7 +1186,7 @@ def member_reg_form(request, title, pk):
     if not new_membership:
         # there is an existing membership
         try:
-            subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+            subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member, canceled=False)
             comments = subscription.comments
             membership_expiry = subscription.membership_expiry
             try:
@@ -1339,7 +1339,7 @@ def member_reg_form(request, title, pk):
                 return redirect('dashboard')
 
             try:
-                subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+                subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package, canceled=False)
                 # update CL if needed
                 if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
                     add_or_edit_user_on_cl(subscription)
@@ -1468,7 +1468,7 @@ def member_bolton_form(request, title, pk):
 
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
-    subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+    subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package, canceled=False)
     # access permissions
     if MembershipPackage.objects.filter(Q(owner=request.user) |
                                         Q(admins=request.user), organisation_name=title).exists() or \
@@ -1540,7 +1540,8 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                                                 organisation_name=kwargs['title']).exists() \
                                                 or Member.objects.filter(id=self.kwargs['pk'],
                                                                         subscription=MembershipSubscription.objects.get(member=Member.objects.get(id=self.kwargs['pk']),
-                                                                                                                        membership_package=MembershipPackage.objects.get(organisation_name=kwargs['title'])),
+                                                                                                                        membership_package=MembershipPackage.objects.get(organisation_name=kwargs['title']),
+                                                                                                                        canceled=False),
                                                                         user_account=self.request.user).exists():
 
                 # kwargs.update({'foo': 'bar'})  # inject the foo value
@@ -1566,7 +1567,8 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
                                                                       visible=True, active=True)
 
         context['subscription'] = MembershipSubscription.objects.get(member=context['member'],
-                                                                     membership_package=context['package'])
+                                                                     membership_package=context['package'],
+                                                                     canceled=False)
         context['membership_types_list'] = []
         # get strip secret key
         stripe.api_key = get_stripe_secret_key(self.request)
@@ -1583,7 +1585,7 @@ class MemberPaymentView(LoginRequiredMixin, MembershipBase):
     def post(self, request, *args, **kwargs):
         package = MembershipPackage.objects.get(organisation_name=self.kwargs['title'])
         member = Member.objects.get(id=self.kwargs['pk'])
-        subscription = MembershipSubscription.objects.get(member=member, membership_package=package)
+        subscription = MembershipSubscription.objects.get(member=member, membership_package=package, canceled=False)
 
         result = validate_card(request, 'member', subscription)
         if result['result'] == 'fail':
@@ -1750,7 +1752,7 @@ def update_membership_type(request, title, pk):
 
         package = MembershipPackage.objects.get(organisation_name=title)
         member = Member.objects.get(id=pk)
-        subscription = member.subscription.get(member=member, membership_package=package)
+        subscription = member.subscription.get(member=member, membership_package=package, canceled=False)
         price = Price.objects.get(stripe_price_id=request.POST.get('membership_type'))
         subscription.price = price
         subscription.save()
@@ -1916,7 +1918,11 @@ def update_membership_type(request, title, pk):
 
 @login_required(login_url="/accounts/login")
 def enable_subscription(request, sub_id):
-    subscription = MembershipSubscription.objects.get(id=sub_id)
+    # either enable a subscription after a user has been through a checkout OR
+    # re-enable a subscription by making a new one
+    used_checkout_session = request.GET.get('used_checkout_session', 'True') == 'True'
+    subscription = MembershipSubscription.objects.get(id=sub_id, canceled=False)
+
     # validate user is allow to approve this
     if request.user in subscription.membership_package.admins.all() or \
             request.user == subscription.membership_package.owner or \
@@ -1925,14 +1931,72 @@ def enable_subscription(request, sub_id):
     else:
         # you should not be here!
         return redirect('member_profile', subscription.member.id)
+    
+    if not used_checkout_session:
+        # disable old subscription
+        subscription.active = False
+        subscription.canceled = True
+        subscription.save()
+        # create a new subscription row
+        subscription.id = None
+        payment_status = None
+        # stripe calls to create a new subscription with default payment method
+        stripe.api_key = get_stripe_secret_key(request)
+        stripe_sub = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
+                                                     stripe_account=subscription.membership_package.stripe_acct_id)
 
-    session = get_checkout_session(request, subscription)
-    if session['payment_status'] == 'paid':
+        # Check if the subscription is canceled or incomplete_expired
+        if stripe_sub.status in ['canceled', 'incomplete_expired']:
+            customer = stripe.Customer.retrieve(subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
+            if not customer.default_source and not customer.invoice_settings.default_payment_method:
+                return HttpResponse(json.dumps({'status': "error", "msg": "This customer has no attached payment source or default payment method. Please consider adding a default payment method."}), content_type='application/json')
+            # Create a new subscription
+            try:
+                new_subscription = stripe.Subscription.create(
+                    customer=subscription.stripe_id,
+                    items=[
+                        {"price": subscription.price.stripe_price_id},
+                    ],
+                    stripe_account=subscription.membership_package.stripe_acct_id
+                )
+                stripe_subscription_id = new_subscription['id']
+            except stripe.error.InvalidRequestError as e:
+                # Invalid parameters were supplied to Stripe's API
+                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+
+            except stripe.error.AuthenticationError as e:
+                # Authentication with Stripe's API failed
+                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+
+            except stripe.error.APIConnectionError as e:
+                # Network communication with Stripe failed
+                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+
+            except stripe.error.StripeError as e:
+                # Display a very generic error to the user, and maybe send yourself an email
+                return HttpResponse(json.dumps({'status': "error", 'msg': "An error occurred. Please try again later."}), content_type='application/json')
+
+            except Exception as e:
+                # Something else happened, completely unrelated to Stripe
+                return HttpResponse(json.dumps({'status': "error", 'msg': "An unexpected error occurred."}), content_type='application/json')
+        else:
+            return HttpResponse(dumps({'status': "error", 'msg': "Customer's latest subscription is still active"}), content_type='application/json')
+    #return HttpResponse(dumps({'status': "success", 'msg': 'initial message'}), content_type='application/json')
+
+    else:
+        # get the session object
+        session = get_checkout_session(request, subscription)
+        payment_status = session['payment_status']
+        stripe_subscription_id = session['subscription']
+
+    if payment_status == 'paid' or not used_checkout_session:
         subscription.active = True
-        subscription.stripe_subscription_id = session['subscription']
+        subscription.canceled = False
+        subscription.stripe_subscription_id = stripe_subscription_id
         stripe_subscription = get_subscription(request, subscription)
         subscription.membership_start = datetime.fromtimestamp(stripe_subscription['current_period_start']).strftime('%Y-%m-%d')
         subscription.membership_expiry = datetime.fromtimestamp(stripe_subscription['current_period_end']).strftime('%Y-%m-%d')
+        subscription.active = True
         subscription.save()
 
         # update CL if needed
@@ -1976,8 +2040,10 @@ def enable_subscription(request, sub_id):
     send_email(f"New Member: {subscription.membership_package.organisation_name}",
             subscription.membership_package.owner.get_full_name(), body, send_to=subscription.membership_package.owner.email)
 
-    return redirect('member_profile', subscription.member.id)
-
+    if used_checkout_session: 
+        return redirect('member_profile', subscription.member.id)
+    else:
+        return HttpResponse(dumps({'status': "success", 'msg': "New subscription created!"}), content_type='application/json')
 
 class MemberProfileView(MembershipBase):
     template_name = 'member_profile.html'
@@ -2042,16 +2108,50 @@ class MemberProfileView(MembershipBase):
 
 @login_required(login_url='/accounts/login/')
 def update_card(request, sub_id):
-    subscription = MembershipSubscription.objects.get(id=sub_id)
+    subscription = MembershipSubscription.objects.get(id=sub_id, canceled=False)
     url = update_card_session(request, subscription)
     return redirect(url, code=303)
+
+
+@login_required(login_url="/account/login")
+def update_card_succeeded(request, sub_id):
+    stripe.api_key = get_stripe_secret_key(request)
+
+    try:
+        subscription = MembershipSubscription.objects.get(id=sub_id, canceled=False)
+    except ObjectDoesNotExist:
+        return redirect('error_page')
+
+    session_id = request.GET.get('session_id')
+    if session_id is None:
+        return redirect('member_profile', subscription.member.id)
+
+    try:
+        session = stripe.checkout.Session.retrieve(session_id, stripe_account=subscription.membership_package.stripe_acct_id)
+    except stripe.error.InvalidRequestError:
+        return redirect('error_page')
+
+    customer_id = session.customer
+    setup_intent = stripe.SetupIntent.retrieve(session.setup_intent, stripe_account=subscription.membership_package.stripe_acct_id)
+    payment_method_id = setup_intent.payment_method
+
+    if payment_method_id:
+        stripe.Customer.modify(
+            customer_id,
+            invoice_settings={
+                'default_payment_method': payment_method_id,
+            },
+            stripe_account=subscription.membership_package.stripe_acct_id
+        )
+
+    return redirect('member_profile', subscription.member.id)
 
 
 @login_required(login_url='/accounts/login/')
 def edit_sub_comment(request, id):
     if request.method == "GET":
         try:
-            comments = MembershipSubscription.objects.get(id=id).comments
+            comments = MembershipSubscription.objects.get(id=id, canceled=False).comments
         except MembershipSubscription.DoesNotExist:
             return HttpResponse(dumps({'status': "fail",
                                        'message': "Subscription does not exist"}))
@@ -2062,7 +2162,7 @@ def edit_sub_comment(request, id):
 
     elif request.method == "POST":
         try:
-            sub = MembershipSubscription.objects.get(id=id)
+            sub = MembershipSubscription.objects.get(id=id, canceled=False)
         except MembershipSubscription.DoesNotExist:
             return HttpResponse(dumps({'status': "fail",
                                        'message': "Subscription does not exist"}))
@@ -2239,7 +2339,7 @@ def payments_detailed(request, title):
 def member_payments(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
-    subscription = member.subscription.get(member=member, membership_package=membership_package)
+    subscription = member.subscription.get(member=member, membership_package=membership_package, canceled=False)
 
     # find out whether the member is overdue, and date of next payment
     overdue_and_next = get_overdue_and_next(request, subscription)
@@ -2267,11 +2367,12 @@ def create_invoice(request):
     return HttpResponse(dumps({'status': "success",
                                'message': "Comments updated"}))
 
+
 @login_required(login_url='/accounts/login/')
 def member_payment_form(request, title, pk):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
-    subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member)
+    subscription = MembershipSubscription.objects.get(membership_package=membership_package, member=member, canceled=False)
 
     # set remaining amount to be passed into the template
     if subscription.remaining_amount:
@@ -2624,7 +2725,7 @@ def remove_member(request, title):
             return redirect('membership_package', membership_package.organisation_name)
         
         try:
-            subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package)
+            subscription = MembershipSubscription.objects.get(member=member, membership_package=membership_package, canceled=False)
         except MembershipSubscription.DoesNotExist:
             return redirect('membership_package', membership_package.organisation_name)
         
