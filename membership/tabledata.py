@@ -691,7 +691,6 @@ def get_member_payments(request, title, pk=None):
                              'gift_aid_percentage': payment.gift_aid_percentage})
         # sorting
         members_sorted = payment_data
-        print(members_sorted)
         # members_sorted = sorted(members, key=lambda k: k[sort_by])
         complete_data = {
             "draw": 0,
