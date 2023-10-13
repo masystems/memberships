@@ -100,11 +100,12 @@ def update_card_session(request, subscription):
         payment_method_types=['card'],
         mode='setup',
         customer=subscription.stripe_id,
-        success_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}/membership/member-profile/{subscription.member.id}#card-details",
+        success_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}/membership/update-card-success/{subscription.id}?session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}/membership/member-profile/{subscription.member.id}#card-details",
         stripe_account=subscription.membership_package.stripe_acct_id
     )
     return session.url
+
 
 @login_required(login_url="/account/login")
 def get_subscription(request, subscription):

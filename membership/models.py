@@ -105,6 +105,7 @@ class MembershipSubscription(models.Model):
     membership_expiry = models.DateField(null=True, blank=True)
     gift_aid = models.BooleanField(default=False)
     active = models.BooleanField(default=False)
+    canceled = models.BooleanField(default=False)
     custom_fields = models.TextField(blank=True)
     last_reminder = models.DateField(null=True, blank=True)
     remaining_amount = models.CharField(max_length=255, blank=True)

@@ -97,7 +97,7 @@ def donation_payment(request):
         if request.user.is_authenticated:
             member = Member.objects.get(user_account=request.user)
             try:
-                subscription = MembershipSubscription.objects.get(member=member, membership_package=donation.membership_package)
+                subscription = MembershipSubscription.objects.get(member=member, membership_package=donation.membership_package, active=True)
             except MembershipSubscription.DoesNotExist:
                 pass
 

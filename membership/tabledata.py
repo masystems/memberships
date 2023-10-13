@@ -567,29 +567,35 @@ def get_all_member_payments(request, title):
 def get_member_payments(request, title, pk=None):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
-    subscription = MembershipSubscription.objects.get(membership_package=membership_package,
+    subscription = MembershipSubscription.objects.filter(membership_package=membership_package,
                                                       member=member)
     start = int(request.GET.get('start', 0))
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
     sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
-    payments = []
-    if search == "":
-        all_payments = Payment.objects.filter(subscription=subscription).order_by('-created')[start:start + end]
-    else:
-        all_payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
-                                              Q(payment_number__icontains=search) |
-                                              Q(type__icontains=search) |
-                                              Q(created__icontains=search) |
-                                              Q(gift_aid_percentage__icontains=search) |
-                                              Q(amount__icontains=search),
-                                              subscription=subscription).distinct().order_by('-created')[
-                      start:start + end]
 
-    total_payments = Payment.objects.filter(subscription=subscription).distinct().count()
+    all_payments = []
+    payment_data = []
+
+    # Loop over each subscription in the queryset
+    for sub in subscription:
+        if search == "":
+            payments = Payment.objects.filter(subscription=sub).order_by('-created')[start:start + end]
+        else:
+            payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
+                                                Q(payment_number__icontains=search) |
+                                                Q(type__icontains=search) |
+                                                Q(created__icontains=search) |
+                                                Q(gift_aid_percentage__icontains=search) |
+                                                Q(amount__icontains=search),
+                                                subscription=sub).distinct().order_by('-created')[start:start + end]
+        all_payments.extend(list(payments))
+
+    # Counting total_payments across all subscriptions
+    total_payments = sum(Payment.objects.filter(subscription=sub).distinct().count() for sub in subscription)
 
     # if there are payments in our database
-    if all_payments.count() > 0:
+    if len(all_payments) > 0:
         for payment in all_payments:
             view_receipt = ''
             email_receipt = ''
@@ -669,7 +675,7 @@ def get_member_payments(request, title, pk=None):
                 
 
             # set params
-            payments.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
+            payment_data.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
                                                                                 'pk': member.id, 'payment_id': payment.id})}?next=member_payments"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
                                             {email_receipt}
                                             {view_receipt}
@@ -684,11 +690,12 @@ def get_member_payments(request, title, pk=None):
                              'gift_aid': giftaid,
                              'gift_aid_percentage': payment.gift_aid_percentage})
         # sorting
-        members_sorted = payments
+        members_sorted = payment_data
+        print(members_sorted)
         # members_sorted = sorted(members, key=lambda k: k[sort_by])
         complete_data = {
             "draw": 0,
-            "recordsTotal": all_payments.count(),
+            "recordsTotal": len(all_payments),
             "recordsFiltered": total_payments,
             "data": members_sorted
         }
