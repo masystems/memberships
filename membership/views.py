@@ -2087,7 +2087,7 @@ class MemberProfileView(MembershipBase):
         context['payments'] = []
         context['subscriptions'] = {}
         stripe.api_key = get_stripe_secret_key(self.request)
-        for subscription in context['member'].subscription.all():
+        for subscription in context['member'].subscription.filter(canceled=False):
             # if it's a stripe customer
             if subscription.stripe_id:
                 context['subscriptions'][subscription.id] = {}
