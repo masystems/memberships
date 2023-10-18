@@ -95,37 +95,69 @@
             </div>
         </div>
         <div class="col-md-2 align-self-center d-none d-md-block">
-            {% if 'Canceled' in stripe_status or 'expired' in stripe_status %}
-                <button class="btn btn-warning float-right mb-2" id="enable-subscription" data-url="{% url 'enable_subscription' subscription.id %}">Renew Subscription</button>
+            {% if 'Canceled' in stripe_status or not 'expired' in stripe_status %}
+                <button class="btn btn-warning float-right mb-2 ml-2" id="enable-subscription" data-url="{% url 'enable_subscription' subscription.id %}" data-toggle="modal" data-target="#confirmationModal">Renew Subscription</button>
+    
+                <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header modal-colored-header bg-warning">
+                                <h4 class="modal-title" id="warning-header-modalLabel">Renew Subscription Confirmation</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                            </div>
+                            <div class="modal-body">
+                                This will create a new subscription for this member, and charge their payment method accordingly - Please ensure you have the permission of the member to take this payment.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-dark" data-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-warning" id="confirm-renew">Confirm</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <script>
                     document.addEventListener("DOMContentLoaded", function() {
                         const button = document.getElementById("enable-subscription");
-                    
-                        button.addEventListener("click", function() {
-                            let url = this.getAttribute("data-url");
-                            url += "?used_checkout_session=False";
+                        const confirmButton = document.getElementById("confirm-renew");
+                        let url = "";
 
+                        // Set the URL when the main button is clicked
+                        button.addEventListener("click", function() {
+                            url = this.getAttribute("data-url");
+                            url += "?used_checkout_session=False";
+                        });
+
+                        // Attach an event to modal's show event to register the click event for confirm
+                        $('#confirmationModal').on('shown.bs.modal', function() {
+                            confirmButton.addEventListener("click", function() {
+                            // Hide the modal
+                            $('#confirmationModal').modal('hide');
+                            
+                            // Your existing fetch call
                             fetch(url, {
-                            method: "GET",
-                            headers: {
+                                method: "GET",
+                                headers: {
                                 "Content-Type": "application/json",
-                                // Add any other headers you need, like CSRF token for Django
-                            },
+                                // Add CSRF or any other headers you need
+                                },
                             })
                             .then(response => response.json())
                             .then(data => {
-                            // Handle your JSON response here
-                            console.log("Success:", data);
-                            if (data.status == 'success'){
+                                if (data.status === 'success') {
                                 infoMsg(data.msg);
-                            } else {
-                                warningMsg(data.msg)
-                            }
-                            
+                                } else {
+                                warningMsg(data.msg);
+                                }
                             })
                             .catch((error) => {
-                            console.error("Error:", error);
+                                console.error("Error:", error);
                             });
+                            });
+                        });
+
+                        // Remove the event listener when the modal is hidden
+                        $('#confirmationModal').on('hidden.bs.modal', function() {
+                            confirmButton.removeEventListener("click", function() {});
                         });
                     });
                 </script>

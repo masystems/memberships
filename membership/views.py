@@ -1934,6 +1934,9 @@ def enable_subscription(request, sub_id):
     
     if not used_checkout_session:
         # disable old subscription
+        failed_return_msg = ''
+        original_active_state = subscription.active
+        original_cancled_state = subscription.canceled
         subscription.active = False
         subscription.canceled = True
         subscription.save()
@@ -1949,6 +1952,9 @@ def enable_subscription(request, sub_id):
         if stripe_sub.status in ['canceled', 'incomplete_expired']:
             customer = stripe.Customer.retrieve(subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
             if not customer.default_source and not customer.invoice_settings.default_payment_method:
+                subscription.active = original_active_state
+                subscription.canceled = original_cancled_state
+                subscription.save()
                 return HttpResponse(json.dumps({'status': "error", "msg": "This customer has no attached payment source or default payment method. Please consider adding a default payment method."}), content_type='application/json')
             # Create a new subscription
             try:
@@ -1961,26 +1967,32 @@ def enable_subscription(request, sub_id):
                 )
                 stripe_subscription_id = new_subscription['id']
             except stripe.error.InvalidRequestError as e:
-                # Invalid parameters were supplied to Stripe's API
-                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+                # Invalid parameters were supplied to Stripe's API#
+                failed_retirn_msg = {'status': "error", 'msg': str(e)}
 
             except stripe.error.AuthenticationError as e:
                 # Authentication with Stripe's API failed
-                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+                failed_retirn_msg = {'status': "error", 'msg': str(e)}
 
             except stripe.error.APIConnectionError as e:
                 # Network communication with Stripe failed
-                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+                failed_retirn_msg = {'status': "error", 'msg': str(e)}
 
             except stripe.error.StripeError as e:
                 # Display a very generic error to the user, and maybe send yourself an email
-                return HttpResponse(json.dumps({'status': "error", 'msg': "An error occurred. Please try again later."}), content_type='application/json')
+                failed_retirn_msg = {'status': "error", 'msg': "An error occurred. Please try again later."}
 
             except Exception as e:
                 # Something else happened, completely unrelated to Stripe
-                return HttpResponse(json.dumps({'status': "error", 'msg': "An unexpected error occurred."}), content_type='application/json')
+                failed_retirn_msg = {'status': "error", 'msg': "An unexpected error occurred."}
         else:
-            return HttpResponse(dumps({'status': "error", 'msg': "Customer's latest subscription is still active"}), content_type='application/json')
+            failed_retirn_msg = {'status': "error", 'msg': "Customer's latest subscription is still active"}
+        
+        if failed_return_msg:
+            subscription.active = original_active_state
+            subscription.canceled = original_cancled_state
+            subscription.save()
+            return HttpResponse(dumps(failed_retirn_msg), content_type='application/json')
     #return HttpResponse(dumps({'status': "success", 'msg': 'initial message'}), content_type='application/json')
 
     else:
