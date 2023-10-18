@@ -1999,6 +1999,14 @@ def enable_subscription(request, sub_id):
         subscription.active = True
         subscription.save()
 
+        # create local price object
+        Payment.objects.create(stripe_id=stripe_id,
+                               defaults={'subscription': subscription,
+                                         'payment_number': get_next_payment_number(),
+                                         'type': 'subscription',
+                                         'amount': subscription.price.amount,
+                                         'created': subscription.membership_start})
+
         # update CL if needed
         # if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
         #     add_or_edit_user_on_cl(subscription)
