@@ -1934,12 +1934,12 @@ def enable_subscription(request, sub_id):
     
     if not used_checkout_session:
         # disable old subscription
+        failed_return_msg = ''
+        original_active_state = subscription.active
+        original_canceled_state = subscription.canceled
         subscription.active = False
         subscription.canceled = True
-        subscription.save()
-        # create a new subscription row
-        subscription.id = None
-        payment_status = None
+        
         # stripe calls to create a new subscription with default payment method
         stripe.api_key = get_stripe_secret_key(request)
         stripe_sub = stripe.Subscription.retrieve(subscription.stripe_subscription_id,
@@ -1949,6 +1949,9 @@ def enable_subscription(request, sub_id):
         if stripe_sub.status in ['canceled', 'incomplete_expired']:
             customer = stripe.Customer.retrieve(subscription.stripe_id, stripe_account=subscription.membership_package.stripe_acct_id)
             if not customer.default_source and not customer.invoice_settings.default_payment_method:
+                subscription.active = original_active_state
+                subscription.canceled = original_canceled_state
+                subscription.save()
                 return HttpResponse(json.dumps({'status': "error", "msg": "This customer has no attached payment source or default payment method. Please consider adding a default payment method."}), content_type='application/json')
             # Create a new subscription
             try:
@@ -1961,27 +1964,37 @@ def enable_subscription(request, sub_id):
                 )
                 stripe_subscription_id = new_subscription['id']
             except stripe.error.InvalidRequestError as e:
-                # Invalid parameters were supplied to Stripe's API
-                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+                # Invalid parameters were supplied to Stripe's API#
+                failed_return_msg = {'status': "error", 'msg': str(e)}
 
             except stripe.error.AuthenticationError as e:
                 # Authentication with Stripe's API failed
-                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+                failed_return_msg = {'status': "error", 'msg': str(e)}
 
             except stripe.error.APIConnectionError as e:
                 # Network communication with Stripe failed
-                return HttpResponse(json.dumps({'status': "error", 'msg': str(e)}), content_type='application/json')
+                failed_return_msg = {'status': "error", 'msg': str(e)}
 
             except stripe.error.StripeError as e:
                 # Display a very generic error to the user, and maybe send yourself an email
-                return HttpResponse(json.dumps({'status': "error", 'msg': "An error occurred. Please try again later."}), content_type='application/json')
+                failed_return_msg = {'status': "error", 'msg': "An error occurred. Please try again later."}
 
             except Exception as e:
                 # Something else happened, completely unrelated to Stripe
-                return HttpResponse(json.dumps({'status': "error", 'msg': "An unexpected error occurred."}), content_type='application/json')
+                failed_return_msg = {'status': "error", 'msg': "An unexpected error occurred."}
         else:
-            return HttpResponse(dumps({'status': "error", 'msg': "Customer's latest subscription is still active"}), content_type='application/json')
-    #return HttpResponse(dumps({'status': "success", 'msg': 'initial message'}), content_type='application/json')
+            failed_return_msg = {'status': "error", 'msg': "Customer's latest subscription is still active"}
+        
+        if failed_return_msg:
+            # return the sub to the original state
+            subscription.active = original_active_state
+            subscription.canceled = original_canceled_state
+            subscription.save()
+            return HttpResponse(dumps(failed_return_msg), content_type='application/json')
+        else:
+            # create a new subscription row
+            subscription.id = None
+            payment_status = None
 
     else:
         # get the session object
@@ -1998,6 +2011,14 @@ def enable_subscription(request, sub_id):
         subscription.membership_expiry = datetime.fromtimestamp(stripe_subscription['current_period_end']).strftime('%Y-%m-%d')
         subscription.active = True
         subscription.save()
+
+        # create local price object
+        Payment.objects.create(stripe_id=stripe_id,
+                               defaults={'subscription': subscription,
+                                         'payment_number': get_next_payment_number(),
+                                         'type': 'subscription',
+                                         'amount': subscription.price.amount,
+                                         'created': subscription.membership_start})
 
         # update CL if needed
         # if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
