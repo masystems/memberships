@@ -95,7 +95,7 @@
             </div>
         </div>
         <div class="col-md-2 align-self-center d-none d-md-block">
-            {% if 'Canceled' in stripe_status or not 'expired' in stripe_status %}
+            {% if 'Canceled' in stripe_status or 'expired' in stripe_status %}
                 <button class="btn btn-warning float-right mb-2 ml-2" id="enable-subscription" data-url="{% url 'enable_subscription' subscription.id %}" data-toggle="modal" data-target="#confirmationModal">Renew Subscription</button>
     
                 <div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
