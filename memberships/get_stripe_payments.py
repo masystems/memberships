@@ -7,26 +7,32 @@ import stripe
 from json import loads
 from datetime import datetime
 
-#sys.path.append('/opt/memberships/dev-memberships')
-sys.path.append('/opt/memberships/memberships')
+debug = False
+if debug:
+    sys.path.append('/opt/memberships/dev-memberships')
+else:
+    sys.path.append('/opt/memberships/memberships')
 os.environ["DJANGO_SETTINGS_MODULE"] = "memberships.settings"
 django.setup()
 
 from django.conf import settings
 from membership.models import MembershipPackage, Payment, MembershipSubscription
+from django.db.models import Q
 from memberships.functions import *
 from membership.charging import *
 from pprint import pprint
 
 class GetStripePayments:
     def __init__(self):
-        #stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
-        stripe.api_key = settings.STRIPE_SECRET_KEY
+        if debug:
+            stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
+        else:
+            stripe.api_key = settings.STRIPE_SECRET_KEY
 
     def run(self):
-        for sub in MembershipSubscription.objects.filter(stripe_subscription_id__isnull=False,
-                                                            stripe_id__isnull=False).exclude(stripe_subscription_id="",
-                                                                                             stripe_id=""):
+        for sub in MembershipSubscription.objects.filter(~Q(stripe_subscription_id__in=["", None]),
+                                                         ~Q(stripe_id__in=["", None]),
+                                                            canceled=False):
             data = loads(str(stripe.Invoice.list(customer=sub.stripe_id, stripe_account=sub.membership_package.stripe_acct_id)))
             for payment in data['data']:
                 # 'not' removed able to allow updating existing payment objects
@@ -60,6 +66,11 @@ class GetStripePayments:
                                                                                             'created': created})
                             if was_created:
                                 dj_price.save()
+            # update the subscription object data
+            stripe_sub = stripe.Subscription.retrieve(sub.stripe_subscription_id, stripe_account=sub.membership_package.stripe_acct_id)
+            sub.membership_start = datetime.fromtimestamp(stripe_sub['current_period_start'])
+            sub.membership_expiry = datetime.fromtimestamp(stripe_sub['current_period_end'])
+            sub.save()
 
 
 if __name__ == '__main__':
