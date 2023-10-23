@@ -170,7 +170,7 @@
                                         <tbody>
                                             {% for member, next_payment_date in overdue_members.items %}
                                                 {% for subscription in member.subscription.all %}
-                                                    {% if subscription.membership_package == membership_package %}
+                                                    {% if subscription.membership_package == membership_package and subscription.active and not subscription.canceled %}
                                                         <tr>
                                                             <!-- action -->
                                                             <td>
