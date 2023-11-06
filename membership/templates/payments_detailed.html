@@ -224,11 +224,11 @@
                 // send the GET request
                 $.get(url, function(data) {
                     // handle the response data
-                    $button.html('<i class="fad fa-mail-bulk text-info" aria-hidden="true"></i>'); // restore button text or leave it blank
+                    $button.html('<i class="fa-solid fa-mail-bulk text-info" aria-hidden="true"></i>'); // restore button text or leave it blank
                     infoMsg("Receipt sent!");
                 }).fail(function() {
                     // handle failure
-                    $button.html('<i class="fad fa-mail-bulk text-info" aria-hidden="true"></i>'); // restore button text or leave it blank
+                    $button.html('<i class="fa-solid fa-mail-bulk text-info" aria-hidden="true"></i>'); // restore button text or leave it blank
                     errorMsg("Receipt failed to send.");
                 });
             });

@@ -137,33 +137,33 @@ def get_members_detailed(request, title):
                 pass
                 card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
                                                                               'pk': subscription.member.id})}" class="dropdown-item">
-                                        <i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page
+                                        <i class="fa-solid fa-credit-card-front text-success mr-2"></i>Payment Page
                                 </a>"""
             else:
                 card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
                                                                               'pk': subscription.member.id})}" class="dropdown-item">
-                                        <i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page
+                                        <i class="fa-solid fa-credit-card-front text-danger mr-2"></i>Payment Page
                                 </a>"""
             member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
-                                                                                      'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
+                                                                                      'pk': subscription.member.id})}" class="dropdown-item"><i class="fa-solid fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
             edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
-                                                                              'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
-            reset_password_button = f"""<a href="javascript:resetMemberPwd('{subscription.member.user_account.email}');" value="{subscription.member.user_account.email}" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
+                                                                              'pk': subscription.member.id})}" class="dropdown-item"><i class="fa-solid fa-user-edit text-info mr-2"></i>Edit Member</a>"""
+            reset_password_button = f"""<a href="javascript:resetMemberPwd('{subscription.member.user_account.email}');" value="{subscription.member.user_account.email}" class="dropdown-item"><i class="fa-solid fa-key text-success mr-2"></i>Reset Password</a>"""
             
             # only display payment reminder button if user has a next payment
             if subscription.remaining_amount != '0':
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+                                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fa-solid fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
                 
                 # if date of last reminder is less than 30 days ago, add tooltip and make italic
                 if subscription.last_reminder:
                     if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
                         payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+                                                                                            'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fa-solid fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
             else:
                 payment_reminder_button = ''
 
-            remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id}, 'show_hide_col');" value="{subscription.member.id}" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
+            remove_member_button = f"""<a href="javascript:removeMember({subscription.member.id}, 'show_hide_col');" value="{subscription.member.id}" class="dropdown-item"><i class="fa-solid fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # create a string for address to avoid including extra line breaks
             address_string = ""
@@ -194,9 +194,9 @@ def get_members_detailed(request, title):
 
             # set gift aid value
             if subscription.gift_aid:
-                gift_aid = '<i class="fad fa-check text-success"></i>'
+                gift_aid = '<i class="fa-solid fa-check text-success"></i>'
             else:
-                gift_aid = '<i class="fad fa-times text-dark"></i>'
+                gift_aid = '<i class="fa-solid fa-times text-dark"></i>'
 
             # # set member id, name, email, mambership_type and buttons
             row = {'id': subscription.membership_number,
@@ -208,7 +208,7 @@ def get_members_detailed(request, title):
                    'membership_status': membership_status,
                    'payment_method': payment_method,
                    'billing_interval': billing_interval,
-                   'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+                   'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fa-solid fa-edit text-success ml-2"></i></a>""",
                    'gift_aid': gift_aid,
                    'membership_start': f'{membership_start_date or ""}',
                    'membership_expiry': f'{subscription.membership_expiry  or ""}',
@@ -243,15 +243,15 @@ def get_members_detailed(request, title):
                     # ... set it indicating whether it is ticked now
                     if field['field_type'] == 'bool':
                         if field['field_value'] == 'on':
-                            value = '<i class="fad fa-check text-success text-center"></i>'
+                            value = '<i class="fa-solid fa-check text-success text-center"></i>'
                         else:
-                            value = '<i class="fad fa-times"></i>'
+                            value = '<i class="fa-solid fa-times"></i>'
                 except KeyError:
                     value = ""
 
                     # if tick box has never been ticked, show times icon
                     if field['field_type'] == 'bool':
-                        value = '<i class="fad fa-times"></i>'
+                        value = '<i class="fa-solid fa-times"></i>'
 
                 row.update({field['field_name']: value})
 
@@ -353,32 +353,32 @@ def get_members(request, title):
                 pass
                 card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
                                                 'pk': subscription.member.id})}" class="dropdown-item">
-                                        <i class="fad fa-credit-card-front text-success mr-2"></i>Payment Page
+                                        <i class="fa-solid fa-credit-card-front text-success mr-2"></i>Payment Page
                                 </a>"""
             else:
                 card_button = f"""<a href="{reverse('member_payment', kwargs={'title': membership_package.organisation_name,
                                                 'pk': subscription.member.id})}" class="dropdown-item">
-                                        <i class="fad fa-credit-card-front text-danger mr-2"></i>Payment Page
+                                        <i class="fa-solid fa-credit-card-front text-danger mr-2"></i>Payment Page
                                 </a>"""
             member_payments_button = f"""<a href="{reverse('member_payments', kwargs={'title': membership_package.organisation_name,
-                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
+                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fa-solid fa-money-check-edit-alt text-info mr-2"></i>Member Payments</a>"""
             edit_member_button = f"""<a href="{reverse('member_form', kwargs={'title': membership_package.organisation_name,
-                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-user-edit text-info mr-2"></i>Edit Member</a>"""
-            reset_password_button = f"""<a href="javascript:resetMemberPwd('{ subscription.member.user_account.email }');" value="{ subscription.member.user_account.email }" class="dropdown-item"><i class="fad fa-key text-success mr-2"></i>Reset Password</a>"""
+                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fa-solid fa-user-edit text-info mr-2"></i>Edit Member</a>"""
+            reset_password_button = f"""<a href="javascript:resetMemberPwd('{ subscription.member.user_account.email }');" value="{ subscription.member.user_account.email }" class="dropdown-item"><i class="fa-solid fa-key text-success mr-2"></i>Reset Password</a>"""
             
             # only display payment reminder button if user has a next payment
             if subscription.remaining_amount != '0':
                 payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fad fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
+                                                                                            'pk': subscription.member.id})}" class="dropdown-item"><i class="fa-solid fa-envelope-open-dollar mr-2"></i>Payment Reminder</a>"""
                 # if date of last reminder is less than 30 days ago, add tooltip and make italic
                 if subscription.last_reminder:
                     if subscription.last_reminder + relativedelta(days=30) > datetime.now().date():
                         payment_reminder_button = f"""<a href="{reverse('payment_reminder', kwargs={'title': membership_package.organisation_name,
-                                                                                            'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fad fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
+                                                                                            'pk': subscription.member.id})}" class="dropdown-item" data-toggle="tooltip" title="Recently Sent"><i class="fa-solid fa-envelope-open-dollar mr-2"></i><i>Payment Reminder</i></a>"""
             else:
                 payment_reminder_button = ''
 
-            remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id }, 'show_hide_col');" value="{ subscription.member.id }" class="dropdown-item"><i class="fad fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
+            remove_member_button = f"""<a href="javascript:removeMember({ subscription.member.id }, 'show_hide_col');" value="{ subscription.member.id }" class="dropdown-item"><i class="fa-solid fa-user-slash text-danger mr-2"></i>Remove Member</a>"""
 
             # make the new lines in the comments show in the table
             comments = subscription.comments.replace('\n', '<br/>')
@@ -402,7 +402,7 @@ def get_members(request, title):
                             'id': subscription.membership_number,
                             'name': f"""<a href="{reverse('member_profile', kwargs={'pk': subscription.member.id})}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{subscription.member.user_account.get_full_name()}</button></a>""",
                             'email': f"{subscription.member.user_account.email}",
-                            'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fad fa-edit text-success ml-2"></i></a>""",
+                            'comments': f"""{comments}<a href="javascript:editComment('{subscription.id}');"><i class="fa-solid fa-edit text-success ml-2"></i></a>""",
                             'membership_type': membership_type,
                             'membership_status': membership_status})
 
@@ -495,9 +495,9 @@ def get_all_member_payments(request, title):
             else:
                 amount = ''
             if payment.gift_aid:
-                giftaid = '<i class="fad fa-check text-success"></i>'
+                giftaid = '<i class="fa-solid fa-check text-success"></i>'
             else:
-                giftaid = '<i class="fad fa-times text-danger"></i>'
+                giftaid = '<i class="fa-solid fa-times text-danger"></i>'
             
             # set method to card if it doesn't exist
             if payment.payment_method:
@@ -514,8 +514,8 @@ def get_all_member_payments(request, title):
                 # pprint(invoice)
                 if invoice['charge']:
                     charge = stripe.Charge.retrieve(invoice['charge'], stripe_account=membership_package.stripe_acct_id)
-                    view_receipt = f'<a href="{charge.receipt_url}" target="_blank"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="View receipt"><i class="fad fa-receipt text-info" aria-hidden="true"></i></button></a>'
-                    email_receipt = '<button id="{payment.id}" class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>'
+                    view_receipt = f'<a href="{charge.receipt_url}" target="_blank"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="View receipt"><i class="fa-solid fa-receipt text-info" aria-hidden="true"></i></button></a>'
+                    email_receipt = '<button id="{payment.id}" class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fa-solid fa-mail-bulk text-info" aria-hidden="true"></i></button>'
                 else:
                     view_receipt = ''
                     email_receipt = ''
@@ -531,10 +531,10 @@ def get_all_member_payments(request, title):
             # set params
             payments.append({
                                 'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
-                                                                                                    'pk': payment.subscription.member.id, 'payment_id': payment.id})}?next=payments_detailed"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
+                                                                                                    'pk': payment.subscription.member.id, 'payment_id': payment.id})}?next=payments_detailed"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fa-solid fa-money-check-edit-alt text-info"></i></button></a>
                                                 {email_receipt}
                                                 {view_receipt}
-                                                <a href="javascript:deletePayment({payment.subscription.member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>
+                                                <a href="javascript:deletePayment({payment.subscription.member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fa-solid fa-trash-alt text-danger"></i></button></a>
                                                 """,
                                 'payment_id': payment.payment_number,
                                 'name': payment.subscription.member.user_account.get_full_name(),
@@ -606,9 +606,9 @@ def get_member_payments(request, title, pk=None):
             else:
                 amount = ''
             if payment.gift_aid:
-                giftaid = '<i class="fad fa-check text-success"></i>'
+                giftaid = '<i class="fa-solid fa-check text-success"></i>'
             else:
-                giftaid = '<i class="fad fa-times text-danger"></i>'
+                giftaid = '<i class="fa-solid fa-times text-danger"></i>'
 
             # set method to card if it doesn't exist
             if payment.payment_method:
@@ -627,8 +627,8 @@ def get_member_payments(request, title, pk=None):
                 if invoice['charge']:
                     charge = stripe.Charge.retrieve(invoice['charge'], stripe_account=membership_package.stripe_acct_id)
                     if charge.receipt_url:
-                        view_receipt = f'<a href="{charge.receipt_url}" target="_blank"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="View receipt"><i class="fad fa-receipt text-info" aria-hidden="true"></i></button></a>'
-                        email_receipt = '<button id="{payment.id}" class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fad fa-mail-bulk text-info" aria-hidden="true"></i></button>'
+                        view_receipt = f'<a href="{charge.receipt_url}" target="_blank"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="View receipt"><i class="fa-solid fa-receipt text-info" aria-hidden="true"></i></button></a>'
+                        email_receipt = '<button id="{payment.id}" class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Email receipt"><i class="fa-solid fa-mail-bulk text-info" aria-hidden="true"></i></button>'
                     else:
                         view_receipt = ''
                         email_receipt = ''
@@ -676,10 +676,10 @@ def get_member_payments(request, title, pk=None):
 
             # set params
             payment_data.append({'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
-                                                                                'pk': member.id, 'payment_id': payment.id})}?next=member_payments"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fad fa-money-check-edit-alt text-info"></i></button></a>
+                                                                                'pk': member.id, 'payment_id': payment.id})}?next=member_payments"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fa-solid fa-money-check-edit-alt text-info"></i></button></a>
                                             {email_receipt}
                                             {view_receipt}
-                                            <a href="javascript:deletePayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fad fa-trash-alt text-danger"></i></button></a>""",
+                                            <a href="javascript:deletePayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fa-solid fa-trash-alt text-danger"></i></button></a>""",
                              'id': payment.payment_number,
                              'status': status,
                              'method': method,

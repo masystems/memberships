@@ -285,14 +285,14 @@
                                                     {% if details.subscription.id == subscription.stripe_subscription_id %}
                                                         <h5>Existing Subscription Details</h5>
                                                         <ul class="list-style-none">
-                                                            <li><i class="fad fa-chevron-right"></i>
+                                                            <li><i class="fa-solid olid fa-chevron-right"></i>
                                                                 Status: {% if details.subscription.plan.active == True %}
                                                                     <span class="text-success">Active</span>
                                                                 {% else %}
                                                                     <span class="text-danger">Inactive</span>
                                                                 {% endif %}
                                                             </li>
-                                                            <li><i class="fad fa-chevron-right"></i> Payment Interval: {% if details.subscription.plan.interval == 'month' %}Monthly
+                                                            <li><i class="fa-solid fa-chevron-right"></i> Payment Interval: {% if details.subscription.plan.interval == 'month' %}Monthly
                                                                 {% elif details.subscription.plan.interval == 'year' %}
                                                                 Yearly{% endif %}
                                                             </li>
@@ -308,10 +308,10 @@
                                         <!-- section not visible right now -->
                                         <h5>Existing Card Details</h5>
                                         <ul class="list-style-none">
-                                            <li><i class="fad fa-chevron-right"></i> Brand: {{ customer.sources.data.0.brand }}</li>
-                                            <li><i class="fad fa-chevron-right"></i> Last 4: {{ customer.sources.data.0.last4 }}</li>
-                                            <li><i class="fad fa-chevron-right"></i> Month/Year: {{ customer.sources.data.0.exp_month }}/{{ customer.sources.data.0.exp_year }}</li>
-                                            <li><i class="fad fa-chevron-right"></i> Area Code: {{ customer.sources.data.0.address_zip }}</li>
+                                            <li><i class="fa-solid fa-chevron-right"></i> Brand: {{ customer.sources.data.0.brand }}</li>
+                                            <li><i class="fa-solid fa-chevron-right"></i> Last 4: {{ customer.sources.data.0.last4 }}</li>
+                                            <li><i class="fa-solid fa-chevron-right"></i> Month/Year: {{ customer.sources.data.0.exp_month }}/{{ customer.sources.data.0.exp_year }}</li>
+                                            <li><i class="fa-solid fa-chevron-right"></i> Area Code: {{ customer.sources.data.0.address_zip }}</li>
                                         </ul>
                                     {% endif %}
                                 </div>
