@@ -59,7 +59,7 @@
                                     {% endif %}">
                                     <div class="card-body text-white">
                                         <div class="d-flex flex-row">
-                                            <div class="display-6 align-self-center"><i class="fad fa-globe"></i></div>
+                                            <div class="display-6 align-self-center"><i class="fa-solid fa-globe"></i></div>
                                             <div class="p-2 align-self-center">
                                                 <h4 class="mb-0 text-white">{{ account.organisation_name }}</h4>
                                                 <span>Role:
@@ -115,7 +115,7 @@
                             <div class="card bg-info">
                                 <div class="card-body text-white">
                                     <div class="d-flex flex-row">
-                                        <div class="display-6 align-self-center"><i class="fad fa-user"></i></div>
+                                        <div class="display-6 align-self-center"><i class="fa-solid fa-user"></i></div>
                                         <div class="p-2 align-self-center">
                                             <h4 class="mb-0 text-white">{{ subscription.membership_package.organisation_name }}</h4>
                                             <span>
@@ -130,7 +130,7 @@
 
                                                                      <a href="{% url 'member_payment' subscription.membership_package.organisation_name subscription.member.id %}">
                                                                          <button class="btn btn-sm btn-rounded btn-outline-danger mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card Details Not Added">
-                                                                            <i class="fad fa-credit-card-front text-light"></i>
+                                                                            <i class="fa-solid fa-credit-card-front text-light"></i>
                                                                          </button>
                                                                      </a>
                                                 {% endif %}
@@ -148,7 +148,7 @@
                         <div id="orgs-join">
                             <input class="typeahead form-control" type="text" id="organisations" name="organisations" placeholder="Type organisation name">
                         </div>
-                        <button class="btn btn-sm btn-info" id="joinOrg"><i class="fad fa-users mr-1"></i>Join</button>
+                        <button class="btn btn-sm btn-info" id="joinOrg"><i class="fa-solid fa-users mr-1"></i>Join</button>
                     </div>
                 </div>
             </div>

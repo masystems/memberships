@@ -84,8 +84,8 @@
                                         <td><span class="badge py-1 badge-info">Member</span> </td>
                                         <td>{{ member.user_account.date_joined }}</td>
                                         <td>
-                                            <a href="{% url 'edit_member' member.id %}"><i class="fad fa-user-edit"></i></a>
-                                            <a href="{% url 'edit_member' member.id %}"><i class="fad fa-user-slash text-danger"></i></a>
+                                            <a href="{% url 'edit_member' member.id %}"><i class="fa-solid fa-user-edit"></i></a>
+                                            <a href="{% url 'edit_member' member.id %}"><i class="fa-solid fa-user-slash text-danger"></i></a>
                                         </td>
                                     </tr>
                                 {% endfor %}

@@ -124,12 +124,12 @@
                                                     <td>
                                                         <a href="{% url 'member_payment' subscription.membership_package.organisation_name subscription.member.id %}">
                                                             <button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" data-placement="top" title="Card details not added">
-                                                                <i class="fad fa-credit-card-front text-danger"></i>
+                                                                <i class="fa-solid fa-credit-card-front text-danger"></i>
                                                             </button>
                                                         </a>
-                                                        <a href="{% url 'member_form' subscription.membership_package.organisation_name subscription.member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fad fa-user-edit text-info"></i></button></a>
-                                                        <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ subscription.member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fad fa-key text-success"></i></button>
-                                                        <a href="javascript:removeMember({{ subscription.member.id }}, 'incompleteMembersTable');"><button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ subscription.member.id }}"><i class="fad fa-user-slash text-danger"></i></button></a>
+                                                        <a href="{% url 'member_form' subscription.membership_package.organisation_name subscription.member.id %}"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Member Details"><i class="fa-solid fa-user-edit text-info"></i></button></a>
+                                                        <button class="btn btn-sm btn-rounded btn-light mt-1 passRstBtnIn" value="{{ subscription.member.user_account.email }}" data-toggle="tooltip" title="Reset Password"><i class="fa-solid fa-key text-success"></i></button>
+                                                        <a href="javascript:removeMember({{ subscription.member.id }}, 'incompleteMembersTable');"><button class="btn btn-sm btn-rounded btn-light mt-1 removeUserBtn" data-toggle="tooltip" title="Remove Member" value="{{ subscription.member.id }}"><i class="fa-solid fa-user-slash text-danger"></i></button></a>
                                                     </td>
                                                     <td>
                                                         <a href="{% url 'member_profile' subscription.member.id %}"><button class="btn waves-effect waves-light btn-rounded btn-sm btn-success">{{ subscription.member.user_account.get_full_name }}</button></a>
@@ -137,7 +137,7 @@
                                                     <td>{{ subscription.member.user_account.email }}</td>
                                                     <td>
                                                         {{ subscription.comments }}
-                                                        <a href="javascript:editComment('{{ subscription.id }}');"><i class="fad fa-edit text-success ml-2"></i></a>
+                                                        <a href="javascript:editComment('{{ subscription.id }}');"><i class="fa-solid fa-edit text-success ml-2"></i></a>
                                                     </td>
                                                     <td>
                                                         {% if subscription.price.nickname %}

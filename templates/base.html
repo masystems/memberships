@@ -12,14 +12,13 @@
     <meta name="author" content="">
     <!-- Favicon icon -->
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'assets/images/favicon.png' %}">
-    <script src="https://kit.fontawesome.com/e1cfa067bf.js" crossorigin="anonymous"></script>
     <title>Memberships</title>
 
     <!-- CSS -->
     <link rel="stylesheet" type="text/css" href="{% static 'assets/libs/datatables.net-bs4/css/dataTables.bootstrap4.css' %}">
     <link href="{% static 'assets/extra-libs/toastr/dist/build/toastr.min.css' %}" rel="stylesheet">
     <link href="{% static 'dist/css/style.min.css' %}" rel="stylesheet">
-
+    <script src="https://kit.fontawesome.com/bc1e2b9eb4.js" crossorigin="anonymous"></script>
     <script src="{% static 'assets/libs/jquery/dist/jquery.min.js' %}"></script>
 
     {% include 'css.html' %}
@@ -85,9 +84,9 @@
                         <b class="logo-icon">
                             <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
                             <!-- Dark Logo icon -->
-                            <i class="fad fa-clouds dark-logo text-success"></i>
+                            <i class="fa-solid fa-clouds dark-logo text-success"></i>
                             <!-- Light Logo icon -->
-                            <i class="fad fa-clouds fa-2x text-white light-logo text-success"></i>
+                            <i class="fa-solid fa-clouds fa-2x text-white light-logo text-success"></i>
                         </b>
                         <!--End Logo icon -->
                     </a>
@@ -164,7 +163,7 @@
 <!--                        &lt;!&ndash; ============================================================== &ndash;&gt;-->
                         <li class="nav-item dropdown mega-dropdown">
                             <a class="nav-link dropdown-toggle waves-effect waves-dark" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class=""><button class="btn btn-primary"><i class="fad fa-envelope-open-dollar mr-2"></i>Donate to Organisation</button></span>
+                                <span class=""><button class="btn btn-primary"><i class="fa-solid fa-envelope-open-dollar mr-2"></i>Donate to Organisation</button></span>
                             </a>
                             <form id="donationForm">
                                 <div class="dropdown-menu animated bounceInDown">
@@ -271,10 +270,10 @@
                         <!-- User profile and search -->
                         <!-- ============================================================== -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-white waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ request.user.get_full_name }}<i class="fad fa-user rounded-circle ml-2 text-dark"></i></a>
+                            <a class="nav-link dropdown-toggle text-white waves-effect waves-dark pro-pic" href="" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{{ request.user.get_full_name }}<i class="fa-solid fa-user rounded-circle ml-2 text-dark"></i></a>
                             <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
                                 <div class="d-flex no-block align-items-center p-3 mb-2 border-bottom">
-                                    <div class="u-img"><i class="fad fa-user-circle text-success fa-4x"></i></div>
+                                    <div class="u-img"><i class="fa-solid fa-circle-user text-success fa-4x"></i></div>
                                     <div class="ml-2">
                                         <h4 class="mb-0">{{ request.user.get_full_name }}</h4>
                                         <p class=" mb-0">{{ request.user.email }}</p>
@@ -285,7 +284,7 @@
                                 <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="{% url 'account_logout' %}"><i class="fa fa-power-off mr-1 ml-1"></i> Logout</a>
                                 <div class="dropdown-divider"></div>
-                                <a class="dropdown-item" href="{% url 'account_deletion' %}"><i class="fad fa-user-slash mr-1 ml-1"></i> Account Deletion</a>
+                                <a class="dropdown-item" href="{% url 'account_deletion' %}"><i class="fa-solid fa-user-slash mr-1 ml-1"></i> Account Deletion</a>
                             </div>
                         </li>
                         <!-- ============================================================== -->
@@ -313,7 +312,7 @@
                             <!-- User profile -->
                             <div class="user-profile text-center position-relative pt-4 mt-1">
                                 <!-- User profile image -->
-                                <div class="m-auto"> <i class="fad fa-user-circle text-success fa-2x"></i> </div>
+                                <div class="m-auto"> <i class="fa-solid fa-circle-user text-success fa-2x"></i> </div>
                                 <!-- User profile text-->
                                 <div class="profile-text py-1"> <span class="link u-dropdown text-info" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="true">{{ request.user.get_full_name }}</span>
 
@@ -323,22 +322,22 @@
                         </li>
                         <!-- User Profile-->
                         <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Membership Organisations</span></li>
-<!--                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/" aria-expanded="false"><i class="fad fa-home-alt mr-1"></i> <span class="hide-menu">Overview</span></a></li>-->
+<!--                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/" aria-expanded="false"><i class="fa-solid fa-home-alt mr-1"></i> <span class="hide-menu">Overview</span></a></li>-->
                         {% if membership_packages %}
                             {% for package in membership_packages.all %}
-                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'membership_package' package.organisation_name %}" aria-expanded="false"><i class="fad fa-globe mr-1"></i> <span class="hide-menu">
+                                <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'membership_package' package.organisation_name %}" aria-expanded="false"><i class="fa-solid fa-globe mr-1"></i> <span class="hide-menu">
                                     {{ package.organisation_name }}
                                 </span></a></li>
                             {% endfor %}
                         {% else %}
-                            <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'membership' %}" aria-expanded="false"><i class="fad fa-users mr-1"></i> <span class="hide-menu">
+                            <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'membership' %}" aria-expanded="false"><i class="fa-solid fa-users mr-1"></i> <span class="hide-menu">
                                 Create Organisation
                             </span></a></li>
                         {% endif %}
 
                         <li class="nav-devider"></li>
                         <li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">My Memberships</span></li>
-                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'member_profile' membership.id %}" aria-expanded="false"><i class="fad fa-user mr-1"></i><span class="hide-menu">
+                        <li class="sidebar-item"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{% url 'member_profile' membership.id %}" aria-expanded="false"><i class="fa-solid fa-user mr-1"></i><span class="hide-menu">
                             My Profile
                         </span></a></li>
                     </ul>
