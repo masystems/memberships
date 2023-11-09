@@ -23,16 +23,22 @@ from membership.charging import *
 from pprint import pprint
 
 class GetStripePayments:
-    def __init__(self):
+    def __init__(self, sub_id=None):
         if debug:
             stripe.api_key = settings.STRIPE_SECRET_TEST_KEY
         else:
             stripe.api_key = settings.STRIPE_SECRET_KEY
+        self.sub_id = sub_id
 
     def run(self):
-        for sub in MembershipSubscription.objects.filter(~Q(stripe_subscription_id__in=["", None]),
+        if self.sub_id:
+            subscriptions = MembershipSubscription.objects.filter(id=self.sub_id)
+            pprint(subscriptions[0].membership_package.organisation_name)
+        else:
+            subscriptions = MembershipSubscription.objects.filter(~Q(stripe_subscription_id__in=["", None]),
                                                          ~Q(stripe_id__in=["", None]),
-                                                            canceled=False):
+                                                            canceled=False)
+        for sub in subscriptions:
             data = loads(str(stripe.Invoice.list(customer=sub.stripe_id, stripe_account=sub.membership_package.stripe_acct_id)))
             for payment in data['data']:
                 # 'not' removed able to allow updating existing payment objects

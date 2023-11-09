@@ -2012,6 +2012,10 @@ def enable_subscription(request, sub_id):
         subscription.active = True
         subscription.save()
 
+        # run importing payments
+        from memberships.get_stripe_payments import GetStripePayments
+        GetStripePayments(subscription.id).run()
+
         # create local price object
         Payment.objects.create(stripe_id=stripe_id,
                                defaults={'subscription': subscription,
