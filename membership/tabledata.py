@@ -58,7 +58,7 @@ def get_members_detailed(request, title):
     members = []
     if search == "":
         all_subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package,
-                                                                  price__isnull=False
+                                                                  price__isnull=False,
                                                                   active=True,
                                                                   cancelled=False).order_by(sort_by_col).distinct()[
                             start:start + end]
