@@ -60,7 +60,7 @@ def get_members_detailed(request, title):
         all_subscriptions = MembershipSubscription.objects.filter(membership_package=membership_package,
                                                                   price__isnull=False,
                                                                   active=True,
-                                                                  cancelled=False).order_by(sort_by_col).distinct()[
+                                                                  canceled=False).order_by(sort_by_col).distinct()[
                             start:start + end]
     else:
         all_subscriptions = MembershipSubscription.objects.filter(
@@ -75,12 +75,12 @@ def get_members_detailed(request, title):
             Q(member__postcode__icontains=search) |
             Q(membership_number__icontains=search),
             active=True,
-            cancelled=False,
+            canceled=False,
             membership_package=membership_package).order_by(sort_by_col).distinct()[start:start + end]
     if search == "":
         total_members = MembershipSubscription.objects.filter(membership_package=membership_package,
                                                               active=True,
-                                                              cancelled=False).distinct().count()
+                                                              canceled=False).distinct().count()
     else:
         total_members = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
                                                               Q(member__user_account__last_name__icontains=search) |
@@ -93,7 +93,7 @@ def get_members_detailed(request, title):
                                                               Q(member__postcode__icontains=search) |
                                                               Q(membership_number__icontains=search),
                                                               active=True,
-                                                              cancelled=False,
+                                                              canceled=False,
                                                               membership_package=membership_package).order_by(
             sort_by_col).count()
 
@@ -314,7 +314,7 @@ def get_members(request, title):
         membership_package=membership_package, 
         price__isnull=False,
         active=True,
-        cancelled=False
+        canceled=False
     ).order_by(sort_by_col).distinct()[start:start+end]
 
     else:
@@ -323,19 +323,19 @@ def get_members(request, title):
                                             Q(member__user_account__email__icontains=search) |
                                             Q(membership_number__icontains=search),
                                             active=True,
-                                            cancelled=False,
+                                            canceled=False,
                                             membership_package=membership_package).order_by(sort_by_col)[start:start + end]
     if search == "":
         total_members = MembershipSubscription.objects.filter(membership_package=membership_package,
                                                               active=True,
-                                                              cancelled=False).distinct().count()
+                                                              canceled=False).distinct().count()
     else:
         total_members = MembershipSubscription.objects.filter(Q(member__user_account__first_name__icontains=search) |
                                             Q(member__user_account__last_name__icontains=search) |
                                             Q(member__user_account__email__icontains=search) |
                                             Q(membership_number__icontains=search),
                                             active=True,
-                                            cancelled=False,
+                                            canceled=False,
                                             membership_package=membership_package).order_by(sort_by_col).count()
 
     if all_subscriptions.count() > 0:
