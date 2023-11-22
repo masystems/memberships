@@ -588,7 +588,7 @@ def get_member_payments(request, title, pk=None):
     membership_package = MembershipPackage.objects.get(organisation_name=title)
     member = Member.objects.get(id=pk)
     subscription = MembershipSubscription.objects.filter(membership_package=membership_package,
-                                                      member=member).order_by("-membership_start")
+                                                      member=member).order_by("membership_start")
     start = int(request.GET.get('start', 0))
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
