@@ -608,7 +608,7 @@ def get_member_payments(request, title, pk=None):
                                                 Q(created__icontains=search) |
                                                 Q(gift_aid_percentage__icontains=search) |
                                                 Q(amount__icontains=search),
-                                                subscription=sub).distinct().order_by('created')[start:start + end]
+                                                subscription=sub).distinct().order_by(f"-{sort_by}")[start:start + end]
         all_payments.extend(list(payments))
 
     # Counting total_payments across all subscriptions
