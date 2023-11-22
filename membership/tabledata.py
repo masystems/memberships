@@ -592,7 +592,7 @@ def get_member_payments(request, title, pk=None):
     start = int(request.GET.get('start', 0))
     end = int(request.GET.get('length', 20))
     search = request.GET.get('search[value]', "")
-    sort_by = request.GET.get(f'columns[{request.GET.get("order[0][column]")}][data]')
+    sort_by = request.GET.get(f'columns[{request.GET.get("order[1][column]")}][data]')
 
     all_payments = []
     payment_data = []
@@ -608,7 +608,7 @@ def get_member_payments(request, title, pk=None):
                                                 Q(created__icontains=search) |
                                                 Q(gift_aid_percentage__icontains=search) |
                                                 Q(amount__icontains=search),
-                                                subscription=sub).distinct().order_by('-created')[start:start + end]
+                                                subscription=sub).distinct().order_by('created')[start:start + end]
         all_payments.extend(list(payments))
 
     # Counting total_payments across all subscriptions
