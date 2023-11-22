@@ -600,7 +600,7 @@ def get_member_payments(request, title, pk=None):
     # Loop over each subscription in the queryset
     for sub in subscription:
         if search == "":
-            payments = Payment.objects.filter(subscription=sub).order_by('-created')[start:start + end]
+            payments = Payment.objects.filter(subscription=sub).order_by(f"-{sort_by}")[start:start + end]
         else:
             payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                                 Q(payment_number__icontains=search) |
