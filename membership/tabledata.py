@@ -600,7 +600,7 @@ def get_member_payments(request, title, pk=None):
     # Loop over each subscription in the queryset
     for sub in subscription:
         if search == "":
-            payments = Payment.objects.filter(subscription=sub).order_by(f"-{sort_by}")[start:start + end]
+            payments = Payment.objects.filter(subscription=sub).order_by("-payment_number")[start:start + end]
         else:
             payments = Payment.objects.filter(Q(payment_method__payment_name__icontains=search) |
                                                 Q(payment_number__icontains=search) |
@@ -608,7 +608,7 @@ def get_member_payments(request, title, pk=None):
                                                 Q(created__icontains=search) |
                                                 Q(gift_aid_percentage__icontains=search) |
                                                 Q(amount__icontains=search),
-                                                subscription=sub).distinct().order_by(f"-{sort_by}")[start:start + end]
+                                                subscription=sub).distinct().order_by("-payment_number")[start:start + end]
         all_payments.extend(list(payments))
 
     # Counting total_payments across all subscriptions
