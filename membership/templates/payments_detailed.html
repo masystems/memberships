@@ -151,6 +151,7 @@
             "responsive": true,
             "scrollX": true,
             stateSave: true,
+            "order": [[1, 'asc']],
             "ajax": {
                 url: "{% url 'get_all_member_payments' membership_package.organisation_name %}",
                 type: "POST",

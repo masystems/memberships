@@ -551,7 +551,7 @@ def get_all_member_payments(request, title):
             # set params
             payments.append({
                                 'action': f"""<a href="{reverse('member_payment_form_edit', kwargs={'title': membership_package.organisation_name,
-                                                                                                    'pk': payment.subscription.member.id, 'payment_id': payment.id})}?next=payments_detailed"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fa-solid fa-pen-to-square text-info"></i></button></a>
+                                                                                                    'pk': payment.subscription.member.id, 'payment_id': payment.id})}?next=payments_detailed"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fa-solid pen-to-square text-info"></i></button></a>
                                                 {email_receipt}
                                                 {view_receipt}
                                                 <a href="javascript:deletePayment({payment.subscription.member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fa-solid fa-trash-alt text-danger"></i></button></a>
