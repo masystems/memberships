@@ -476,6 +476,11 @@ def manage_account(request, title):
     stripe.api_key = get_stripe_secret_key(request)
 
     stripe_package = stripe.Account.retrieve(membership_package.stripe_acct_id)
+    if stripe_package.charges_enabled and stripe_package.payouts_enabled and stripe_package.details_submitted:
+        stripe_account_warning = False
+    else:
+        stripe_account_warning = True
+
     edit_account = None
     if membership_package.stripe_acct_id:
         try:
@@ -496,6 +501,7 @@ def manage_account(request, title):
                                                     'stripe_package': stripe_package,
                                                     'members': members,
                                                     'invoices': invoices,
+                                                    'stripe_account_warning': stripe_account_warning
                                                   })
 
 
