@@ -4,6 +4,7 @@ from django.views.generic.base import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
+from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.db.models import Q
 from django.forms import ModelChoiceField
@@ -476,6 +477,7 @@ def manage_account(request, title):
     stripe.api_key = get_stripe_secret_key(request)
 
     stripe_package = stripe.Account.retrieve(membership_package.stripe_acct_id)
+    print(stripe_package)
     if stripe_package.charges_enabled and stripe_package.payouts_enabled and stripe_package.details_submitted:
         stripe_account_warning = False
     else:
@@ -2393,10 +2395,15 @@ def member_payments(request, title, pk):
                                                     'stripe_status': stripe_status})
 
 
+@require_POST
 @login_required(login_url='/accounts/login/')
-def create_invoice(request):
-    return HttpResponse(dumps({'status': "success",
-                               'message': "Comments updated"}))
+def create_card_payment(request, sub_id):
+    subscription = MembershipSubscription.objects.get(id=sub_id, canceled=False)
+    amount = request.POST.get('amount')  # Amount in cents
+
+    result = take_payment(request, subscription, amount)
+    print(result)
+    return HttpResponse(dumps(result))
 
 
 @login_required(login_url='/accounts/login/')
