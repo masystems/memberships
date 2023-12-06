@@ -659,35 +659,46 @@ def get_member_payments(request, title, pk=None):
                 
                 statuses = {'succeeded': {
                     'class': 'text-success',
-                    'msg': 'Payment received'
+                    'msg': 'Payment received',
+                    'retry': False
                 },
                 'requires_payment_method': {
                     'class': 'text-danger',
-                    'msg': 'Please add a card'
+                    'msg': 'Please add a card',
+                    'retry': True
                 },
                 'requires_confirmation': {
                     'class': 'text-warning',
-                    'msg': ''
+                    'msg': '',
+                    'retry': False
                 },
                 'requires_action': {
                     'class': 'text-warning',
-                    'msg': ''
+                    'msg': '',
+                    'retry': False
                 },
                 'processing': {
                     'class': 'text-warning',
-                    'msg': 'Payment still processing'
+                    'msg': 'Payment still processing',
+                    'retry': False
                 },
                 'requires_capture': {
                     'class': 'text-warning',
-                    'msg': ''
+                    'msg': '',
+                    'retry': False
                 },
                 'canceled': {
                     'class': 'text-danger',
-                    'msg': ''
+                    'msg': '',
+                    'retry': False
                 },
                 }
                 class_value = statuses.get(intent["status"], {}).get('class', 'text-default')
                 msg_value = statuses.get(intent["status"], {}).get('msg', '')
+                if statuses.get(intent["status"], {}).get('retry', ''):
+                    retry_payment = f"""<a href="javascript:retryPayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-warning mr-1 mt-1" data-toggle="tooltip" title="Retry Payment"><i class="fa-solid fa-arrows-rotate text-danger"></i></button></a>"""
+                else:
+                    retry_payment = ""
 
                 status = f'<strong class="{class_value}">{intent["status"].replace("_", " ").title()}</strong></br>{msg_value}'
                 
@@ -699,6 +710,7 @@ def get_member_payments(request, title, pk=None):
                                                                                 'pk': member.id, 'payment_id': payment.id})}?next=member_payments"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Edit Payment"><i class="fa-solid fa-money-check-edit-alt text-info"></i></button></a>
                                             {email_receipt}
                                             {view_receipt}
+                                            {retry_payment}
                                             <a href="javascript:deletePayment({member.id}, {payment.id});"><button class="btn btn-sm btn-rounded btn-light mr-1 mt-1" data-toggle="tooltip" title="Delete Payment"><i class="fa-solid fa-trash-alt text-danger"></i></button></a>""",
                              'id': payment.payment_number,
                              'status': status,

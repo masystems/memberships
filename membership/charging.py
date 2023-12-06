@@ -116,7 +116,7 @@ def get_subscription(request, subscription):
     )
 
 
-def take_payment(request, subscription, amount):
+def create_subscription_payment(request, subscription, amount):
     stripe.api_key = get_stripe_secret_key(request)
     try:
         amount_in_pennies = int(float(amount) * 100)

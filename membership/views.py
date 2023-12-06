@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect
 from django.http import JsonResponse
 from django.views.generic.base import TemplateView
+from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
@@ -9,6 +10,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.forms import ModelChoiceField
 from memberships.functions import *
+from memberships.get_stripe_payments import GetStripePayments
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .charging import *
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
@@ -193,17 +195,17 @@ def manage_membership_types(request, title):
                         stripe_account=membership_package.stripe_acct_id
                     )
                     Price.objects.create(membership_package=membership_package,
-                                        stripe_price_id=price.id,
-                                        nickname=price.nickname,
-                                        interval=price.type,
-                                        visible=visible_value,
-                                        amount=price.unit_amount,
-                                        active=True)
+                                         stripe_price_id=price.id,
+                                         nickname=price.nickname,
+                                         interval=price.type,
+                                         visible=visible_value,
+                                         amount=price.unit_amount,
+                                         active=True)
                     return HttpResponse(dumps({'status': "success",
-                                            'message': "Price successfully added"}), content_type='application/json')
+                                               'message': "Price successfully added"}), content_type='application/json')
                 except ValueError:
                     return HttpResponse(dumps({'status': "fail",
-                                            'message': "You must enter a valid amount"}), content_type='application/json')
+                                               'message': "You must enter a valid amount"}), content_type='application/json')
             # new price object - recurring
             else:
                 try:
@@ -217,18 +219,18 @@ def manage_membership_types(request, title):
                         stripe_account=membership_package.stripe_acct_id
                     )
                     Price.objects.create(membership_package=membership_package,
-                                        stripe_price_id=price.id,
-                                        nickname=price.nickname,
-                                        interval=price.recurring.interval,
-                                        visible=visible_value,
-                                        currency=request.POST.get('currency'),
-                                        amount=price.unit_amount,
-                                        active=True)
+                                         stripe_price_id=price.id,
+                                         nickname=price.nickname,
+                                         interval=price.recurring.interval,
+                                         visible=visible_value,
+                                         currency=request.POST.get('currency'),
+                                         amount=price.unit_amount,
+                                         active=True)
                     return HttpResponse(dumps({'status': "success",
-                                            'message': "Price successfully added"}), content_type='application/json')
+                                               'message': "Price successfully added"}), content_type='application/json')
                 except ValueError:
                     return HttpResponse(dumps({'status': "fail",
-                                            'message': "You must enter a valid amount"}), content_type='application/json')
+                                               'message': "You must enter a valid amount"}), content_type='application/json')
 
     else:
         membership_types_list = []
@@ -2021,16 +2023,15 @@ def enable_subscription(request, sub_id):
         subscription.save()
 
         # run importing payments
-        from memberships.get_stripe_payments import GetStripePayments
         GetStripePayments(subscription.id).run()
 
         # create local price object
-        Payment.objects.create(stripe_id=stripe_id,
-                               defaults={'subscription': subscription,
-                                         'payment_number': get_next_payment_number(),
-                                         'type': 'subscription',
-                                         'amount': subscription.price.amount,
-                                         'created': subscription.membership_start})
+        # Payment.objects.create(stripe_id=stripe_id,
+        #                        defaults={'subscription': subscription,
+        #                                  'payment_number': get_next_payment_number(),
+        #                                  'type': 'subscription',
+        #                                  'amount': subscription.price.amount,
+        #                                  'created': subscription.membership_start})
 
         # update CL if needed
         # if subscription.membership_package.cloud_lines_domain and subscription.membership_package.cloud_lines_token:
@@ -2401,9 +2402,55 @@ def create_card_payment(request, sub_id):
     subscription = MembershipSubscription.objects.get(id=sub_id, canceled=False)
     amount = request.POST.get('amount')  # Amount in cents
 
-    result = take_payment(request, subscription, amount)
-    print(result)
+    result = create_subscription_payment(request, subscription, amount)
+    GetStripePayments(subscription.id).run()
     return HttpResponse(dumps(result))
+
+
+@csrf_exempt
+@require_POST
+@login_required(login_url='/accounts/login/')
+def retry_payment(request):
+    stripe.api_key = get_stripe_secret_key(request)
+    data = json.loads(request.body)
+    member_id = data.get('member_id')
+    payment_id = data.get('payment_id')
+
+    try:
+        payment = Payment.objects.get(pk=payment_id)
+        try:
+            # Retrieve the Stripe Invoice
+            invoice = stripe.Invoice.retrieve(payment.stripe_id, 
+                                              stripe_account=payment.subscription.membership_package.stripe_acct_id)
+            # Check if the invoice is in the right state to be paid
+            if invoice.status == 'open':
+                # Retrieve user's default payment method
+                stripe_customer = stripe.Customer.retrieve(payment.subscription.stripe_id,
+                                                           stripe_account=payment.subscription.membership_package.stripe_acct_id)
+                default_payment_method = stripe_customer.default_source
+                if not default_payment_method:
+                    return JsonResponse({'status': 'error', 'message': 'No default payment method available.'}, status=400)
+
+                # Pay the invoice using the default payment method
+                pay = stripe.Invoice.pay(payment.stripe_id,
+                                         stripe_account=payment.subscription.membership_package.stripe_acct_id)
+
+                GetStripePayments(payment.subscription.id).run()
+                return JsonResponse({'status': 'success', 'message': 'Invoice payment retry initiated successfully.'})
+
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Invoice is not in a payable state. status: invoice.status'}, status=400)
+
+        except stripe.error.StripeError as e:
+            # Handle Stripe errors
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+    except Payment.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Payment not found.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
 @login_required(login_url='/accounts/login/')

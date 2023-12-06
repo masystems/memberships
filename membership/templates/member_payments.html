@@ -143,9 +143,9 @@
                             .then(response => response.json())
                             .then(data => {
                                 if (data.status === 'success') {
-                                infoMsg(data.msg);
+                                    infoMsg(data.msg);
                                 } else {
-                                warningMsg(data.msg);
+                                    warningMsg(data.msg);
                                 }
                             })
                             .catch((error) => {
@@ -172,7 +172,7 @@
                 <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-                    <h5 class="modal-title" id="paymentModalLabel">Take Card Payment</h5>
+                    <h5 class="modal-title" id="paymentModalLabel">Take a One Off Card Payment</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -239,12 +239,14 @@
                                     // Handle success
                                     infoMsg('Payment Success!')
                                     $('#paymentModal').modal('hide');
-                                    // Additional success handling code here
-                                    location.reload();
+                                    $('.modal-backdrop').remove();
+                                    table.ajax.reload(null, false);
                                 } else {
                                     // Handle error
                                     errorMsg(response.message)
-                                    // Additional error handling code here
+                                    $('#paymentModal').modal('hide');
+                                    $('.modal-backdrop').remove();
+                                    table.ajax.reload(null, false);
                                 }
                             },
                             error: function() {
@@ -406,6 +408,40 @@
         var deletePayment = function (member_id, payment_id) {
             $('#delete-payment-modal').modal('show');
             $('#deletePaymentUrl').attr("href", "/membership/delete-payment/{{ membership_package.organisation_name }}/" + member_id + '/' + payment_id + '/?next=member_payments');
+        }
+    </script>
+    <script>
+        function retryPayment(memberId, paymentId) {
+            // Example of showing a confirmation modal
+            if (confirm(`Are you sure you want to retry this payment?`)) {
+                // If confirmed, make an AJAX request to Django server
+                fetch("{% url 'retry_payment' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ member_id: memberId, payment_id: paymentId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response data
+                    if (data.status === 'success') {
+                        // Success handling
+                        infoMsg(data.message);
+                        table.ajax.reload(null, false); // false means stay on the current page
+                    } else if (data.status === 'error') {
+                        // Error handling
+                        errorMsg(data.message);
+                    } else {
+                        // Handling other unknown cases
+                        errorMsg('Unexpected response:' + data);
+                    }
+                })
+                .catch(error => {
+                    // Handle any error
+                    errorMsg(error);
+                });
+            }
         }
     </script>
 {% endblock %}
