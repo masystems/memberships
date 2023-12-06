@@ -114,3 +114,39 @@ def get_subscription(request, subscription):
         subscription.stripe_subscription_id,
         stripe_account=subscription.membership_package.stripe_acct_id
     )
+
+
+def create_subscription_payment(request, subscription, amount):
+    stripe.api_key = get_stripe_secret_key(request)
+    try:
+        amount_in_pennies = int(float(amount) * 100)
+        # Retrieve the default payment method
+        customer = stripe.Customer.retrieve(subscription.stripe_id,
+                                            stripe_account=subscription.membership_package.stripe_acct_id)
+
+        default_payment_method = customer.invoice_settings.default_payment_method
+
+        # Create an invoice item
+        invoice_item = stripe.InvoiceItem.create(
+            customer=subscription.stripe_id,
+            amount=amount_in_pennies,
+            currency='gbp',
+            description='Additional charge',
+            stripe_account=subscription.membership_package.stripe_acct_id
+        )
+
+        # Create and pay the invoice immediately
+        invoice = stripe.Invoice.create(
+            customer=subscription.stripe_id,
+            auto_advance=True,  # Auto-finalize this invoice
+            stripe_account=subscription.membership_package.stripe_acct_id
+        )
+        invoice = stripe.Invoice.pay(invoice.id, stripe_account=subscription.membership_package.stripe_acct_id)
+
+        return {'status': 'success', 'invoice_id': invoice.id}
+
+    except stripe.error.StripeError as e:
+        # Handle Stripe errors
+        return {'status': 'error', 'message': str(e)}
+    except ValueError:
+        return {'status': 'error', 'message': 'Ensure amount is e.g. 5.95 or 10'}

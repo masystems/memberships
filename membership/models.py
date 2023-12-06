@@ -120,10 +120,11 @@ class Payment(models.Model):
     payment_number = models.CharField(max_length=255, unique=True)
     TYPE = (
         ('subscription', 'Subscription'),
-        ('donation', 'Donation '),
-        ('merchandise', 'Merchandise '),
-        ('fees', 'Fees '),
-        ('adverts', 'Adverts '),
+        ('donation', 'Donation'),
+        ('merchandise', 'Merchandise'),
+        ('fees', 'Fees'),
+        ('adverts', 'Adverts'),
+        ('one off', 'One Off'),
     )
     type = models.CharField(max_length=25, choices=TYPE, null=True, default='subscription', verbose_name="Payment Type")
     amount = models.CharField(max_length=255, blank=True)

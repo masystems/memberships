@@ -33,7 +33,6 @@ class GetStripePayments:
     def run(self):
         if self.sub_id:
             subscriptions = MembershipSubscription.objects.filter(id=self.sub_id)
-            pprint(subscriptions[0].membership_package.organisation_name)
         else:
             subscriptions = MembershipSubscription.objects.filter(~Q(stripe_subscription_id__in=["", None]),
                                                          ~Q(stripe_id__in=["", None]),
@@ -54,8 +53,21 @@ class GetStripePayments:
                         # no payment plan interval??
                         # pprint(payment)
                         continue
+                    except TypeError:
+                        # outside of a subscription i.e. one off payments
+                        stripe_id = payment['id']
+                        amount = payment['amount_due']
+                        intent = stripe.PaymentIntent.retrieve(payment['payment_intent'], stripe_account=sub.membership_package.stripe_acct_id)
+                        created = datetime.fromtimestamp(intent['created'])
+                        dj_price, was_created = Payment.objects.get_or_create(stripe_id=stripe_id,
+                                                                              defaults={'subscription': subscription,
+                                                                                        'payment_number': payment_number,
+                                                                                        'type': 'one off',
+                                                                                        'amount': amount,
+                                                                                        'created': created})
+                        continue
                     # get charge amount
-                    amount = payment['amount_paid']
+                    amount = payment['amount_due']
                     # get charge date
                     # print(f"STRIPE ID: {sub.membership_package.stripe_acct_id}")
                     # print(f"PAYMENT ID: {payment['charge']}")

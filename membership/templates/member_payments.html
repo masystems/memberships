@@ -143,9 +143,9 @@
                             .then(response => response.json())
                             .then(data => {
                                 if (data.status === 'success') {
-                                infoMsg(data.msg);
+                                    infoMsg(data.msg);
                                 } else {
-                                warningMsg(data.msg);
+                                    warningMsg(data.msg);
                                 }
                             })
                             .catch((error) => {
@@ -162,6 +162,101 @@
                 </script>
             {% endif %}
             <a href="{% url 'member_payment_form' membership_package.organisation_name member.id %}"><button class="btn btn-success float-right">Add Payment</button></a>
+
+            <button type="button" class="btn btn-success float-right mr-1" data-toggle="modal" data-target="#paymentModal">
+                Take Card Payment
+            </button>
+
+            <!-- Modal -->
+            <div class="modal fade" id="paymentModal" tabindex="-1" role="dialog" aria-labelledby="paymentModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="paymentModalLabel">Take a One Off Card Payment</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>
+                    <div class="modal-body">
+                    <!-- Payment Form -->
+                    <p>Enter an amount below to take as a card payment from <strong>{{ subscription.member.user_account.get_full_name }}</strong></p>
+                    <form id="payment-form" method="post" action="{% url 'create_card_payment' subscription.id %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="amount">Amount</label>
+                            <div class="input-group">
+                              <div class="input-group-prepend">
+                                <span class="input-group-text">£</span>
+                              </div>
+                              <input type="text" class="form-control" id="amount" name="amount" required>
+                            </div>
+                            <small>e.g. 5.20 or 0.95</small>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success">Process Payment</button>
+                          </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Confirmation Modal -->
+            <div class="modal fade" id="confirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                    <h5 class="modal-title" id="confirmationModalLabel">Confirm Payment</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>
+                    <div class="modal-body">
+                    Are you sure you want to process this payment?
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmPayment">Confirm</button>
+                    </div>
+                </div>
+                </div>
+            </div>
+            <script>
+                $(document).ready(function() {
+                    var form = $('#payment-form');
+
+                    form.on('submit', function(event) {
+                        event.preventDefault(); // Prevent the default form submission
+                        $('#confirmationModal').modal('show'); // Show the confirmation modal
+                    });
+                    $('#confirmPayment').click(function() {
+                        $.ajax({
+                            type: 'POST',
+                            url: form.attr('action'),
+                            data: form.serialize(),
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.status === 'success') {
+                                    // Handle success
+                                    infoMsg('Payment Success!')
+                                    $('#paymentModal').modal('hide');
+                                    $('.modal-backdrop').remove();
+                                    table.ajax.reload(null, false);
+                                } else {
+                                    // Handle error
+                                    errorMsg(response.message)
+                                    $('#paymentModal').modal('hide');
+                                    $('.modal-backdrop').remove();
+                                    table.ajax.reload(null, false);
+                                }
+                            },
+                            error: function() {
+                                alert('An error occurred while processing the payment.');
+                                // Additional error handling code here
+                            }
+                        });
+                    });
+                });
+            </script>
         </div>
     </div>
 </div>
@@ -313,6 +408,40 @@
         var deletePayment = function (member_id, payment_id) {
             $('#delete-payment-modal').modal('show');
             $('#deletePaymentUrl').attr("href", "/membership/delete-payment/{{ membership_package.organisation_name }}/" + member_id + '/' + payment_id + '/?next=member_payments');
+        }
+    </script>
+    <script>
+        function retryPayment(memberId, paymentId) {
+            // Example of showing a confirmation modal
+            if (confirm(`Are you sure you want to retry this payment?`)) {
+                // If confirmed, make an AJAX request to Django server
+                fetch("{% url 'retry_payment' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ member_id: memberId, payment_id: paymentId })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle the response data
+                    if (data.status === 'success') {
+                        // Success handling
+                        infoMsg(data.message);
+                        table.ajax.reload(null, false); // false means stay on the current page
+                    } else if (data.status === 'error') {
+                        // Error handling
+                        errorMsg(data.message);
+                    } else {
+                        // Handling other unknown cases
+                        errorMsg('Unexpected response:' + data);
+                    }
+                })
+                .catch(error => {
+                    // Handle any error
+                    errorMsg(error);
+                });
+            }
         }
     </script>
 {% endblock %}
