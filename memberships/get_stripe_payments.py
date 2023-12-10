@@ -7,7 +7,7 @@ import stripe
 from json import loads
 from datetime import datetime
 
-debug = True
+debug = False
 if debug:
     sys.path.append('/opt/memberships/dev-memberships')
 else:
