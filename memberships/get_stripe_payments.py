@@ -57,12 +57,14 @@ class GetStripePayments:
                         # outside of a subscription i.e. one off payments
                         stripe_id = payment['id']
                         amount = payment['amount_due']
+                        pprint(payment)
                         intent = stripe.PaymentIntent.retrieve(payment['payment_intent'], stripe_account=sub.membership_package.stripe_acct_id)
                         created = datetime.fromtimestamp(intent['created'])
                         dj_price, was_created = Payment.objects.get_or_create(stripe_id=stripe_id,
                                                                               defaults={'subscription': subscription,
                                                                                         'payment_number': payment_number,
                                                                                         'type': 'one off',
+                                                                                        'comments': payment['lines']['data'][0]['description'],
                                                                                         'amount': amount,
                                                                                         'created': created})
                         continue

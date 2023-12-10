@@ -2401,8 +2401,9 @@ def member_payments(request, title, pk):
 def create_card_payment(request, sub_id):
     subscription = MembershipSubscription.objects.get(id=sub_id, canceled=False)
     amount = request.POST.get('amount')  # Amount in cents
+    description = request.POST.get('description')
 
-    result = create_subscription_payment(request, subscription, amount)
+    result = create_subscription_payment(request, subscription, amount, description)
     GetStripePayments(subscription.id).run()
     return HttpResponse(dumps(result))
 
@@ -2436,12 +2437,14 @@ def retry_payment(request):
                                          stripe_account=payment.subscription.membership_package.stripe_acct_id)
 
                 GetStripePayments(payment.subscription.id).run()
+                #email_payment_receipt(request, payment.id)
                 return JsonResponse({'status': 'success', 'message': 'Invoice payment retry initiated successfully.'})
 
             else:
                 return JsonResponse({'status': 'error', 'message': 'Invoice is not in a payable state. status: invoice.status'}, status=400)
 
         except stripe.error.StripeError as e:
+            print(f'THIS!!!!: {e}')
             # Handle Stripe errors
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
         except Exception as e:
@@ -2631,7 +2634,6 @@ def email_payment_receipt(request, payment_id):
             or copy the below URL into your browser.
             {invoice.hosted_invoice_url}
             """
-            
         else:
             # send email
             amount = float(payment.amount) / 100

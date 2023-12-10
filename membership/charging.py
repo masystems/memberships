@@ -116,7 +116,7 @@ def get_subscription(request, subscription):
     )
 
 
-def create_subscription_payment(request, subscription, amount):
+def create_subscription_payment(request, subscription, amount, description):
     stripe.api_key = get_stripe_secret_key(request)
     try:
         amount_in_pennies = int(float(amount) * 100)
@@ -131,7 +131,7 @@ def create_subscription_payment(request, subscription, amount):
             customer=subscription.stripe_id,
             amount=amount_in_pennies,
             currency='gbp',
-            description='Additional charge',
+            description=description,
             stripe_account=subscription.membership_package.stripe_acct_id
         )
 
