@@ -128,7 +128,7 @@ class Payment(models.Model):
     )
     type = models.CharField(max_length=25, choices=TYPE, null=True, default='subscription', verbose_name="Payment Type")
     amount = models.CharField(max_length=255, blank=True)
-    comments = models.TextField(blank=True)
+    comments = models.TextField(null=True, blank=True)
     created = models.DateField(default=datetime.now)
     gift_aid = models.BooleanField(default=False)
     gift_aid_percentage = models.CharField(max_length=255, blank=True)
