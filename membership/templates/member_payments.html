@@ -206,7 +206,7 @@
                                     <input type="number" class="form-control" id="quantity" name="quantity" required>
                                 </div>
                                 <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                                <button type="submit" class="btn btn-success">Send</button>
+                                <button type="submit" class="btn btn-success" id="sendpaymentButton">Send</button>
                             </form>
                         </div>
             
@@ -221,6 +221,9 @@
             <script>
                 document.getElementById('sendpaymentForm').addEventListener('submit', function(e) {
                 e.preventDefault();
+
+                // Disable the send button
+                document.getElementById('sendpaymentButton').disabled = true;
 
                 var itemName = document.getElementById('itemName').value;
                 var price = document.getElementById('price').value;
@@ -242,15 +245,13 @@
                     if (data.status === 'success') {
                         // Handle success
                         infoMsg(data.message);
-                        $('#sendpaymentModal').modal('hide');
-                        $('.modal-backdrop').remove();
                     } else {
                         // Handle error
                         errorMsg(data.message);
-                        $('#sendpaymentModal').modal('hide');
-                        $('.modal-backdrop').remove();
                     }
                     $('#sendpaymentModal').modal('hide');
+                    $('.modal-backdrop').remove();
+                    document.getElementById('sendpaymentButton').disabled = true;
                 })
                 .catch(error => console.error('Error:', error));
                 });
