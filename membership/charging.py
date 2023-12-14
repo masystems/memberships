@@ -150,3 +150,51 @@ def create_subscription_payment(request, subscription, amount, description):
         return {'status': 'error', 'message': str(e)}
     except ValueError:
         return {'status': 'error', 'message': 'Ensure amount is e.g. 5.95 or 10'}
+
+
+def generate_payment_link(request, subscription, item_name, price, quantity):
+    stripe.api_key = get_stripe_secret_key(request)
+
+    # Fetch a list of products
+    products = stripe.Product.list(limit=10,
+                                   stripe_account=subscription.membership_package.stripe_acct_id)  # Adjust the limit as needed
+
+    # Filter products to find the matching one
+    product = next((p for p in products.auto_paging_iter() if p.name == item_name), None)
+
+    if product is None:
+        # Product does not exist, create a new one
+        product = stripe.Product.create(name=item_name,
+                                        stripe_account=subscription.membership_package.stripe_acct_id)
+    else:
+        # Create a new product
+        product = stripe.Product.create(name=item_name,
+                                        stripe_account=subscription.membership_package.stripe_acct_id)
+
+    # Check if the price already exists
+    prices = stripe.Price.list(product=product.id,
+                               active=True,
+                               stripe_account=subscription.membership_package.stripe_acct_id)
+
+    existing_price = None
+    for p in prices.data:
+        if p.unit_amount == price and p.currency == 'gbp':
+            existing_price = p
+            break
+
+    if not existing_price:
+        # Create a price for the product
+        existing_price = stripe.Price.create(
+            unit_amount=price,
+            currency='gbp',
+            product=product.id,
+            stripe_account=subscription.membership_package.stripe_acct_id
+        )
+
+    # Create a payment link
+    payment_link = stripe.PaymentLink.create(
+        line_items=[{'price': existing_price.id, 'quantity': quantity}],
+        stripe_account=subscription.membership_package.stripe_acct_id
+    )
+
+    return payment_link.url

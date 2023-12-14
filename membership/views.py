@@ -2408,6 +2408,35 @@ def create_card_payment(request, sub_id):
     return HttpResponse(dumps(result))
 
 
+@require_POST
+@login_required(login_url='/accounts/login/')
+def create_payment_link(request, sub_id):
+    subscription = MembershipSubscription.objects.get(id=sub_id, canceled=False)
+
+    data = json.loads(request.body)
+    item_name = data['itemName']
+    price = int(float(data['price']) * 100)  # Convert to cents
+    quantity = data['quantity']
+
+    payment_link = generate_payment_link(request, subscription, item_name, price, quantity)
+
+    # Send email with payment link
+    body = f"""<p>{subscription.membership_package.organisation_name} have sent you a payment link.
+                <p>Payment details:</p>
+                <ul>
+                    <li>Item: {item_name}</li>
+                    <li>Price: £{'{:.2f}'.format(int(price) / 100)}</li>
+                    <li>Quantity: {quantity}</li>
+                </ul>
+                <p>Click <a href="{payment_link}">HERE</a> to follow payment link</p>
+            """
+    send_email(f"Cloud-Lines Memberships Payment Link: {subscription.membership_package.organisation_name}",
+            subscription.membership_package.owner.get_full_name(), body, send_to=subscription.member.user_account.email)
+
+    return JsonResponse({'status': 'success', 'message': 'Payment link created and emailed!'})
+
+
+
 @csrf_exempt
 @require_POST
 @login_required(login_url='/accounts/login/')
