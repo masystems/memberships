@@ -42,7 +42,7 @@
                 </div>
 
             {% endif %}
-            {% if account_link %}
+            {% if account_errors_link %}
                 <div class="alert alert-warning float-right" role="alert">
                     <i class="dripicons-wrong mr-2"></i> <strong>Notice!</strong> Please head to Stripe for more information.
                 </div>
@@ -70,14 +70,16 @@
                     <hr>
                     <div class="d-md-flex no-block">
                         <div class="ml-auto">
-                            {% if stripe_package_setup %}
-                            <a href="{{ stripe_package_setup.url }}">
-                                <button type="button" class="btn btn-warning mb-2" style="width: 100%">
-                                    Continue Setup on Stripe
-                                </button>
-                            </a>
-                            {% elif account_link %}
-                                <a href="{{ account_link.url }}">
+                            {% if not membership_package.stripe_acct_id %}
+                                {% include 'setup_stripe_account.html' %}
+                            {% elif edit_account %}
+                                <a href="{{ edit_account.url }}">
+                                    <button type="button" class="btn btn-warning mb-2" style="width: 100%">
+                                        Stripe Account
+                                    </button>
+                                </a>
+                            {% elif account_errors_link %}
+                                <a href="{{ account_errors_link.url }}">
                                     <button type="button" class="btn btn-warning mb-2" style="width: 100%">
                                         Action Required on Stripe
                                     </button>

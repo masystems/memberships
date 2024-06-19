@@ -1,0 +1,85 @@
+{% load static %}
+
+
+    <!-- Trigger Modal Button -->
+    <button type="button" class="btn btn-success float-right mr-2" data-toggle="modal" data-target="#accountSetupModal">
+        Setup Stripe Account
+    </button>
+
+    <!-- Modal -->
+    <div class="modal fade" id="accountSetupModal" tabindex="-1" role="dialog" aria-labelledby="accountSetupModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="accountSetupModalLabel">Stripe Account Setup</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="{% url 'setup_connect_account' %}" method="POST">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <!-- Country Input with Typeahead -->
+                        <div class="form-group">
+                            <label for="country">Country</label>
+                            <input type="text" class="form-control typeahead" id="country" name="country" required>
+                            <small>Start typing your country</small>
+                        </div>
+                        <!-- Business Type Select -->
+                        <div class="form-group">
+                            <label for="businessType">Business Type</label>
+                            <select class="form-control" id="businessType" name="businessType" required>
+                                <option value="individual">Individual</option>
+                                <option value="company">Company</option>
+                                <option value="non_profit">Non Profit</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-success">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<!-- Typehead Plugin JavaScript -->
+<script src="{% static 'assets/plugins/typeahead.js-master/dist/typeahead.bundle.min.js' %}"></script>
+<script>
+    // Typeahead Initialization Script
+    var substringMatcher = function(strs) {
+        return function findMatches(q, cb) {
+            var matches, substringRegex;
+
+            // an array that will be populated with substring matches
+            matches = [];
+
+            // regex used to determine if a string contains the substring `q`
+            substrRegex = new RegExp(q, 'i');
+
+            // iterate through the pool of strings and for any string that
+            // contains the substring `q`, add it to the `matches` array
+            $.each(strs, function(i, str) {
+            if (substrRegex.test(str)) {
+                matches.push(str);
+            }
+            });
+
+            cb(matches);
+        };
+    };
+
+    var countries = {{ countries | safe }};
+    console.log(countries)
+    $('.typeahead').typeahead({
+        hint: true,
+        highlight: true,
+        minLength: 0
+    },
+    {
+        name: 'country',
+        source: substringMatcher(countries),
+    }).val('United Kingdom').trigger('change');
+
+</script>

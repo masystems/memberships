@@ -13,6 +13,7 @@ from memberships.functions import *
 from memberships.get_stripe_payments import GetStripePayments
 from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Equine
 from .charging import *
+from .currencies import get_countries
 from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
 from .cl_sync import *
 from json import dumps, loads, JSONDecodeError
@@ -628,12 +629,13 @@ class MembershipPackageView(LoginRequiredMixin, MembershipBase):
                 context['edit_account'] = stripe.Account.create_login_link(context['membership_package'].stripe_acct_id)
             except stripe.error.InvalidRequestError:
                 # stripe account created but not setup
-                context['stripe_package_setup'] = get_account_link(context['membership_package'])
+                #context['stripe_package_setup'] = get_account_link(context['membership_package'])
+                pass
             if context['stripe_package'].requirements.errors:
-                context['account_link'] = get_account_link(context['membership_package'])
-        else:
-            # stripe account not setup
-            context['stripe_package_setup'] = create_package_on_stripe(self.request)
+                context['edit_account'] = False
+                context['account_errors_link'] = get_account_link(context['membership_package'])
+
+        context['countries'] = get_countries()
 
         # get active members with overdue subscriptions
         context['overdue_members'] = {}
