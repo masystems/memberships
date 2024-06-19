@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from . import tabledata
 from . import reports
+from . import charging
 
 urlpatterns = [
     path('', views.SelectMembershipPackageView.as_view(), name="membership"),
@@ -54,5 +55,5 @@ urlpatterns = [
     path('enable_subscription/<int:sub_id>', views.enable_subscription, name='enable_subscription'),
     path('update_card/<int:sub_id>', views.update_card, name='update_card'),
     path('update-card-success/<int:sub_id>/', views.update_card_succeeded, name='update_card_succeeded'),
-
+    path('setup_connect_account', charging.setup_connect_account, name='setup_connect_account'),
 ]
