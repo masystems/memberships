@@ -924,9 +924,15 @@ def org_charging_session(request, membership_package):
 
     # get package IDs
     if request.user.is_superuser:
-        price_id = settings.MEMBERSHIP_ORG_PRICE_TEST_ID
+        if membership_package.payment_increments == 'monthly':
+            price_id = settings.MEMBERSHIP_ORG_PRICE_TEST_ID
+        else:
+            price_id = settings.MEMBERSHIP_ORG_YEARLY_PRICE_TEST_ID
     else:
-        price_id = settings.MEMBERSHIP_ORG_PRICE_ID
+        if membership_package.payment_increments == 'monthly':
+            price_id = settings.MEMBERSHIP_ORG_PRICE_ID
+        else:
+            price_id = settings.MEMBERSHIP_ORG_YEARLY_PRICE_ID
 
     # get or create customer
     if not membership_package.stripe_owner_id:
@@ -944,6 +950,7 @@ def org_charging_session(request, membership_package):
             name=request.user.get_full_name(),
             email=request.user.email
         )
+    
 
     # create session
     session = stripe.checkout.Session.create(
