@@ -24,6 +24,13 @@ class MembershipPackage(models.Model):
     )
     business_type = models.CharField(max_length=19, choices=BUSINESS_TYPE, default='individual',
                                 help_text="Select your business type")
+    INCREMENTS = (
+        ('monthly', 'Monthly'),
+        ('yearly', 'Yearly'),
+    )
+    payment_increments = models.CharField(max_length=12, choices=INCREMENTS, null=True, default='monthly',
+                              help_text="In what increments your payments are made")
+    
     custom_fields = models.TextField(blank=True)
     cloud_lines_domain = models.CharField(max_length=100, blank=True, default='cloud-lines.com',
                                            help_text="Link your membership account to your cloud-lines account")
