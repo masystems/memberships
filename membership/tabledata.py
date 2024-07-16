@@ -8,7 +8,6 @@ from json import dumps, loads, JSONDecodeError
 import stripe
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from membership.currencies import get_currencies
 
 
 def get_members_detailed(request, title):
@@ -509,7 +508,6 @@ def get_all_member_payments(request, title):
             email_receipt = ''
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
-                print(payment)
                 amount = "%.2f" % (float(payment.amount)/100)
             # handle when payment amount is empty
             else:
