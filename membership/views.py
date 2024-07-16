@@ -480,7 +480,7 @@ def manage_account(request, title):
     stripe.api_key = get_stripe_secret_key(request)
 
     stripe_package = stripe.Account.retrieve(membership_package.stripe_acct_id)
-    print(stripe_package)
+
     if stripe_package.charges_enabled and stripe_package.payouts_enabled and stripe_package.details_submitted:
         stripe_account_warning = False
     else:
@@ -1015,7 +1015,7 @@ def payment_reminder(request, title, pk):
                         {outstanding_string}
                         <ul>
                             <li>Membership Organisation: {membership_package.organisation_name}</li>
-                            <li>Next Payment: £{"{:.2f}".format(int(subscription.price.amount) / 100)} due by {datetime.fromtimestamp(stripe_subscription.current_period_end)}.</li>
+                            <li>Next Payment: {"{:.2f}".format(int(subscription.price.amount) / 100)} due by {datetime.fromtimestamp(stripe_subscription.current_period_end)}.</li>
                             <li>Payment Method: {temp_payment_method}</li>
                             <li>Payment Interval: {subscription.price.interval}</li>
                         </ul>
@@ -1032,7 +1032,7 @@ def payment_reminder(request, title, pk):
             body = f"""<p>This is a reminder for you to pay for your subscription to {membership_package.organisation_name}.</p>
                         <ul>
                             <li>Membership Organisation: {membership_package.organisation_name}</li>
-                            <li>Amount Due: £{"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
+                            <li>Amount Due: {"{:.2f}".format(int(subscription.price.amount) / 100)}</li>
                             <li>Payment Method: {payment_method.payment_name}</li>
                             <li>Payment Interval: {subscription.price.interval}</li>
                             {payment_info_string}
@@ -1885,11 +1885,11 @@ def update_membership_type(request, title, pk):
 
             # send email to owner
             if price.interval == 'one_time':
-                price_string = 'One Time Price: £'
+                price_string = 'One Time Price: '
             elif price.interval == 'year':
-                price_string = 'Price Per Year: £'
+                price_string = 'Price Per Year: '
             else:
-                price_string = 'Price Per Month: £'
+                price_string = 'Price Per Month: '
             body = f"""<p>Congratulations, a new member has subscribed to your Cloud-Lines Memberships package - {package.organisation_name}.
                                         <p>New member details:</p>
                                         <ul>
@@ -2065,11 +2065,11 @@ def enable_subscription(request, sub_id):
 
     # send email to owner
     if subscription.price.interval == 'one_time':
-        subscription.price_string = 'One Time Price: £'
+        subscription.price_string = 'One Time Price: '
     elif subscription.price.interval == 'year':
-        subscription.price_string = 'Price Per Year: £'
+        subscription.price_string = 'Price Per Year: '
     else:
-        subscription.price_string = 'Price Per Month: £'
+        subscription.price_string = 'Price Per Month: '
     body = f"""<p>Congratulations, a new member has subscribed to your Cloud-Lines Memberships package - {subscription.membership_package.organisation_name}.
                                 <p>New member details:</p>
                                 <ul>
@@ -2434,7 +2434,7 @@ def create_payment_link(request, sub_id):
                 <p>Payment details:</p>
                 <ul>
                     <li>Item: {item_name}</li>
-                    <li>Price: £{'{:.2f}'.format(int(price) / 100)}</li>
+                    <li>Price: {'{:.2f}'.format(int(price) / 100)}</li>
                     <li>Quantity: {quantity}</li>
                 </ul>
                 <p>Click <a href="{payment_link}">HERE</a> to follow payment link</p>
