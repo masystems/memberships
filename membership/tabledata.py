@@ -1,15 +1,14 @@
-from django.shortcuts import render, redirect, HttpResponse, HttpResponseRedirect, get_object_or_404, reverse
+from django.shortcuts import HttpResponse, reverse
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from memberships.functions import *
 from .charging import *
-from .models import MembershipPackage, Price, PaymentMethod, Member, Payment, MembershipSubscription, Donation
-from .forms import MembershipPackageForm, MemberForm, PaymentForm, EquineForm
+from .models import MembershipPackage, Member, Payment, MembershipSubscription, Donation
 from json import dumps, loads, JSONDecodeError
 import stripe
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from .views import get_overdue_and_next
+from membership.currencies import get_currencies
 
 
 def get_members_detailed(request, title):
@@ -510,7 +509,8 @@ def get_all_member_payments(request, title):
             email_receipt = ''
             # get the amount as a variable so it can be converted to the correct format to be displayed
             if payment.amount:
-                amount = "£%.2f" % (float(payment.amount)/100)
+                print(payment)
+                amount = "%.2f" % (float(payment.amount)/100)
             # handle when payment amount is empty
             else:
                 amount = ''
@@ -634,6 +634,7 @@ def get_member_payments(request, title, pk=None):
             if payment.payment_method:
                 method = payment.payment_method.payment_name
                 status = ''
+                retry_payment = ''
             else:
                 method = 'Card Payment'
                 # lookup stripe data
