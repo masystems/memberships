@@ -120,7 +120,7 @@
                                 </div>
                                 <hr>
                                 <h3 class="text-dark">Invoices</h3>
-                                {% if request.user.email == stripe_package.email %}
+                                {% if request.user.email == stripe_package.email or request.user.is_superuser %}
                                 <div class="table-responsive">
                                     <table class="table table-bordered nowrap display" id="accountDetailsTable">
                                         <thead>
