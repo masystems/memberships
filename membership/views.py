@@ -897,7 +897,22 @@ def organisation_payment(request):
 
 @login_required(login_url='/accounts/login/')
 def organisation_payment_success(request):
+    stripe.api_key = get_stripe_secret_key(request)
     membership_package = MembershipPackage.objects.get(owner=request.user)
+    session_id = request.GET.get('session_id')
+    try:
+        session = stripe.checkout.Session.retrieve(
+            session_id,
+        )
+    except stripe.error.StripeError as e:
+        # Handle error
+        return JsonResponse({'error': str(e)}, status=400)
+
+    if session.payment_status == 'paid':
+        # Session was successful
+        # update the users attached service to be active
+        membership_package.stripe_subscription_id = session.get("subscription", None)
+
     membership_package.enabled = True
     membership_package.save()
 
@@ -963,7 +978,7 @@ def org_charging_session(request, membership_package):
         ],
         mode='subscription',
         customer=customer.id,
-        success_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}/membership/organisation_payment_success",
+        success_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}/membership/organisation_payment_success?session_id={{CHECKOUT_SESSION_ID}}",
         cancel_url=f"{settings.HTTP_PROTOCOL}://{request.META['HTTP_HOST']}",
     )
 
