@@ -145,13 +145,13 @@
                                                     {% if details.subscription.plan.interval == "month" %}
                                                         <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
                                                             <p class="text-muted">
-                                                                £{{ subscription.price.amount|price }}
+                                                                {{ subscription.price.amount|price }} {{ subscription.price.currency|upper }}
                                                             </p>
                                                         </div>
                                                     {% else %}
                                                         <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Year</strong>
                                                             <p class="text-muted">
-                                                                £{{ subscription.price.amount|price }}
+                                                                {{ subscription.price.amount|price }} {{ subscription.price.currency|upper }}
                                                             </p>
                                                         </div>
                                                     {% endif %}
@@ -201,19 +201,19 @@
                                             {% if subscription.price.interval == "month" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Month</strong>
                                                     <p class="text-muted">
-                                                        £{{ subscription.price.amount|price }}
+                                                        {{ subscription.price.amount|price }} {{ subscription.price.currency|upper }}
                                                     </p>
                                                 </div>
                                             {% elif subscription.price.interval == "year" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price Per Year</strong>
                                                     <p class="text-muted">
-                                                        £{{ subscription.price.amount|price }}
+                                                        {{ subscription.price.amount|price }} {{ subscription.price.currency|upper }}
                                                     </p>
                                                 </div>
                                             {% elif subscription.price.interval == "one_time" %}
                                                 <div class="col-md-3 col-xs-6 b-r"> <strong>Price</strong>
                                                     <p class="text-muted">
-                                                        £{{ subscription.price.amount|price }}
+                                                        {{ subscription.price.amount|price }} {{ subscription.price.currency|upper }}
                                                     </p>
                                                 </div>
                                             {% endif %}
