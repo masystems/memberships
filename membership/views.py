@@ -499,13 +499,43 @@ def manage_account(request, title):
         invoices = stripe.Invoice.list(subscription=subscription, limit=100)
     else:
         invoices = []
+    
+    payouts = []
+    response = stripe.Payout.list(
+        stripe_account=membership_package.stripe_acct_id,
+        limit=100,  # Adjust the limit as needed
+    )
 
+    for payout in response['data']:
+        # Retrieve destination details if the destination is a bank account or card
+        destination_id = payout.get('destination')
+        destination_details = None
+
+        if destination_id:
+            if destination_id.startswith('ba_'):
+                # Correct method for retrieving external account details
+                destination_details = stripe.Account.retrieve_external_account(
+                    membership_package.stripe_acct_id,  # Connected account ID
+                    destination_id  # External account ID
+                )
+            elif destination_id.startswith('card_'):
+                # Retrieve card details (ensure `stripe_account` is passed correctly)
+                destination_details = stripe.Account.retrieve_external_account(
+                    membership_package.stripe_acct_id,
+                    destination_id
+                )
+
+    # Add the destination details to the payout object
+    payout['destination_details'] = destination_details
+    payouts.append(payout)
+    print(payouts)
     return render(request, 'manage-account.html', {
                                                     'membership_package': membership_package,
                                                     'edit_account': edit_account,
                                                     'stripe_package': stripe_package,
                                                     'members': members,
                                                     'invoices': invoices,
+                                                    'payouts': payouts,
                                                     'stripe_account_warning': stripe_account_warning
                                                   })
 
