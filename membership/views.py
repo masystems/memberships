@@ -528,7 +528,6 @@ def manage_account(request, title):
     # Add the destination details to the payout object
     payout['destination_details'] = destination_details
     payouts.append(payout)
-    print(payouts)
     return render(request, 'manage-account.html', {
                                                     'membership_package': membership_package,
                                                     'edit_account': edit_account,
